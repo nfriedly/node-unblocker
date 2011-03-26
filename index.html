@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>node-unblocker</title>
+</head>
+<body>
+	<form action="/proxy/no-js" method="get" id="unblocker-form">
+		<p>
+			<input type="text" id="url" name="url" />
+			<input type="submit" value="Go" />
+		</p>
+	</form>
+
+	<script>
+		function $(id){
+			return document.getElementById(id);
+		}
+		
+		$('unblocker-form').onsubmit = function(){
+			window.location.pathname = "/proxy/" + $('url').value;
+			return false;
+		}
+	</script>
+</body>
+</html>
