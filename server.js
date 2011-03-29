@@ -14,6 +14,7 @@ todo:
  - add error handeling
  - cookies
  - fix url fixer
+ - handle gzipped data - http://stackoverflow.com/questions/4594654/node-js-proxy-dealing-with-gzip-decompression
  - look into npm
 */
 
@@ -22,7 +23,8 @@ var http = require('http'),
 	url = require('url'),
 	querystring = require('querystring'),
 	path = require("path"),
-	fs = require("fs");
+	fs = require("fs"),
+	compress = require('compress'); // https://github.com/waveto/node-compress or "npm install compress"
 
 // configuration
 var host = null, // this will be automatically determined if left null, but it's faster to specify it
@@ -85,10 +87,11 @@ var server = http.createServer(function(request, response){
 
 
 var portmap 		= {"http:":80,"https:":443},
-	re_html_url 	= /("|'|=)(http)/ig, // "http, 'http, or =http (no :// so that it matches http & https)
-	re_html_auto 	= /("|'|=)(\/\/)/ig, // matches //site.com style urls where the protocol is auto-sensed
-	re_html_relative = /((href|src)=['"]{0,1})(\B)/ig, // matches src="asdf/adf" // this also matches http:// :(
+	re_abs_url 	= /("|'|=)(http)/ig, // "http, 'http, or =http (no :// so that it matches http & https)
+	re_abs_no_proto 	= /("|'|=)(\/\/)/ig, // matches //site.com style urls where the protocol is auto-sensed
 	re_html_rel_root = /((href|src)=['"]{0,1})(\/\B)/ig, // matches src="/asdf/asdf"
+	
+	// no need to match href="asdf/adf" relative links - those will work without modification
 	
 	re_html_partial = /("|'|=)[ht]{1,3}$/ig, // ', ", or = followed by one to three h's and t's at the end of the line
 	
@@ -113,7 +116,13 @@ function proxy(request, response) {
 	delete headers.host;
 	delete headers.cookie;
 	
-	// todo: add any cookies appropriate to the response
+	// overwrite the referer with the correct referer
+	if(request.headers.referer){
+		headers.referer = getRealUrl(request.headers.referer);
+	}
+	
+	
+	// todo: store any cookies from the request and add any cookies appropriate to the response
 	
 	var options = {
 		host: uri.host,
@@ -124,42 +133,61 @@ function proxy(request, response) {
 	}
 	
 	var remote_request = http.request(options, function(remote_response){
+	
+		// todo: filter & store any cookies in the headers
+		
+		// make a copy of the headers to fiddle with
+		var headers = copy(remote_response.headers);
+		
+		//console.log('headers: ', headers);
+		
+		var ct = (headers['content-type'] || "unknown").split(";")[0];
+		
+		var needs_parsed = ([
+			'text/html', 
+			'application/xml+xhtml', 
+			'application/xhtml+xml',
+			'text/css', 
+			'text/javascript', 
+			'application/javascript',
+			'application/x-javascript'
+		].indexOf(ct) != -1);
+		
+		// if we might be modifying the response, nuke any content-length headers
+		if(needs_parsed){
+			delete headers['content-length'];
+		}
+		
+	
+		var needs_decoded = (needs_parsed && headers['content-encoding'] == 'gzip');
+		
+		// we're going to de-gzip it, so nuke that header
+		if(needs_decoded){
+			delete headers['content-encoding'];
+		}
+		
+		// fix absolute path redirects 
+		// (relative redirects will be 302'd to the correct path, and they're disallowed by the RFC anyways
+		if(headers.location && headers.location.substr(0,4) == 'http'){
+			headers.location = thisSite(request) + "/" + headers.location;
+			console.log("fixing redirect");
+		}
+		
+		//  fire off out (possibly modified) headers
+		response.writeHead(remote_response.statusCode, headers);
+		
+		console.log("content-type: " + ct);
+		console.log("needs_parsed: " + needs_parsed);
+		console.log("needs_decoded: " + needs_decoded);
+		
 		
 		// some parsers will need to delay a chunk if it can't tell wether or not 
 		// it ends on data that needs to be modified
 		var last_chunk;
 		
-		// we need to know the "folder" so that relative urls can be rewritten as absolute ones
-		var folder = "";
-		if(uri.pathname.substr(-1) == "/"){
-			folder = uri.pathname;
-		} else {
-			var bits = uri.pathname.split("/");
-			if(bits.length == 1){
-				folder = "/";
-			} else {
-				bits.pop();
-				folder = bits.join("/") + "/";
-			}
-		}
-		
-		var parsers = {
-			'passthrough': 	function(chunk){ response.write(chunk, 'binary'); },
-			'text/html': 	function(chunk){ parseChunk(chunk, [
-				{pattern: re_html_url, 		replacement: "$1" + thisSite(request) + "/$2"},
-					{pattern: re_html_auto, 	replacement: "$1" + thisSite(request) + "/" + uri.protocol + "$2"}//,
-					//{pattern: re_html_relative, replacement: "$1" + thisSite(request) + folder + "$2"},
-					//{pattern: re_html_rel_root, replacement: "$1" + thisSite(request) + uri.protocol + uri.host + "$2"}
-				
-				], re_html_partial); },
-			//'text/css': 	function(chunk){ parseChunk(chunk, [
-			//		{pattern: re_css_url, 		replacement: "$1" + thisSite(request) + "/$2"}
-			//	], re_css_partial); }
-		}
-		
-		// parses the chunk with the given regex's, send it out unless it ends in a partial match
-		function parseChunk(chunk, main_res, re_end){
-			console.log("data event", request.url);
+		function parse(chunk){
+			//console.log("data event", request.url, chunk.toString());
+			
 			// stringily our chunk and grab the previous chunk (if any)
 			chunk = chunk.toString();
 			
@@ -169,10 +197,9 @@ function proxy(request, response) {
 			}
 		
 			// first replace any complete urls
-			for(var i=0; i<main_res.length; i++){
-				var re = main_res[i];
-				chunk = chunk.replace(re.pattern, re.replacement);
-			}
+			chunk = chunk.replace(re_abs_url, "$1" + thisSite(request) + "/$2");
+			chunk = chunk.replace(re_abs_no_proto, "$1" + thisSite(request) + "/" + uri.protocol + "$2");
+			// todo: check for domain-relative urls (optional, but a smart performance enhancement)
 			
 			// second, check if any urls are partially present in the end of the chunk,
 			// and buffer the chunk if so; otherwise pass it along
@@ -180,43 +207,43 @@ function proxy(request, response) {
 				last_chunk = chunk;
 			} else {
 				response.write(chunk);
-			}		
+			}
 		}
 		
-		// find the content-type so that we know which parser to use
-		var ct = remote_response.headers['content-type'] || "text/html";
-		ct = ct.split(";")[0];
 		
-		// if we have a parser for the given content-type, use it. If not, use the passthrough function
-		var parser = parsers[ct] || parsers.passthrough;
-		
-		remote_response.addListener('data', parser);
+		// if we're dealing with gzipped input, set up a stream decompressor to handle output
+		if(needs_decoded) {
+			var gunzip = new compress.Gunzip;
+			gunzip.init();
+		}
 
-			
-		// todo: correct any redirects in the headers
-		// todo: filter & store any cookies in the headers
-		
-		// make a copy of the headers to fiddle with
-		var headers = copy(remote_response.headers);
-		
-		// if we might be modifying the response, nuke any content-length headers
-		if(parser != parsers.passthrough){
-			delete headers['content-length'];
-		}
-		
-		// and fire off out (possibly modified) headers
-		response.writeHead(remote_response.statusCode, headers);
+		// set up a listener for when we get data from the remote server - parse/decode as necessary
+		remote_response.addListener('data', function(chunk){
+			if(needs_parsed) {
+				if(needs_decoded){
+					chunk = gunzip.inflate(chunk.toString('binary'));
+				}
+				parse(chunk);		
+			} else {
+				response.write(chunk);
+			}
+		});
 
 		// clean up the connection and send out any orphaned chunk
 		remote_response.addListener('end', function() {
 			console.log("end event!", request.url);
+			if(needs_decoded){
+				parse(gunzip.end());
+			}
 			if(last_chunk){
 				response.write(last_chunk);
 				last_chunk = undefined;
 			}
-		  	response.end();
+			response.end();
 		  	decrementRequests();
 		});
+		
+
 		
 	});
 	
@@ -263,14 +290,14 @@ function handleUnknown(request, response){
 	
 	var ref = url.parse(request.headers.referer);
 	
-	// if we couldn't parse the referrer or they came from another host, they send them to the home page
+	// if we couldn't parse the referrer or they came from another site, they send them to the home page
 	if(!ref || ref.host != thisHost(request)){
 		return redirectTo(request, response, ""); // "" because we don't want a trailing slash
 	}
 	
 	// now we know where they came from, so we can do something for them
 	if(ref.pathname.indexOf('/proxy/http') == 0){
-		var real_url = url.parse(getRealUrl(ref));
+		var real_url = url.parse(getRealUrl(ref.pathname));
 		
 		// now, take the requested pat on the previous known host and send the user on their way
 		return redirectTo(request, response, real_url.protocol +"//"+ real_url.host + request.url);
