@@ -26,8 +26,9 @@ var http = require('http'),
 	querystring = require('querystring'),
 	path = require("path"),
 	fs = require("fs"),
-	compress = require('compress'); // https://github.com/waveto/node-compress or "npm install compress"
-
+	compress = require('compress'), // gzip - https://github.com/waveto/node-compress or "npm install compress"
+	session = require('./simple-session');
+	
 // configuration
 var host = null, // this will be automatically determined if left null, but it's faster to specify it
 	includePortInRedirect = true, // false if you're running a reverse proxy (such as nginx)
@@ -59,6 +60,7 @@ var server = http.createServer(function(request, response){
 	// only requests that start with this get proxied - the rest get 
 	// redirected to either a url that matches this or the home page
 	if(url_data.pathname.indexOf("/proxy/http") == 0){
+		session.sessionify(request, response);
 		return proxy(request, response);
 	}
 	
@@ -91,14 +93,16 @@ var server = http.createServer(function(request, response){
 var portmap 		= {"http:":80,"https:":443},
 	re_abs_url 	= /("|'|=)(http)/ig, // "http, 'http, or =http (no :// so that it matches http & https)
 	re_abs_no_proto 	= /("|'|=)(\/\/)/ig, // matches //site.com style urls where the protocol is auto-sensed
-	re_html_rel_root = /((href|src)=['"]{0,1})(\/\B)/ig, // matches src="/asdf/asdf"
-	
+	re_rel_root = /((href|src)=['"]{0,1})(\/\w)/ig, // matches src="/asdf/asdf"
 	// no need to match href="asdf/adf" relative links - those will work without modification
 	
-	re_html_partial = /("|'|=)[ht]{1,3}$/ig, // ', ", or = followed by one to three h's and t's at the end of the line
 	
-	re_css_url = /(\(|'|")(http)/ig, // (, ', or " followed by http
-	re_css_partial = /(\(|'|")[ht]{1,3}$/ig; // above with 1-3 h's and t's followed by the end of the line
+	re_css_abs = /(url\(\s*)(http)/ig, // matches url( http
+	re_css_rel_root = /(url\(\s*['"]{0,1})(\/\w)/ig, // matches url( /asdf/img.jpg
+	
+	// partial's dont cause anything to get changed, they just cause the packet to be buffered and rechecked
+	re_html_partial = /("|'|=|\(\s*)[ht]{1,3}$/ig, // ', ", or = followed by one to three h's and t's at the end of the line
+	re_css_partial = /(url\(\s*)[ht]{1,3}$/ig; // above, but for url( htt
 
 /**
 * Makes the outgoing request and relays it to the client, modifying it along the way if necessary
@@ -115,8 +119,14 @@ function proxy(request, response) {
 	uri.pathname = uri.search ? uri.pathname + uri.search : uri.pathname;
 	
 	headers = copy(request.headers);
+	
 	delete headers.host;
-	delete headers.cookie;
+	
+	// todo: grab any new cookies in headers.cookie (set by JS) and store them in the session
+	// (assume / path and same domain)
+	headers.cookie = getCookies(request, uri);
+	
+	console.log("sending these cookies: " + headers.cookie);
 	
 	// overwrite the referer with the correct referer
 	if(request.headers.referer){
@@ -172,10 +182,16 @@ function proxy(request, response) {
 		
 		// fix absolute path redirects 
 		// (relative redirects will be 302'd to the correct path, and they're disallowed by the RFC anyways
+		// todo: also fix refresh and url headers
 		if(headers.location && headers.location.substr(0,4) == 'http'){
 			headers.location = thisSite(request) + "/" + headers.location;
 			console.log("fixing redirect");
 		}
+		
+		if(headers['set-cookie']){
+			storeCookies(request, uri, headers['set-cookie']);
+			delete headers['set-cookie'];
+		} //else { console.log("no set-cookie header: ", headers); }
 		
 		//  fire off out (possibly modified) headers
 		response.writeHead(remote_response.statusCode, headers);
@@ -185,9 +201,9 @@ function proxy(request, response) {
 		console.log("needs_decoded: " + needs_decoded);
 		
 		
-		// some parsers will need to delay a chunk if it can't tell wether or not 
-		// it ends on data that needs to be modified
-		var last_chunk;
+		// sometimes a chunk will end in data that may need to be modified, but it is impossible to tell
+		// in that case, buffer the end and prepend it to the next chunk
+		var chunk_remainder;
 		
 		function parse(chunk){
 			//console.log("data event", request.url, chunk.toString());
@@ -195,29 +211,37 @@ function proxy(request, response) {
 			// stringily our chunk and grab the previous chunk (if any)
 			chunk = chunk.toString();
 			
-			if(last_chunk){
-				chunk = last_chunk + chunk;
-				last_chunk = undefined;
+			if(chunk_remainder){
+				chunk = chunk_remainder + chunk;
+				chunk_remainder = undefined;
 			}
-		
+			
 			// first replace any complete urls
 			chunk = chunk.replace(re_abs_url, "$1" + thisSite(request) + "/$2");
 			chunk = chunk.replace(re_abs_no_proto, "$1" + thisSite(request) + "/" + uri.protocol + "$2");
-			// todo: check for domain-relative urls (optional, but a smart performance enhancement)
+			// next replace urls that are relative to the root of the domain
+			chunk = chunk.replace(re_rel_root, "$1" + thisSite(request) + "/" + uri.protocol + "//" + uri.hostname + "$3");
+			
+			// if we're in a stylesheet, run a couple of extra regexs to avoid 302's
+			if(ct == 'text/css'){
+				console.log('running css rules');
+				chunk = chunk.replace(re_css_abs, "$1" + thisSite(request) + "/$2");
+				chunk = chunk.replace(re_css_rel_root, "$1" + thisSite(request) + "/" + uri.protocol + "//" + uri.hostname + "$2");			
+			}
 			
 			// second, check if any urls are partially present in the end of the chunk,
-			// and buffer the chunk if so; otherwise pass it along
+			// and buffer the end of the chunk if so; otherwise pass it along
 			if(chunk.match(re_html_partial)){
-				last_chunk = chunk;
-			} else {
-				response.write(chunk);
+				chunk_remainder = chunk.substr(-4); // 4 characters is enough for "http, the longest string we should need to buffer
+				chunk = chunk.substr(0, chunk.length -4);
 			}
+			response.write(chunk);
 		}
 		
 		
 		// if we're dealing with gzipped input, set up a stream decompressor to handle output
 		if(needs_decoded) {
-			var gunzip = new compress.Gunzip;
+			var gunzip = new compress.Gunzip; // I love the name "Gunzip" 
 			gunzip.init();
 		}
 
@@ -239,9 +263,11 @@ function proxy(request, response) {
 			if(needs_decoded){
 				parse(gunzip.end());
 			}
-			if(last_chunk){
-				response.write(last_chunk);
-				last_chunk = undefined;
+			// if we buffered a bit of text but we're now at the end of the data, then apparently
+			// it wasn't a url - send it along
+			if(chunk_remainder){
+				response.write(chunk_remainder);
+				chunk_remainder = undefined;
 			}
 			response.end();
 		  	decrementRequests();
@@ -264,6 +290,116 @@ function proxy(request, response) {
 	request.addListener('end', function(){
 		remote_request.end();
 	});
+}
+
+/**
+* Checks the user's session and the requesting host and adds any cookies that the requesting 
+* host has previously set.
+*
+* Honors domain, path, and expires directives. 
+*
+* Does not currently honor http / https only directives.
+*/
+function getCookies(request, uri){
+	var cookies = "",
+		hostname_parts = uri.hostname.split("."),
+		i = (hostname_parts[hostname_parts.length-2] == "co") ? 3 : 2, // ignore domains like co.uk
+		cur_domain,
+		path_parts = uri.pathname.split("/"),
+		j,
+		cur_path,
+		cookies = {}, // key-value store of cookies.
+		output = [], // array of cookie strings to be joined later
+		session = request.session;
+		
+	// We start at the least specific domain/path and loop towards most specific so that a more 
+	// overwrite specific cookie will a less specific one of the same name.
+	for(; i<= hostname_parts.length; i++){
+		cur_domain = hostname_parts.slice(-1*i).join('.'); // first site.com, then www.site.com, etc.
+
+		if(!session[cur_domain]) continue;
+		
+		for(j=1; j < path_parts.length; j++){
+		
+			cur_path = path_parts.slice(0,j).join("/");
+			if(cur_path == "") cur_path = "/";
+			
+			if(session[cur_domain][cur_path]){
+				for(var cookie_name in session[cur_domain][cur_path]){
+					
+					// check the expiration date - delete old cookies
+					if(isExpired(session[cur_domain][cur_path][cookie_name])){
+						delete session[cur_domain][cur_path][cookie.name];
+					} else {
+						cookies[cookie_name] = session[cur_domain][cur_path][cookie_name].value;
+					}
+				}
+			}
+		}
+	}
+	
+	// convert cookies from key/value pairs to single strings for each cookie
+	for(var name in cookies){
+		output.push(name + "=" + cookies[name]);
+	};
+	
+	// join the cookie strings and return the final output
+	return output.join("; ");
+}
+
+/**
+* Parses the set-cookie header from the remote server and stores the cookies in the user's session
+*/
+function storeCookies(request, uri, cookies){
+	if(!cookies) return;
+	
+	var parts, name_part, thisCookie, domain;
+	
+	request.session[uri.hostname] = request.session[uri.hostname] || {};
+	
+	cookies.forEach(function(cookie){
+		domain = uri.hostname;
+		parts = cookie.split(';');
+		name_part = parts.shift().split("=");
+		thisCookie = {
+			name: name_part.shift(), // grab everything before the first =
+			value: name_part.join("=") // everything after the first =, joined by a "=" if there was more than one part
+		}
+		parts.forEach(function(part){
+			part = part.split("=");
+			thisCookie[part.shift().trimLeft()] = part.join("=");
+		});
+		if(!thisCookie.path){
+			thisCookie.path = uri.pathname;
+		}
+		// todo: enforce domain restrictions here so that servers can't set cookies for ".com"
+		domain = thisCookie.domain || domain;
+		
+		// store it in the session object - make sure the namespace exists first
+		request.session[domain][thisCookie.path] = request.session[uri.hostname][thisCookie.path] || {};
+		request.session[domain][thisCookie.path][thisCookie.name] = thisCookie;
+		
+		// now that the cookie is set (deleting any older cookie of the same name), 
+		// check the expiration date and delete it if it is outdated
+		if(isExpired(thisCookie)){
+			delete request.session[domain][thisCookie.path][thisCookie.name];
+		}
+
+	});
+}
+
+/**
+* Accepts a cookie object and returns true if it is expired
+* (technically all cookies expire at the end of the session because we don't persist them on
+*  the client side, but some cookies need to expire sooner than that.)
+*/
+function isExpired(cookie){
+	if(cookie.expires){
+		var now = new Date(),
+			expires = new Date(thisCookie.expires);
+		return (now.getTime() >= expires.getTime());
+	}
+	return false; // no date set, therefore it expires at the end of the session 
 }
 
 /**
@@ -336,8 +472,12 @@ function redirectTo(request, response, site){
 		site = "/" + site;
 	}
 	if(site == "/") site = ""; // no endless redirect loops
-	console.log("Redirecting to ", thisSite(request) + site);
-	response.writeHead('302', {'Location': thisSite(request) + site});
+	try {
+		response.writeHead('302', {'Location': thisSite(request) + site});
+	} catch(ex) {
+		// the headers were already sent - we can't redirect them
+		console.error("Failed to send redirect", ex);
+	}
 	response.end();
 }
 
