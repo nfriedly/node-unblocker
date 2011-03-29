@@ -21,6 +21,7 @@ todo:
 
 // imports
 var http = require('http'),
+	https = require('https'),
 	url = require('url'),
 	querystring = require('querystring'),
 	path = require("path"),
@@ -124,7 +125,6 @@ function proxy(request, response) {
 	
 	
 	// todo: store any cookies from the request and add any cookies appropriate to the response
-	
 	var options = {
 		host: uri.host,
 		port: uri.port,
@@ -133,7 +133,10 @@ function proxy(request, response) {
 		headers: headers
 	}
 	
-	var remote_request = http.request(options, function(remote_response){
+	// what protocol to use for outgoing connections.
+	var proto = (uri.protocol == 'https:') ? https : http;
+	
+	var remote_request = proto.request(options, function(remote_response){
 	
 		// todo: filter & store any cookies in the headers
 		

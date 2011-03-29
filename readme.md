@@ -13,7 +13,7 @@ Relies on [https://github.com/waveto/node-compress](https://github.com/waveto/no
 ## High-level Todo list
 
 * Cookies will need to be stored and processed on the server-side
-* HTTPS support
+* client-side HTTPS support
 * Process urls that are relative to the site root in both html and css
 * Mini-url form
 * Add some color and information to the home page
@@ -24,5 +24,6 @@ This project and related problems are released under the terms of the [GNU GPL v
 
 ## Changelog
 
-v0.1 - Initial release; basic passthrough and url-fixing functionality
-v0.2 - Added redirect support and gzip support, improved filters
+* v0.3 - (upcoming) Added support for remote HTTPS servers
+* v0.2 - Added redirect support and gzip support, improved filters
+* v0.1 - Initial release; basic passthrough and url-fixing functionality
