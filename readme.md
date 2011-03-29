@@ -24,7 +24,7 @@ This project and related problems are released under the terms of the [GNU GPL v
 
 ## Change log
 
-### v0.3 - (upcoming)
+### v0.3 - 2011-03-29
 * Added support for remote HTTPS servers.
 * Created a simple-session library. (The ones I tried were all tied to bigger projects and/or didn't work well)
 * Added basic cookie support via sessions.
