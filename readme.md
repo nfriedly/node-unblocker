@@ -8,7 +8,7 @@ In addition to this, links that are relative to the root (E.g. `<a href="/path/t
 
 Relies on [https://github.com/waveto/node-compress](https://github.com/waveto/node-compress) (`npm install compress`) to parse gzipped data.
 
-Also includes a custom session library named simple-session that will be pulled out into a separate project at some point. It depends on [https://github.com/broofa/node-uuid](https://github.com/broofa/node-uuid)
+Also includes a custom session library named simple-session that will be pulled out into a separate project at some point. It depends on [https://github.com/broofa/node-uuid](https://github.com/broofa/node-uuid) (`npm install node-uuid`)
 
 ## High-level Todo list
 

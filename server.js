@@ -305,19 +305,28 @@ function getCookies(request, uri){
 		hostname_parts = uri.hostname.split("."),
 		i = (hostname_parts[hostname_parts.length-2] == "co") ? 3 : 2, // ignore domains like co.uk
 		cur_domain,
-		path_parts = uri.pathname.split("/"),
-		j,
-		cur_path,
+		path_parts = uri.pathname.split("/"),	
 		cookies = {}, // key-value store of cookies.
 		output = [], // array of cookie strings to be joined later
 		session = request.session;
 		
 	// We start at the least specific domain/path and loop towards most specific so that a more 
 	// overwrite specific cookie will a less specific one of the same name.
+	// forst we loop through all possible sub domains that start with a dot,
+	// then the current domain preceded by a dot
 	for(; i<= hostname_parts.length; i++){
-		cur_domain = hostname_parts.slice(-1*i).join('.'); // first site.com, then www.site.com, etc.
-
-		if(!session[cur_domain]) continue;
+		cur_domain = "." + hostname_parts.slice(-1*i).join('.'); // first .site.com, then .www.site.com, etc.
+		readCookiesForDomain(cur_domain);
+	}
+	
+	// now, finally, we check for cookies that were set on the exact current domain without the dot
+	readCookiesForDomain(uri.hostname);
+	
+	function readCookiesForDomain(cur_domain){
+		
+		if(!session[cur_domain]) return;
+		
+		var j, cur_path;
 		
 		for(j=1; j < path_parts.length; j++){
 		
@@ -351,11 +360,11 @@ function getCookies(request, uri){
 * Parses the set-cookie header from the remote server and stores the cookies in the user's session
 */
 function storeCookies(request, uri, cookies){
+	console.log('storing these cookies: ', cookies);
+
 	if(!cookies) return;
 	
 	var parts, name_part, thisCookie, domain;
-	
-	request.session[uri.hostname] = request.session[uri.hostname] || {};
 	
 	cookies.forEach(function(cookie){
 		domain = uri.hostname;
@@ -375,13 +384,16 @@ function storeCookies(request, uri, cookies){
 		// todo: enforce domain restrictions here so that servers can't set cookies for ".com"
 		domain = thisCookie.domain || domain;
 		
+		request.session[domain] = request.session[domain] || {};
+		
 		// store it in the session object - make sure the namespace exists first
-		request.session[domain][thisCookie.path] = request.session[uri.hostname][thisCookie.path] || {};
+		request.session[domain][thisCookie.path] = request.session[domain][thisCookie.path] || {};
 		request.session[domain][thisCookie.path][thisCookie.name] = thisCookie;
 		
 		// now that the cookie is set (deleting any older cookie of the same name), 
 		// check the expiration date and delete it if it is outdated
 		if(isExpired(thisCookie)){
+			console.log('deleting cookie', thisCookie.expires);
 			delete request.session[domain][thisCookie.path][thisCookie.name];
 		}
 
@@ -396,7 +408,7 @@ function storeCookies(request, uri, cookies){
 function isExpired(cookie){
 	if(cookie.expires){
 		var now = new Date(),
-			expires = new Date(thisCookie.expires);
+			expires = new Date(cookie.expires);
 		return (now.getTime() >= expires.getTime());
 	}
 	return false; // no date set, therefore it expires at the end of the session 
