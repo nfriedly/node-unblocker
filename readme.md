@@ -13,16 +13,21 @@ Also includes a custom session library named simple-session that will be pulled 
 ## High-level Todo list
 
 * Mini-url form
-* Add some color and information to the home page
-* URL and keyword blocklists
 * Pull out session library
 * Error trapping & logging
-* Demo site
+* Fix encoding issues
+* Allow for removal of scripts (both <script /> tags and on*= handlers)
 
 ## License
 This project and related problems are released under the terms of the [GNU GPL version 3](http://www.gnu.org/licenses/gpl.html)
 
 ## Change log
+
+### v0.4 - 2011-4-4
+* Added keyword and domain blocklists
+* Pulled out configuration into a separate file
+* Set up live demo at nodeunblocker.com
+* Added "military" theme
 
 ### v0.3 - 2011-03-29
 * Added support for remote HTTPS servers.
