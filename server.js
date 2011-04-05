@@ -13,10 +13,11 @@
 todo:
  - stress test (apache bench?)
  - add error handeling
- - cookies
- - fix url fixer
- - handle gzipped data - http://stackoverflow.com/questions/4594654/node-js-proxy-dealing-with-gzip-decompression
  - look into npm
+ - mini-form, no cookies,  and no script options
+ - figure out why the google png has extra data at the beginning and end
+ - clean things up a bit
+ - turn simple-session into a standalone library
 */
 
 // imports
@@ -27,14 +28,13 @@ var http = require('http'),
 	path = require("path"),
 	fs = require("fs"),
 	compress = require('compress'), // gzip - https://github.com/waveto/node-compress or "npm install compress"
-	session = require('./simple-session');
+	session = require('./simple-session'),
+  blocklist = require('./blocklist');
+  
+// the configuration file
+var config = require('./config');
 	
-// configuration
-var host = null, // this will be automatically determined if left null, but it's faster to specify it
-	includePortInRedirect = true, // false if you're running a reverse proxy (such as nginx)
-	port = 8081,
-	ip = null; // string ip, or null for any ip
-
+console.log("config: ", config);
 
 var server = http.createServer(function(request, response){
 	var url_data = url.parse(request.url);
@@ -46,7 +46,8 @@ var server = http.createServer(function(request, response){
 	// between a user who is looking for the home page and a "/" link)
 	if(url_data.pathname == "/proxy"){
 		request.url = "/index.html";
-		return readFile(request, response);
+    // todo: refactor this to make more sense
+		return readFile(request, response, config.google_analytics_id);
 	}
 	
 	// this is for users who's form actually submitted due to JS being disabled
@@ -112,11 +113,20 @@ var portmap 		= {"http:":80,"https:":443},
 */
 function proxy(request, response) {
 
-	incrementRequests();
 
 	var uri = url.parse(getRealUrl(request.url));
+	
+	// make sure the url in't blocked
+	if(!blocklist.urlAllowed(uri)){
+      return redirectTo(request, response, "?error=Please use a different proxy to access this site");
+    }
+    
+    incrementRequests();
+	
 	uri.port = uri.port || portmap[uri.protocol];
 	uri.pathname = uri.search ? uri.pathname + uri.search : uri.pathname;
+	
+
 	
 	headers = copy(request.headers);
 	
@@ -133,8 +143,6 @@ function proxy(request, response) {
 		headers.referer = getRealUrl(request.headers.referer);
 	}
 	
-	
-	// todo: store any cookies from the request and add any cookies appropriate to the response
 	var options = {
 		host: uri.host,
 		port: uri.port,
@@ -148,8 +156,6 @@ function proxy(request, response) {
 	
 	var remote_request = proto.request(options, function(remote_response){
 	
-		// todo: filter & store any cookies in the headers
-		
 		// make a copy of the headers to fiddle with
 		var headers = copy(remote_response.headers);
 		
@@ -205,6 +211,7 @@ function proxy(request, response) {
 		// in that case, buffer the end and prepend it to the next chunk
 		var chunk_remainder;
 		
+		// todo : account for varying encodings
 		function parse(chunk){
 			//console.log("data event", request.url, chunk.toString());
 			
@@ -470,7 +477,7 @@ function getRealUrl(path){
 
 // returns the configured host if one exists, otherwise the host that the current request came in on
 function thisHost(request){
-	return (host) ? host : request.headers.host;
+	return (config.host) ? config.host : request.headers.host;
 }
 
 // returns the http://site.com/proxy
@@ -486,6 +493,7 @@ function redirectTo(request, response, site){
 	if(site == "/") site = ""; // no endless redirect loops
 	try {
 		response.writeHead('302', {'Location': thisSite(request) + site});
+    console.log("recirecting to " + thisSite(request) + site);
 	} catch(ex) {
 		// the headers were already sent - we can't redirect them
 		console.error("Failed to send redirect", ex);
@@ -536,7 +544,7 @@ function copy(source){
 }
 
 // a super-basic file server
-function readFile(request, response){
+function readFile(request, response, google_analytics_id){
 
   //process.cwd() - doesn't always point to the directory this script is in.
 
@@ -562,6 +570,8 @@ function readFile(request, response){
 			if (err) {
 				return error(500, err);
 			}
+      
+      data = mixinGA(data, google_analytics_id);
 			
 			response.writeHead(200);
 			response.write(data, "binary");
@@ -570,10 +580,32 @@ function readFile(request, response){
 	});
 }
 
+function mixinGA(data, google_analytics_id){
+  if(google_analytics_id){
+
+    var ga = [
+      "<script type=\"text/javascript\">"
+      ,"var _gaq = []; // overwrite the existing one, if any"
+      ,"_gaq.push(['_setAccount', '" + google_analytics_id + "']);"
+      ,"_gaq.push(['_trackPageview']);"
+      ,"(function() {"
+      ,"  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;"
+      ,"  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';"
+      ,"  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);"
+      ,"})();"
+      ,"</script>"
+    ].join("\n");
+
+    data = data.replace("</body>", ga + "\n\n</body>");
+
+  } 
+  return data;
+}
+
 try {
-	server.listen(port, ip);
-	console.log('node-unblocker proxy server running on ' + ((ip) ? ip + ":" : "port ") + port);
+	server.listen(config.port, config.ip);
+	console.log('node-unblocker proxy server running on ' + ((config.ip) ? config.ip + ":" : "port ") + config.port);
 } catch (ex) {
-	console.log("server failed, perhaps the port (" + port + ") was taken?");
+	console.log("server failed, perhaps the port (" + config.port + ") was taken?");
 	console.error(ex);
 }
