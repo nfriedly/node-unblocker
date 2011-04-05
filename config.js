@@ -1,4 +1,4 @@
-// Optional, but faster if specified. Will be automatically determined if not. 
+// just "site.com" or "site.com:port", no "http://"
 exports.host = null;
 
 // string to specify this server's ip, or null to listen on any ip

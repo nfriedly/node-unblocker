@@ -43,7 +43,7 @@
     input[type=text] { width: 640px; }
     
     .footer { position: relative; }
-    .footer p { margin:0; position: absolute; bottom: 10px; }
+    .footer p { margin:0; position: absolute; bottom: 10px;  right: 10px;}
   </style>
 </head>
 <body>
@@ -64,15 +64,20 @@
       </form>
       
       <h3>About Node Unblocker</h3>
-      <p>Node Unblocker is a JavaScript / <a href="http://nodejs.org">node.js</a> web proxy, similar to CGIProxy, PHProxy, or Glype, that alows users to evade filters and unblock blocked sites. 
-      It's designed to be extrmely fast and compatible: It processes the data on-the-fly and only modifies urls when necessary - relative ones will "just work". 
-      The source code is <a href="https://github.com/nfriedly/node-unblocker">avaliable on github</a>.
+      <p>Node Unblocker is a web proxy, similar to CGIProxy, PHProxy, or Glype, that alows users to evade filters and unblock blocked sites. </p>
+      <p>It's designed to be extrmely fast and compatible: It processes the data on-the-fly rather than buffering the entire response, and it only modifies URLs when necessary - relative ones will "just work". </p>
+      <p>Node Unblocker is written in JavaScript with <a href="http://nodejs.org">node.js</a>. The source code is <a href="https://github.com/nfriedly/node-unblocker">avaliable on github</a>.</p>
       
+      <h3>Alternate proxy list</h3>
+      <ul>
+        <li><a href="http://screwbeingsingle.com/">Unblock Blocked Sites</a></li>
+        <li><a href="http://nfriedly.com/px/poxy/">Free SSL PHProxy</a></li>
+      </ul>
 
     </div>
     
     <div class="footer">
-      <p><a href="http://nodeunblocker.com/">Node Unblocker</a> v0.4 by <a href="http://nfriedly.com/" title="Node.js developer and JavaScript Expert">Nathan Friedly</a></p>
+      <p><a href="http://nodeunblocker.com/proxy">Node Unblocker</a> v0.4 by <a href="http://nfriedly.com/" title="Node.js developer and JavaScript Expert">Nathan Friedly</a></p>
     </div>
   
   </div>
@@ -89,6 +94,10 @@
 			window.location.pathname = "/proxy/" + url;
 			return false;
 		}
+    
+    window.onload = function() { $('url').focus(); }
 	</script>
+  
+  
 </body>
 </html>
