@@ -126,7 +126,6 @@ function proxy(request, response) {
 	uri.port = uri.port || portmap[uri.protocol];
 	uri.pathname = uri.search ? uri.pathname + uri.search : uri.pathname;
 	
-
 	
 	headers = copy(request.headers);
 	
@@ -150,6 +149,8 @@ function proxy(request, response) {
 		method: request.method,
 		headers: headers
 	}
+	
+	//console.log('requesting: ', options);
 	
 	// what protocol to use for outgoing connections.
 	var proto = (uri.protocol == 'https:') ? https : http;
@@ -471,8 +472,10 @@ function handleUnknown(request, response){
 * Takes a /proxy/http://site.com url from a request or a referer and returns the http://site.com/ part
 */
 function getRealUrl(path){
-	// "/proxy/" is 7 characters long.
-	return url.parse(path).pathname.substr(7);
+	var uri = url.parse(path),
+		real_url = uri.pathname.substr(7); // "/proxy/" is 7 characters long.
+	// we also need to include any querystring data in the real_url
+	return uri.search ? real_url + uri.search : real_url;
 }
 
 // returns the configured host if one exists, otherwise the host that the current request came in on
@@ -571,9 +574,15 @@ function readFile(request, response, google_analytics_id){
 				return error(500, err);
 			}
       
-      data = mixinGA(data, google_analytics_id);
+      		data = mixinGA(data, google_analytics_id);
 			
-			response.writeHead(200);
+			// some reverse proxies (apache) add a default text/plain content-type header if none is specified			
+			var headers = {};
+			if(filename.substr(-5) == ".html" || filename.substr(-4) == ".htm"){
+				headers['content-type'] = "text/html";
+			}
+
+			response.writeHead(200, headers);
 			response.write(data, "binary");
 			response.end();
 		});
