@@ -37,9 +37,8 @@ Watchlist.prototype.readData = function(){
 	});
 }
 
-
-var domains = new Watchlist("domain-blocklist.txt"),
-  keywords =  new Watchlist("keyword-blocklist.txt");
+var domains = new Watchlist( __dirname + "/domain-blocklist.txt"),
+  keywords =  new Watchlist( __dirname + "/keyword-blocklist.txt");
 
 exports.urlAllowed = function(url){
   if(typeof url == "string"){
