@@ -29,11 +29,11 @@ var http = require('http'),
 	fs = require("fs"),
 	compress = require('compress'), // gzip - https://github.com/waveto/node-compress or "npm install compress"
 	session = require('./simple-session'),
-  blocklist = require('./blocklist');
+	blocklist = require('./blocklist');
   
 // the configuration file
 var config = require('./config');
-	
+
 console.log("config: ", config);
 
 var server = http.createServer(function(request, response){
@@ -45,8 +45,8 @@ var server = http.createServer(function(request, response){
 	// (located at /proxy so that we can more easily tell the difference 
 	// between a user who is looking for the home page and a "/" link)
 	if(url_data.pathname == "/proxy"){
-		request.url = "/index.html";
-    // todo: refactor this to make more sense
+		request.url = "/index.html"; 
+		// todo: refactor this to make more sense
 		return readFile(request, response, config.google_analytics_id);
 	}
 	
@@ -566,6 +566,7 @@ function readFile(request, response, google_analytics_id){
 	path.exists(filename, function(exists) {
 	
 		if (!exists) {
+			console.log(filename + ' does not exist');
 			return error(404, "The requested file could not be found.");
 		}
 		
