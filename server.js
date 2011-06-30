@@ -309,8 +309,10 @@ function proxy(request, response) {
 * Does not currently honor http / https only directives.
 */
 function getCookies(request, uri){
+  if( uri.hostname ) {
+    var hostname_parts = uri.hostname.split(".");
+  }
 	var cookies = "",
-		hostname_parts = uri.hostname.split("."),
 		i = (hostname_parts[hostname_parts.length-2] == "co") ? 3 : 2, // ignore domains like co.uk
 		cur_domain,
 		path_parts = uri.pathname.split("/"),	
