@@ -1,0 +1,8 @@
+{
+    "name": "node-unblocker",
+    "version": "0.4.0",
+    "dependencies": {
+        "node-uuid": "1.3.3",
+        "node-compress": "0.1.9"
+    }
+}
