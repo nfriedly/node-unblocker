@@ -53,19 +53,20 @@ exports.urlAllowed = function(url){
     return false;
   }
   
-  // next check each sub-domain, skipping the final one since we just checked it above
-  var hostname_parts = url.hostname.split("."),
-		i = (hostname_parts[hostname_parts.length-2] == "co") ? 3 : 2, // ignore domains like co.uk
-    cur_domain;
-    
-	for(; i<= hostname_parts.length-1; i++){
-  		cur_domain = hostname_parts.slice(-1*i).join('.'); // first site.com, then www.site.com, etc.
-		if(domains.data.indexOf(cur_domain) != -1){
-			console.log("failed on subdomain ", cur_domain, domains.data);
-      		return false;
-    	}
+  if(url.hostname) {
+		// next check each sub-domain, skipping the final one since we just checked it above
+		var hostname_parts = url.hostname.split("."),
+			i = (hostname_parts[hostname_parts.length-2] == "co") ? 3 : 2, // ignore domains like co.uk
+			cur_domain;
+			
+		for(; i<= hostname_parts.length-1; i++){
+				cur_domain = hostname_parts.slice(-1*i).join('.'); // first site.com, then www.site.com, etc.
+			if(domains.data.indexOf(cur_domain) != -1){
+				console.log("failed on subdomain ", cur_domain, domains.data);
+						return false;
+				}
+		}
 	}
-  
   // lastly, go through each keyword in the list and check if it's in the url anywhere
   if(keywords.data.some(function(keyword){ 
   	if( url.href.indexOf(keyword) != -1 ){ 
