@@ -27,7 +27,7 @@ var http = require('http'),
 	querystring = require('querystring'),
 	path = require("path"),
 	fs = require("fs"),
-	compress = require('compress'), // gzip - https://github.com/waveto/node-compress or "npm install compress"
+	zlib = require('zlib'),
 	session = require('./simple-session'),
 	blocklist = require('./blocklist');
   
@@ -115,6 +115,11 @@ function proxy(request, response) {
 
 
 	var uri = url.parse(getRealUrl(request.url));
+
+	// redirect urls like /proxy/http://asdf.com to /proxy/http://asdf.com/ to make relative image paths work
+	if (uri.pathname == "/" && request.url.substr(-1) != "/") {
+		return redirectTo(request, response, request.url + "/");
+	}
 	
 	// make sure the url in't blocked
 	if(!blocklist.urlAllowed(uri)){
@@ -203,9 +208,9 @@ function proxy(request, response) {
 		//  fire off out (possibly modified) headers
 		response.writeHead(remote_response.statusCode, headers);
 		
-		console.log("content-type: " + ct);
-		console.log("needs_parsed: " + needs_parsed);
-		console.log("needs_decoded: " + needs_decoded);
+		//console.log("content-type: " + ct);
+		//console.log("needs_parsed: " + needs_parsed);
+		//console.log("needs_decoded: " + needs_decoded);
 		
 		
 		// sometimes a chunk will end in data that may need to be modified, but it is impossible to tell
@@ -249,16 +254,12 @@ function proxy(request, response) {
 		
 		// if we're dealing with gzipped input, set up a stream decompressor to handle output
 		if(needs_decoded) {
-			var gunzip = new compress.Gunzip; // I love the name "Gunzip" 
-			gunzip.init();
+			remote_response = remote_response.pipe(zlib.createUnzip());
 		}
 
 		// set up a listener for when we get data from the remote server - parse/decode as necessary
 		remote_response.addListener('data', function(chunk){
 			if(needs_parsed) {
-				if(needs_decoded){
-					chunk = gunzip.inflate(chunk.toString('binary'));
-				}
 				parse(chunk);		
 			} else {
 				response.write(chunk);
@@ -268,9 +269,6 @@ function proxy(request, response) {
 		// clean up the connection and send out any orphaned chunk
 		remote_response.addListener('end', function() {
 			console.log("end event!", request.url);
-			if(needs_decoded){
-				parse(gunzip.end());
-			}
 			// if we buffered a bit of text but we're now at the end of the data, then apparently
 			// it wasn't a url - send it along
 			if(chunk_remainder){
@@ -495,10 +493,13 @@ function redirectTo(request, response, site){
 	if(site.length && site.substr(0,1) != "/" && site.substr(0,1) != "?"){
 		site = "/" + site;
 	}
+	if(site.substr(0, 6) == "/proxy") { // no /proxy/proxy redirects
+		site = site.substr(6);
+	}
 	if(site == "/") site = ""; // no endless redirect loops
 	try {
 		response.writeHead('302', {'Location': thisSite(request) + site});
-    console.log("recirecting to " + thisSite(request) + site);
+		console.log("recirecting to " + thisSite(request) + site);
 	} catch(ex) {
 		// the headers were already sent - we can't redirect them
 		console.error("Failed to send redirect", ex);
