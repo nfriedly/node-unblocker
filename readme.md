@@ -30,11 +30,12 @@ This project and related problems are released under the terms of the [GNU GPL v
 
 ### v0.5.0 - 2012-2-24
 * Reworked fileserver to serve index.html from memory and use compression when avaliable
-* Added some windows support (although it doesn't bind to localhost
+* Added some windows support (although it doesn't bind to localhost)
 
 ### v0.4.1 - 2012-2-23
 * Fixed issue #2 for relative path bug when the domain name didn't have a / following it
 * Removed compress library dependency in favor of the native zlib library that shipped in node 0.6
+* Several small tweaks to support running on Heroku servers
 
 ### v0.4 - 2011-4-4
 * Added keyword and domain blocklists
