@@ -9,7 +9,7 @@ function Watchlist(filename){
   
   var that = this;
 
-  fs.watchFile(filename, function(cur, prev){
+  fs.watch(filename, function(cur, prev){
     that.readData();
   });
 

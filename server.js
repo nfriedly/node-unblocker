@@ -34,8 +34,6 @@ var http = require('http'),
 // the configuration file
 var config = require('./config');
 
-console.log("config: ", config);
-
 var server = http.createServer(function(request, response){
 	var url_data = url.parse(request.url);
 	
@@ -47,7 +45,7 @@ var server = http.createServer(function(request, response){
 	if(url_data.pathname == "/proxy"){
 		request.url = "/index.html"; 
 		// todo: refactor this to make more sense
-		return readFile(request, response, config.google_analytics_id);
+		return sendIndex(request, response);
 	}
 	
 	// this is for users who's form actually submitted due to JS being disabled
@@ -549,73 +547,62 @@ function copy(source){
 	return n;
 }
 
-// a super-basic file server
-function readFile(request, response, google_analytics_id){
+var index = {};
 
-  //process.cwd() - doesn't always point to the directory this script is in.
+// read these into memory at startup rather than from the disk each time they're requested
+function setupIndex(){
+	var raw_index = fs.readFileSync(path.join(__dirname,'index.html')).toString();
+	var package_info = JSON.parse(fs.readFileSync(path.join(__dirname,'package.json')));
+	raw_index = raw_index.replace('{version}', package_info.version)
+	if(config.google_analytics_id) {
+		var ga = [
+		  "<script type=\"text/javascript\">"
+		  ,"var _gaq = []; // overwrite the existing one, if any"
+		  ,"_gaq.push(['_setAccount', '" + config.google_analytics_id + "']);"
+		  ,"_gaq.push(['_trackPageview']);"
+		  ,"(function() {"
+		  ,"  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;"
+		  ,"  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';"
+		  ,"  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);"
+		  ,"})();"
+		  ,"</script>"
+		].join("\n");
 
-	var pathname = url.parse(request.url).pathname,
-   		filename = path.join(__dirname, pathname);
- 
- 	function error(status, text){
-		response.writeHead(status, {"Content-Type": "text/plain"});
-		response.write("Error " + status + ": " + text + "\n");
-		response.end(); 	
- 	}
-  
-  console.log(filename, " - ", pathname);
- 
- 	// send the file out if it exists and it's readable, error otherwise
-	path.exists(filename, function(exists) {
-	
-		if (!exists) {
-			console.log(filename + ' does not exist');
-			return error(404, "The requested file could not be found.");
-		}
-		
-		fs.readFile(filename, "binary", function(err, data) {
-			if (err) {
-				return error(500, err);
-			}
-      
-      		data = mixinGA(data, google_analytics_id);
-			
-			// some reverse proxies (apache) add a default text/plain content-type header if none is specified			
-			var headers = {};
-			if(filename.substr(-5) == ".html" || filename.substr(-4) == ".htm"){
-				headers['content-type'] = "text/html";
-			}
-
-			response.writeHead(200, headers);
-			response.write(data, "binary");
-			response.end();
-		});
-	});
+		raw_index = raw_index.replace("</body>", ga + "\n\n</body>");	
+	}
+	index.raw = raw_index;
+	zlib.deflate(raw_index, function(data){index.deflate = data;});
+	zlib.gzip(raw_index,  function(data){index.gzip = data;})
 }
 
-function mixinGA(data, google_analytics_id){
-  if(google_analytics_id){
+function sendIndex(request, response, google_analytics_id){
+	var headers = {"content-type": "text/html"};
+	
+	var acceptEncoding = request.headers['accept-encoding'];
+	if (!acceptEncoding) {
+		acceptEncoding = '';
+	}
+	
+	var data;
+	
+	// check that the compressed version exists in case we get a request 
+	// that comes in before the compression finishes (serve those raw)
+	if (acceptEncoding.match(/\bdeflate\b/) && index.deflate) {
+		headers['content-encoding'] = 'deflate';
+		data = index.deflate
+	} else if (acceptEncoding.match(/\bgzip\b/) && index.gzip) {
+		headers['content-encoding'] = 'gzip';
+		data = index.gzip;
+	} else {
+		data = index.raw;
+	}
 
-    var ga = [
-      "<script type=\"text/javascript\">"
-      ,"var _gaq = []; // overwrite the existing one, if any"
-      ,"_gaq.push(['_setAccount', '" + google_analytics_id + "']);"
-      ,"_gaq.push(['_trackPageview']);"
-      ,"(function() {"
-      ,"  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;"
-      ,"  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';"
-      ,"  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);"
-      ,"})();"
-      ,"</script>"
-    ].join("\n");
-
-    data = data.replace("</body>", ga + "\n\n</body>");
-
-  } 
-  return data;
+	response.writeHead(200, headers);
+	response.end(data);
 }
 
 try {
+	setupIndex();
 	server.listen(config.port, config.ip);
 	console.log('node-unblocker proxy server running on ' + ((config.ip) ? config.ip + ":" : "port ") + config.port);
 } catch (ex) {
