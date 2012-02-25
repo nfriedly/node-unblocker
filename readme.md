@@ -1,19 +1,24 @@
 # node-unblocker
 
-A web proxy for evading corporate or government filters, similar to CGIproxy / PHProxy / Glype but written in node.js. 
-All data is processed and relayed to the client on the fly without unnecessary buffering.
+A web proxy for evading corporate or government filters, similar to CGIproxy / PHProxy / Glype but 
+written in node.js. All data is processed and relayed to the client on the fly without unnecessary 
+buffering.
 
-The script uses "pretty" urls which, in addition to looking pretty, allow links with relative paths to just work without 
-modification. (E.g. `<a href="path/to/file2.html"></a>`) 
+The script uses "pretty" urls which, in addition to looking pretty, allow links with relative paths 
+to just work without modification. (E.g. `<a href="path/to/file2.html"></a>`) 
 
-In addition to this, links that are relative to the root (E.g. `<a href="/path/to/file2.html"></a>`) can be handled without 
-modification by checking the referrer and 302 redirecting them to the proper location in the referring site. (Although I 
-intended to make it process these links on the fly also.)
+In addition to this, links that are relative to the root (E.g. `<a href="/path/to/file2.html"></a>`) 
+can be handled without modification by checking the referrer and 302 redirecting them to the proper 
+location in the referring site. (Although I intended to make it process these links on the fly also.)
 
-Also includes a custom session library named simple-session that may be pulled out into a separate project at some point. 
-It depends on [https://github.com/broofa/node-uuid](https://github.com/broofa/node-uuid) (`npm install node-uuid`)
+Requires [node.js](http://nodejs.org/) >= 0.6 and [Redis](http://redis.io/) for session storage - you 
+must install those yourself. To install all other dependencies besides node.js and redis, cd into the 
+directory and run `npm install -d`.
 
-This project should be runnable on heroku without modification - see http://node-unblocker.herokuapp.com/proxy for an example.
+This project should be runnable on a free [Heroku](http://www.heroku.com/) instance without 
+modification - see http://node-unblocker.herokuapp.com/proxy for an example. You will need to run 
+`heroku addons:add redistogo` and you may want to run `heroku addons:add piggyback_ssl` to enable 
+secure browsing.
 
 ## High-level Todo list
 
@@ -27,6 +32,10 @@ This project should be runnable on heroku without modification - see http://node
 This project and related problems are released under the terms of the [GNU GPL version 3](http://www.gnu.org/licenses/gpl.html)
 
 ## Change log
+
+### v0.6.0 - 2012-2-24
+* Added support for node.js 0.6's native clustering
+* Removed simple-session library and replaced it with [connect's](https://github.com/senchalabs/connect/) session library backed by a redis store
 
 ### v0.5.0 - 2012-2-24
 * Reworked fileserver to serve index.html from memory and use compression when avaliable
