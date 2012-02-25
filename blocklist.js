@@ -45,11 +45,9 @@ exports.urlAllowed = function(url){
     url = Url.parse(url);
   }
   
-  console.log("checking ", url);
-  
   // short-circut: if the exact domain is in the list, then return early
   if(domains.data.indexOf(url.hostname) != -1){
-  	console.log("failed at hostname: ", url.hostname, domains.data);
+  	console.log("url blocked due to domain name: ", url.hostname, domains.data);
     return false;
   }
   
@@ -62,7 +60,7 @@ exports.urlAllowed = function(url){
 		for(; i<= hostname_parts.length-1; i++){
 				cur_domain = hostname_parts.slice(-1*i).join('.'); // first site.com, then www.site.com, etc.
 			if(domains.data.indexOf(cur_domain) != -1){
-				console.log("failed on subdomain ", cur_domain, domains.data);
+				console.log("url blocked on subdomain ", cur_domain, domains.data);
 						return false;
 				}
 		}
@@ -70,7 +68,7 @@ exports.urlAllowed = function(url){
   // lastly, go through each keyword in the list and check if it's in the url anywhere
   if(keywords.data.some(function(keyword){ 
   	if( url.href.indexOf(keyword) != -1 ){ 
-  	console.log("failed on keyword", keyword, keywords.data)} 
+  	console.log("url blocked on keyword", keyword, keywords.data)} 
     return url.href.indexOf(keyword) != -1;
   })){
     return false;
