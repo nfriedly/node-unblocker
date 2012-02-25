@@ -4,23 +4,35 @@ A web proxy for evading corporate or government filters, similar to CGIproxy / P
 written in node.js. All data is processed and relayed to the client on the fly without unnecessary 
 buffering.
 
-The script uses "pretty" urls which, in addition to looking pretty, allow links with relative paths 
+Any website that the proxy can access can now be reached by the proxy's users.
+
+### The magic part
+
+The script uses "pretty" urls which, besides looking pretty, allow links with relative paths 
 to just work without modification. (E.g. `<a href="path/to/file2.html"></a>`) 
 
 In addition to this, links that are relative to the root (E.g. `<a href="/path/to/file2.html"></a>`) 
 can be handled without modification by checking the referrer and 302 redirecting them to the proper 
-location in the referring site. (Although I intended to make it process these links on the fly also.)
+location in the referring site.
 
-Requires [node.js](http://nodejs.org/) >= 0.6 and [Redis](http://redis.io/) for session storage - you 
-must install those yourself. To install all other dependencies besides node.js and redis, cd into the 
-directory and run `npm install -d`.
+Cookies are currently storred in the visitor's session on the server rather than being sent to the 
+visitor's browser to avoid having a large number of (possibly conflicting) browser cookies once they
+have browsed several sites through the proxy.
 
+## Instalation on your system
+Requires [node.js](http://nodejs.org/) >= 0.6 and [Redis](http://redis.io/) for session storage. 
+Then download node-unblocker, cd into the directory, and run `npm install -d`. Optionally edit 
+config.js then run `node server.js` to start the server. It should spawn a new instance for each CPU 
+core you have.
+
+## Installation on Heroku
 This project should be runnable on a free [Heroku](http://www.heroku.com/) instance without 
 modification - see http://node-unblocker.herokuapp.com/proxy for an example. You will need to run 
 `heroku addons:add redistogo` and it would also be wise to run `heroku config:add SECRET=[something 
-only you know]` to make the session cookies secure. You may also want to run `heroku addons:add piggyback_ssl` to enable 
-secure browsing and/or `heroku config:add GA_ID=[your Google Analytics ID, ex: UA-12345-78]` to add 
-usage tracking via Google Analytics. 
+only you know]` to make the session cookies secure. You may also want to run 
+`heroku addons:add piggyback_ssl` to enable secure browsing and/or 
+`heroku config:add GA_ID=[your Google Analytics ID, ex: UA-12345-78]` to enable usage tracking via Google 
+Analytics. 
 
 ## High-level Todo list
 
