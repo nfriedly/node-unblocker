@@ -20,7 +20,7 @@ todo:
  - turn simple-session into a standalone library
 */
 
-// imports
+// native imports
 var http = require('http'),
 	https = require('https'),
 	url = require('url'),
@@ -28,16 +28,38 @@ var http = require('http'),
 	path = require("path"),
 	fs = require("fs"),
 	zlib = require('zlib'),
-	session = require('./simple-session'),
-	blocklist = require('./blocklist');
+	cluster = require('cluster')
+
+
+// local dependencies
+var blocklist = require('./blocklist');
   
 // the configuration file
 var config = require('./config');
 
-var server = http.createServer(function(request, response){
+// third-party dependencies
+var connect = require('connect'), // todo: call by version once 2.x is listed in npm
+	RedisStore = require('connect-redis')(connect),
+	redis;
+// the redis client differs depending on if you're using redistogo (heroku) or not
+if(config.redistogo_url) {
+	redis = require('redis-url').connect(config.redistogo_url);
+} else {
+	redis = require('redis').createClient(config.redis_port, config.redis_host, config.redis_options);
+}
+
+	
+
+var server = connect()
+	.use(connect.cookieParser(config.secret))
+  	.use(connect.session({
+  		store: new RedisStore({client: redis}),
+  		cookie: { path: '/', httpOnly: false, maxAge: null }
+  	}))
+	.use(function(request, response){
 	var url_data = url.parse(request.url);
 	
-	console.log("New Request: ", request.url);
+	console.log("(" + process.pid + ") New Request: ", request.url);
 	
 	// if the user requested the "home" page
 	// (located at /proxy so that we can more easily tell the difference 
@@ -59,7 +81,6 @@ var server = http.createServer(function(request, response){
 	// only requests that start with this get proxied - the rest get 
 	// redirected to either a url that matches this or the home page
 	if(url_data.pathname.indexOf("/proxy/http") == 0){
-		session.sessionify(request, response);
 		return proxy(request, response);
 	}
 	
@@ -153,8 +174,6 @@ function proxy(request, response) {
 		headers: headers
 	}
 	
-	//console.log('requesting: ', options);
-	
 	// what protocol to use for outgoing connections.
 	var proto = (uri.protocol == 'https:') ? https : http;
 	
@@ -162,8 +181,6 @@ function proxy(request, response) {
 	
 		// make a copy of the headers to fiddle with
 		var headers = copy(remote_response.headers);
-		
-		//console.log('headers: ', headers);
 		
 		var ct = (headers['content-type'] || "unknown").split(";")[0];
 		
@@ -201,7 +218,7 @@ function proxy(request, response) {
 		if(headers['set-cookie']){
 			storeCookies(request, uri, headers['set-cookie']);
 			delete headers['set-cookie'];
-		} //else { console.log("no set-cookie header: ", headers); }
+		}
 		
 		//  fire off out (possibly modified) headers
 		response.writeHead(remote_response.statusCode, headers);
@@ -266,7 +283,6 @@ function proxy(request, response) {
 
 		// clean up the connection and send out any orphaned chunk
 		remote_response.addListener('end', function() {
-			console.log("end event!", request.url);
 			// if we buffered a bit of text but we're now at the end of the data, then apparently
 			// it wasn't a url - send it along
 			if(chunk_remainder){
@@ -395,7 +411,7 @@ function storeCookies(request, uri, cookies){
 		// store it in the session object - make sure the namespace exists first
 		request.session[domain][thisCookie.path] = request.session[domain][thisCookie.path] || {};
 		request.session[domain][thisCookie.path][thisCookie.name] = thisCookie;
-		
+
 		// now that the cookie is set (deleting any older cookie of the same name), 
 		// check the expiration date and delete it if it is outdated
 		if(isExpired(thisCookie)){
@@ -547,9 +563,15 @@ function copy(source){
 	return n;
 }
 
+
+/**
+ * placeholder for compressed & uncompressed versions of index.html
+ */
 var index = {};
 
-// read these into memory at startup rather than from the disk each time they're requested
+/**
+ * Reads the index.html file into memory and compresses it so that it can be more quickly served
+ */
 function setupIndex(){
 	var raw_index = fs.readFileSync(path.join(__dirname,'index.html')).toString();
 	var package_info = JSON.parse(fs.readFileSync(path.join(__dirname,'package.json')));
@@ -575,6 +597,9 @@ function setupIndex(){
 	zlib.gzip(raw_index,  function(data){index.gzip = data;})
 }
 
+/**
+ * Sends out the index.html, using compression if the client supports it
+ */
 function sendIndex(request, response, google_analytics_id){
 	var headers = {"content-type": "text/html"};
 	
@@ -601,11 +626,30 @@ function sendIndex(request, response, google_analytics_id){
 	response.end(data);
 }
 
-try {
+
+/**
+ * Set up clustering
+ */
+if (cluster.isMaster) {
+	// if we're the master, make a new worker for each CPU
+	var numCPUs = require('os').cpus().length
+
+	for (var i = 0; i < numCPUs; i++) {
+		cluster.fork();
+	}
+	
+	// and when a worker dies, restart it
+	cluster.on('death', function(worker) {
+		console.log('worker ' + worker.pid + ' died');
+		cluster.fork();
+	});
+} else {
+	// if we're a worker, read the index file and then fire up the server
 	setupIndex();
-	server.listen(config.port, config.ip);
-	console.log('node-unblocker proxy server running on ' + ((config.ip) ? config.ip + ":" : "port ") + config.port);
-} catch (ex) {
-	console.log("server failed, perhaps the port (" + config.port + ") was taken?");
-	console.error(ex);
+	http.Server(server).listen(config.port, config.ip);
+	console.log('node-unblocker proxy server with pid ' + process.pid + ' running on ' + 
+		((config.ip) ? config.ip + ":" : "port ") + config.port
+	);
 }
+
+
