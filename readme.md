@@ -17,16 +17,16 @@ directory and run `npm install -d`.
 
 This project should be runnable on a free [Heroku](http://www.heroku.com/) instance without 
 modification - see http://node-unblocker.herokuapp.com/proxy for an example. You will need to run 
-`heroku addons:add redistogo` and you may want to run `heroku addons:add piggyback_ssl` to enable 
-secure browsing.
+`heroku addons:add redistogo` and it would also be wise to run `heroku config:add SECRET=[something 
+only you know]` to make the session cookies secure. You may also want to run `heroku addons:add piggyback_ssl` to enable 
+secure browsing and/or `heroku config:add GA_ID=[your Google Analytics ID, ex: UA-12345-78]` to add 
+usage tracking via Google Analytics. 
 
 ## High-level Todo list
 
 * Mini-url form
-* Pull out session library
-* Error trapping & logging
-* Fix encoding issues
 * Allow for removal of scripts (both <script /> tags and on*= handlers)
+* Web interface for managing the blocklist
 
 ## License
 This project and related problems are released under the terms of the [GNU GPL version 3](http://www.gnu.org/licenses/gpl.html)
