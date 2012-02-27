@@ -45,6 +45,9 @@ This project and related problems are released under the terms of the [GNU GPL v
 
 ## Change log
 
+### v0.6.1 - 2012-2-27
+* Set the default session expiry to 2 hours rather than 1 day to play nicer with heroku/redis-to-go's free 5mb plan.
+
 ### v0.6.0 - 2012-2-24
 * Added support for node.js 0.6's native clustering
 * Removed simple-session library and replaced it with [connect's](https://github.com/senchalabs/connect/) session library backed by a redis store
