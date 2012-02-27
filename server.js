@@ -54,7 +54,7 @@ var server = connect()
 	.use(connect.cookieParser(config.secret))
   	.use(connect.session({
   		store: new RedisStore({client: redis}),
-  		cookie: { path: '/', httpOnly: false, maxAge: null }
+  		cookie: { path: '/', httpOnly: false, maxAge: config.sessionMaxAge }
   	}))
 	.use(function(request, response){
 	var url_data = url.parse(request.url);
