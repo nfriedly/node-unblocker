@@ -75,6 +75,5 @@ exports.urlAllowed = function(url){
   }
   
   // if it's passed the above tests, than the url looks safe
-  console.log("url is safe");
   return true;
 }
