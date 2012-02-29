@@ -19,7 +19,3 @@ exports.redistogo_url = process.env.REDISTOGO_URL || "";
 exports.redis_host = "localhost";
 exports.redis_port = 6379;
 exports.redis_options = null;
-
-// how long to keep session data around for (in milliseconds)
-// setting a short default to play nice with heroku's limited db size
-exports.sessionMaxAge = 2*60*60*1000; // two hours
