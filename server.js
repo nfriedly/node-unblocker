@@ -28,7 +28,8 @@ var http = require('http'),
 	path = require("path"),
 	fs = require("fs"),
 	zlib = require('zlib'),
-	cluster = require('cluster')
+	cluster = require('cluster'),
+	numCPUs = require('os').cpus().length;
 
 
 // local dependencies
@@ -543,15 +544,93 @@ function decrementRequests(){
 	openRequests--;
 }
 
+var statusResponses = [];
+var waitingStatusResponses = [];
+
 // simple way to get the curent status of the server
 function status(request, response){
+	console.log("status request recieved on pid " + process.pid);
 	response.writeHead("200", {"Content-Type": "text/plain", "Expires": 0});
-	response.write("Open Requests: " + openRequests + "\n" + 
-		"Max Open Requests: " + maxRequests + "\n" +
-		"Total Requests: " + counter + "\n" + 
-		"Online Since: " + serverStart
-	);
-	response.end(); 
+	
+	// only send out a new status request if we don't already have one in the pipe
+	if(waitingStatusResponses.length == 0) {
+		statusResponses.length = 0;
+		console.log("sending status request message");
+		process.send({type: "status.request", from: process.pid});
+	}
+	
+	// 1 second timeout in case some child process doesn't respond quickly enough
+	response.timeout = setTimeout(function(){
+		console.log("status responses timeout reached");
+		statusResponses.push({"Some Responses Not Recieved": (numCPUs - statusResponses.length)})
+		sendStatuses();
+	}, 1000);
+	
+	waitingStatusResponses.push(response);
+}
+
+function handleStatus(message){
+	statusResponses.push(message);
+	// there should be one response for each CPU + one from the master
+	if(statusResponses.length > numCPUs) {
+		sendStatuses();
+	}
+}
+
+function sendStatuses(){
+	var big_break	= "=================";
+	var small_break	= "-----------------";
+	var lines = [
+		"Server Status",
+		big_break,
+		(new Date()).toString()
+	];
+	
+	// loop through each line in each status response
+	statusResponses.forEach(function (status) {
+		lines.push("",small_break);
+		for(key in status) {
+			if(status.hasOwnProperty(key)) {
+				if(key == "type" || key == "to") {
+					continue;
+				}
+				var val = status[key];
+				if (val instanceof Date) {
+					val = prettyTime(val);
+				} else if (typeof val == "object") {
+					val = JSON.stringify(val);
+				}
+				lines.push(key + ": " + val);
+			}
+		}
+	});
+	
+	var body = lines.join("\n");
+	
+	waitingStatusResponses.forEach(function (response) {
+		response.end(body);
+	});
+	
+	waitingStatusResponses.length = 0;
+};
+
+var MINUTE = 60,
+	HOUR = 60 * 60,
+	DAY = HOUR * 24;
+	
+function prettyTime(date) {
+	var diff = (new Date()).getTime() - date.getTime();
+	var line = "Online since: " + date.toString() + "(about ";
+	if (diff > DAY) {
+		line += Math.floor(diff/DAY) + " days";
+	} else if (diff > HOUR) {
+		line += Math.floor(diff/HOUR) + " hours";
+	} else if (diff > MINUTE) {
+		line += Math.floor(diff/HOUR) + " minutes";
+	} else {
+		line += diff + " seconds";
+	}
+	return line + ")";
 }
 
 /**
@@ -641,18 +720,74 @@ function sendIndex(request, response, google_analytics_id){
  * Set up clustering
  */
 if (cluster.isMaster) {
-	// if we're the master, make a new worker for each CPU
-	var numCPUs = require('os').cpus().length
 
-	for (var i = 0; i < numCPUs; i++) {
-		cluster.fork();
+	// if we're the master, make a new worker for each CPU
+	
+	var child_count = 0;
+	var startTime = new Date();
+	var exit_codes = {};
+	
+	function workersExcept(pid) {
+		return workers.filter( function(w) {
+			return w.pid != pid;
+		});
 	}
 	
-	// and when a worker dies, restart it
+	var workers = [];
+	
+	function createWorker() {
+		var worker = cluster.fork();
+		child_count++;
+		workers.push(worker);
+		
+		worker.on('message', function (message) {
+			// if there's no type, then we don't care about it here
+			if(!message.type) {
+				return;
+			}
+			
+			console.log('message recieved by master ', message);
+			
+			// if it's a status request sent to everyone, respond with the master's status before passing it along
+			if (message.type == "status.request") {
+				worker.send({
+					type: "status.response",
+					"Is Master": true,
+					"PID": process.pid, 
+					"Online Since": startTime, 
+					"Current Workers": workers.length,
+					"Workers Started": child_count, 
+					"Worker Exit Codes": exit_codes
+				});
+			}
+			
+			// and send the message to all workers (including this one)
+			workers.forEach( function(w) {
+				// if there is no "to" then the message is to everyone
+				// but if there is one, only pass it along if it's for this worker
+				if(message.to && message.to != w.pid) {
+					return;
+				}
+			
+				console.log(" forwarding message to worker " + w.pid, message);
+				w.send(message);
+			});
+		});
+	}
+
+	// if we're in the master process, create one worker for each cpu core
+	for (var i = 0; i < numCPUs; i++) {
+		createWorker();
+	}
+	
+	// when the worker dies, note the exit code, remove it from the workers array, and create a new one 
 	cluster.on('death', function(worker) {
-		console.log('worker ' + worker.pid + ' died');
-		cluster.fork();
+		exit_codes[code] = exit_codes[code] || 0;
+		exit_codes[code]++;
+		workers = workersExcept(worker.pid)
+		createWorker();
 	});
+
 } else {
 	// if we're a worker, read the index file and then fire up the server
 	setupIndex();
@@ -660,6 +795,21 @@ if (cluster.isMaster) {
 	console.log('node-unblocker proxy server with pid ' + process.pid + ' running on ' + 
 		((config.ip) ? config.ip + ":" : "port ") + config.port
 	);
+	
+	process.on('message', function (message) {
+		console.log("messge recieved by child (" + process.pid + ") ", message);
+		if(message.type == "status.request") {
+			process.send({
+				type: "status.response", 
+				to: message.from,
+				"PID": process.pid,
+				"Online Since": serverStart,
+				"Total Requests": counter,
+				"Open Requests": openRequests,
+				"Max Concurrent Requests": maxRequests
+			});
+		} else if (message.type == "status.response") {
+			handleStatus(message);
+		}
+	});
 }
-
-
