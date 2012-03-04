@@ -134,18 +134,18 @@ function proxy(request, response) {
 
 
 	var uri = url.parse(getRealUrl(request.url));
+	// make sure the url in't blocked
+	if(!blocklist.urlAllowed(uri)){
+      return redirectTo(request, response, "?error=Please use a different proxy to access this site");
+    }
 
 	// redirect urls like /proxy/http://asdf.com to /proxy/http://asdf.com/ to make relative image paths work
 	if (uri.pathname == "/" && request.url.substr(-1) != "/") {
 		return redirectTo(request, response, request.url + "/");
 	}
 	
-	// make sure the url in't blocked
-	if(!blocklist.urlAllowed(uri)){
-      return redirectTo(request, response, "?error=Please use a different proxy to access this site");
-    }
-    
     incrementRequests();
+	response.on('close', decrementRequests);
 	
 	uri.port = uri.port || portmap[uri.protocol];
 	uri.pathname = uri.search ? uri.pathname + uri.search : uri.pathname;
@@ -156,7 +156,7 @@ function proxy(request, response) {
 	delete headers.host;
 	
 	// todo: grab any new cookies in headers.cookie (set by JS) and store them in the session
-	// (assume / path and same domain)
+	// (assume / path and same domain as request's referer)
 	headers.cookie = getCookies(request, uri);
 	
 	console.log("sending these cookies: " + headers.cookie);
@@ -263,6 +263,11 @@ function proxy(request, response) {
 				chunk_remainder = chunk.substr(-4); // 4 characters is enough for "http, the longest string we should need to buffer
 				chunk = chunk.substr(0, chunk.length -4);
 			}
+			
+			chunk = chunk.replace('</head>', '<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">\r\n</head>');
+			
+			chunk = add_ga(chunk);
+			
 			response.write(chunk);
 		}
 		
@@ -290,7 +295,6 @@ function proxy(request, response) {
 				chunk_remainder = undefined;
 			}
 			response.end();
-		  	decrementRequests();
 		});
 		
 
@@ -563,6 +567,27 @@ function copy(source){
 	return n;
 }
 
+var ga = "";
+function add_ga(html) {
+	if(config.google_analytics_id) {
+		ga = ga || [
+		  "<script type=\"text/javascript\">"
+		  ,"var _gaq = []; // overwrite the existing one, if any"
+		  ,"_gaq.push(['_setAccount', '" + config.google_analytics_id + "']);"
+		  ,"_gaq.push(['_trackPageview']);"
+		  ,"(function() {"
+		  ,"  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;"
+		  ,"  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';"
+		  ,"  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);"
+		  ,"})();"
+		  ,"</script>"
+		].join("\n");
+
+		html = html.replace("</body>", ga + "\n\n</body>");	
+	}
+	return html;
+}
+
 
 /**
  * placeholder for compressed & uncompressed versions of index.html
@@ -576,22 +601,7 @@ function setupIndex(){
 	var raw_index = fs.readFileSync(path.join(__dirname,'index.html')).toString();
 	var package_info = JSON.parse(fs.readFileSync(path.join(__dirname,'package.json')));
 	raw_index = raw_index.replace('{version}', package_info.version)
-	if(config.google_analytics_id) {
-		var ga = [
-		  "<script type=\"text/javascript\">"
-		  ,"var _gaq = []; // overwrite the existing one, if any"
-		  ,"_gaq.push(['_setAccount', '" + config.google_analytics_id + "']);"
-		  ,"_gaq.push(['_trackPageview']);"
-		  ,"(function() {"
-		  ,"  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;"
-		  ,"  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';"
-		  ,"  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);"
-		  ,"})();"
-		  ,"</script>"
-		].join("\n");
-
-		raw_index = raw_index.replace("</body>", ga + "\n\n</body>");	
-	}
+	raw_index = add_ga(raw_index);
 	index.raw = raw_index;
 	zlib.deflate(raw_index, function(data){index.deflate = data;});
 	zlib.gzip(raw_index,  function(data){index.gzip = data;})
