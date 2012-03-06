@@ -698,7 +698,7 @@ if (cluster.isMaster) {
 		} else if (diff > HOUR) {
 			return Math.floor(diff/HOUR) + " hours";
 		} else if (diff > MINUTE) {
-			return Math.floor(diff/HOUR) + " minutes";
+			return Math.floor(diff/MINUTE) + " minutes";
 		} else {
 			return Math.round(diff*10)/10 + " seconds";
 		}
@@ -753,7 +753,7 @@ if (cluster.isMaster) {
 				
 				data.Workers = "";
 				workers.forEach(function(w) {
-					data.Workers += "\n - " + worker.pid + " online for " + prettyTime(worker.start_time);
+					data.Workers += "\n - " + w.pid + " online for " + prettyTime(w.start_time);
 				});
 				
 				worker.send(data);
