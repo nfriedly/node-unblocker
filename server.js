@@ -62,6 +62,10 @@ var server = connect()
 	
 	console.log("(" + process.pid + ") New Request: ", request.url);
 	
+	
+    incrementRequests();
+	request.on('end', decrementRequests);
+	
 	// if the user requested the "home" page
 	// (located at /proxy so that we can more easily tell the difference 
 	// between a user who is looking for the home page and a "/" link)
@@ -144,9 +148,6 @@ function proxy(request, response) {
 	if (uri.pathname == "/" && request.url.substr(-1) != "/") {
 		return redirectTo(request, response, request.url + "/");
 	}
-	
-    incrementRequests();
-	response.on('close', decrementRequests);
 	
 	uri.port = uri.port || portmap[uri.protocol];
 	uri.pathname = uri.search ? uri.pathname + uri.search : uri.pathname;
@@ -526,113 +527,6 @@ function redirectTo(request, response, site){
 	response.end();
 }
 
-// counters to get a rough picture of how busy the server is and how busy it's been (and also if it was restarted any time recently)
-var counter = 0,
-	openRequests = 0,
-	maxRequests = 0,
-	serverStart = new Date();
-
-function incrementRequests(){
-	openRequests++;
-	if(openRequests > maxRequests){
-		maxRequests = openRequests;
-	}
-	counter++;
-}
-
-function decrementRequests(){
-	openRequests--;
-}
-
-var statusResponses = [];
-var waitingStatusResponses = [];
-
-// simple way to get the curent status of the server
-function status(request, response){
-	console.log("status request recieved on pid " + process.pid);
-	response.writeHead("200", {"Content-Type": "text/plain", "Expires": 0});
-	
-	// only send out a new status request if we don't already have one in the pipe
-	if(waitingStatusResponses.length == 0) {
-		statusResponses.length = 0;
-		console.log("sending status request message");
-		process.send({type: "status.request", from: process.pid});
-	}
-	
-	// 1 second timeout in case some child process doesn't respond quickly enough
-	response.timeout = setTimeout(function(){
-		console.log("status responses timeout reached");
-		statusResponses.push({"Some Responses Not Recieved": (numCPUs - statusResponses.length)})
-		sendStatuses();
-	}, 1000);
-	
-	waitingStatusResponses.push(response);
-}
-
-function handleStatus(message){
-	statusResponses.push(message);
-	// there should be one response for each CPU + one from the master
-	if(statusResponses.length > numCPUs) {
-		sendStatuses();
-	}
-}
-
-function sendStatuses(){
-	var big_break	= "=================";
-	var small_break	= "-----------------";
-	var lines = [
-		"Server Status",
-		big_break,
-		(new Date()).toString()
-	];
-	
-	// loop through each line in each status response
-	statusResponses.forEach(function (status) {
-		lines.push("",small_break);
-		for(key in status) {
-			if(status.hasOwnProperty(key)) {
-				if(key == "type" || key == "to") {
-					continue;
-				}
-				var val = status[key];
-				if (val instanceof Date) {
-					val = prettyTime(val);
-				} else if (typeof val == "object") {
-					val = JSON.stringify(val);
-				}
-				lines.push(key + ": " + val);
-			}
-		}
-	});
-	
-	var body = lines.join("\n");
-	
-	waitingStatusResponses.forEach(function (response) {
-		response.end(body);
-	});
-	
-	waitingStatusResponses.length = 0;
-};
-
-var MINUTE = 60,
-	HOUR = 60 * 60,
-	DAY = HOUR * 24;
-	
-function prettyTime(date) {
-	var diff = (new Date()).getTime() - date.getTime();
-	var line = "Online since: " + date.toString() + "(about ";
-	if (diff > DAY) {
-		line += Math.floor(diff/DAY) + " days";
-	} else if (diff > HOUR) {
-		line += Math.floor(diff/HOUR) + " hours";
-	} else if (diff > MINUTE) {
-		line += Math.floor(diff/HOUR) + " minutes";
-	} else {
-		line += diff + " seconds";
-	}
-	return line + ")";
-}
-
 /**
 * returns a shallow copy of an object
 */
@@ -716,16 +610,99 @@ function sendIndex(request, response, google_analytics_id){
 }
 
 
+
+function incrementRequests(){
+	process.send({type: "request.start"});
+}
+
+function decrementRequests(){
+	process.send({type: "request.end"});
+}
+
+var waitingStatusResponses = [];
+
+// simple way to get the curent status of the server
+function status(request, response){
+	console.log("status request recieved on pid " + process.pid);
+	response.writeHead("200", {"Content-Type": "text/plain", "Expires": 0});
+	
+	// only send out a new status request if we don't already have one in the pipe
+	if(waitingStatusResponses.length == 0) {
+		console.log("sending status request message");
+		process.send({type: "status.request", from: process.pid});
+	}
+	
+	// 1 second timeout in case the master doesn't respond quickly enough
+	response.timeout = setTimeout(function(){
+		console.log("Error: status responses timeout reached");
+		sendStatus({error: "No response from the cluster master after 1 second"});
+	}, 1000);
+	
+	waitingStatusResponses.push(response);
+}
+
+function sendStatus(status){
+	var big_break	= "====================";
+	var small_break	= "--------------------";
+	var lines = [
+		"Server Status",
+		big_break,
+		(new Date()).toString(),
+		"",
+		"Cluster Status",
+		small_break
+	];
+	
+	for(key in status) {
+		if(status.hasOwnProperty(key)) {
+			if(key == "type" || key == "to") {
+				continue;
+			}
+			var val = status[key];
+			lines.push(key + ": " + val);
+		}
+	}
+	
+	var body = lines.join("\n");
+	
+	waitingStatusResponses.forEach(function (response) {
+		response.end(body);
+		clearTimeout(response.timeout);
+	});
+	
+	waitingStatusResponses.length = 0;
+};
+
 /**
  * Set up clustering
  */
 if (cluster.isMaster) {
 
-	// if we're the master, make a new worker for each CPU
+	// the master will track a few statics and keep the workers up and running
 	
-	var child_count = 0;
-	var startTime = new Date();
-	var exit_codes = {};
+	
+	var child_count = 0,
+		startTime = new Date(),
+		total_requests = 0,
+		total_open_requests = 0,
+		max_open_requests = 0;
+		
+	var MINUTE = 60,
+		HOUR = 60 * 60,
+		DAY = HOUR * 24;
+		
+	function prettyTime(date) {
+		var diff = ((new Date()).getTime() - date.getTime())/1000;
+		if (diff > DAY) {
+			return Math.floor(diff/DAY) + " days";
+		} else if (diff > HOUR) {
+			return Math.floor(diff/HOUR) + " hours";
+		} else if (diff > MINUTE) {
+			return Math.floor(diff/HOUR) + " minutes";
+		} else {
+			return Math.round(diff*10)/10 + " seconds";
+		}
+	}
 	
 	function workersExcept(pid) {
 		return workers.filter( function(w) {
@@ -740,6 +717,9 @@ if (cluster.isMaster) {
 		child_count++;
 		workers.push(worker);
 		
+		worker.open_requests = 0;
+		worker.start_time = new Date();
+		
 		worker.on('message', function (message) {
 			// if there's no type, then we don't care about it here
 			if(!message.type) {
@@ -750,28 +730,48 @@ if (cluster.isMaster) {
 			
 			// if it's a status request sent to everyone, respond with the master's status before passing it along
 			if (message.type == "status.request") {
-				worker.send({
+				var data = {
 					type: "status.response",
-					"Is Master": true,
-					"PID": process.pid, 
-					"Online Since": startTime, 
-					"Current Workers": workers.length,
+					"Master PID": process.pid, 
+					"Online Since": startTime.toString() + "(about " + prettyTime(startTime) + ")", 
 					"Workers Started": child_count, 
-					"Worker Exit Codes": exit_codes
+					"Total Requests Served": total_requests,
+					"Current Open Requests": total_open_requests,
+					"Max Open Requests": max_open_requests
+				};
+				
+				var uptime = ((new Date).getTime() - startTime.getTime())/1000;
+				if (total_requests > uptime) {
+					data["Requests Per Second (average)"] = total_requests / uptime;
+				} else if (total_requests > uptime/MINUTE) {
+					data["Requests Per Minute (average)"] = total_requests / (uptime/MINUTE);
+				} else if (total_requests > uptime/HOUR) {
+					data["Requests Per Hour (average)"] = total_requests / (uptime/HOUR);
+				} else {
+					data["Requests Per Day (average)"] = total_requests / (uptime/DAY);
+				}
+				
+				data.Workers = "";
+				workers.forEach(function(w) {
+					data.Workers += "\n - " + worker.pid + " online for " + prettyTime(worker.start_time);
 				});
+				
+				worker.send(data);
 			}
 			
-			// and send the message to all workers (including this one)
-			workers.forEach( function(w) {
-				// if there is no "to" then the message is to everyone
-				// but if there is one, only pass it along if it's for this worker
-				if(message.to && message.to != w.pid) {
-					return;
+			if (message.type == "request.start") {
+				worker.open_requests++;
+				total_open_requests++;
+				if (max_open_requests < total_open_requests) {
+					max_open_requests = total_open_requests;
 				}
+				total_requests++;
+			}
 			
-				console.log(" forwarding message to worker " + w.pid, message);
-				w.send(message);
-			});
+			if (message.type == "request.end") {
+				worker.open_requests--;
+				total_open_requests--;
+			}
 		});
 	}
 
@@ -782,8 +782,7 @@ if (cluster.isMaster) {
 	
 	// when the worker dies, note the exit code, remove it from the workers array, and create a new one 
 	cluster.on('death', function(worker) {
-		exit_codes[code] = exit_codes[code] || 0;
-		exit_codes[code]++;
+		total_open_requests = total_open_requests - worker.open_requests;
 		workers = workersExcept(worker.pid)
 		createWorker();
 	});
@@ -797,19 +796,12 @@ if (cluster.isMaster) {
 	);
 	
 	process.on('message', function (message) {
+		if (!message.type) {
+			return;
+		}
 		console.log("messge recieved by child (" + process.pid + ") ", message);
-		if(message.type == "status.request") {
-			process.send({
-				type: "status.response", 
-				to: message.from,
-				"PID": process.pid,
-				"Online Since": serverStart,
-				"Total Requests": counter,
-				"Open Requests": openRequests,
-				"Max Concurrent Requests": maxRequests
-			});
-		} else if (message.type == "status.response") {
-			handleStatus(message);
+		if (message.type == "status.response") {
+			sendStatus(message);
 		}
 	});
 }
