@@ -47,7 +47,7 @@ This project and related problems are released under the terms of the [GNU GPL v
 
 ### v0.7.1 - 2012-3-6
 * Added GA tracking and and noindex/nofollow meta tags to proxied pages
-* Improved status page to show cluster-wide statistics
+* Improved status page to show cluster-wide statistics (Issue #4)
 * Fixed issue #7 to better track concurrent requests
 
 ### v0.6.0 - 2012-2-24
