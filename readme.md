@@ -45,6 +45,11 @@ This project and related problems are released under the terms of the [GNU GPL v
 
 ## Change log
 
+### v0.7.1 - 2012-3-6
+* Added GA tracking and and noindex/nofollow meta tags to proxied pages
+* Improved status page to show cluster-wide statistics
+* Fixed issue #7 to better track concurrent requests
+
 ### v0.6.0 - 2012-2-24
 * Added support for node.js 0.6's native clustering
 * Removed simple-session library and replaced it with [connect's](https://github.com/senchalabs/connect/) session library backed by a redis store
