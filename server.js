@@ -50,7 +50,7 @@ if(config.redistogo_url) {
 
 // local dependencies
 var utils = require('./lib/utils')
-	,proxy = require('./lib/proxy')(redis); // todo: make it use whatever is on `request`
+	,proxy = require('./lib/proxy');
   
 
 var server = connect()
