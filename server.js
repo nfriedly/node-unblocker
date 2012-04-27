@@ -260,9 +260,30 @@ function proxy(request, response) {
 		// in that case, buffer the end and prepend it to the next chunk
 		var chunk_remainder;
 		
+		// if charset is utf8, chunk may be cut in the middle of 3byte character,
+		// we need to buffer the cutted data and prepend it to the next chunk
+		var chunk_remainder_bin;
+		
 		// todo : account for varying encodings
 		function parse(chunk){
 			//console.log("data event", request.url, chunk.toString());
+			
+			if( chunk_remainder_bin ){
+				var buf = new Buffer(chunk_remainder_bin.length + chunk.length);
+				chunk_remainder_bin.copy(buf);
+				chunk.copy(buf, chunk_remainder_bin.length);
+				chunk_remainder_bin = undefined;
+				chunk = buf;
+			}
+			if( charset_aliases[charset] === 'utf8' ){
+				var cutted = utf8_cuttedSizeOfTail(chunk);
+				//console.log('cutted = ' + cutted);
+				if( cutted > 0 ){
+					chunk_remainder_bin = new Buffer(cutted);
+					chunk.copy(chunk_remainder_bin, 0, chunk.length - cutted);
+					chunk = chunk.slice(0, chunk.length - cutted);
+				}
+			}
 			
 			// stringily our chunk and grab the previous chunk (if any)
 			chunk = decodeChunk(chunk);
@@ -334,6 +355,54 @@ function proxy(request, response) {
 				if( !encodeIconv ) encodeIconv = new Iconv('UTF-8', charset + '//TRANSLIT//IGNORE');
 				return encodeIconv.convert(chunk);
 			}
+		}
+
+		// check tail of the utf8 binary and return the size of cutted data
+		// if the data is invalid, return 0
+		function utf8_cuttedSizeOfTail(bin){
+			var len = bin.length;
+			if( len < 4 ) return 0; // don't think about the data of less than 4byte
+
+			// count bytes from tail to last character boundary
+			var skipped = 0;
+			for( var i=len; i>len-4; i-- ){
+				var b = bin[i-1];
+				if( (b & 0x7f) === b ){ // 0xxxxxxx (1byte character boundary)
+					if( i === len ){
+						return 0;
+					} else {
+						break; // invalid data
+					}
+				} else if( (b & 0xbf) === b ){ //10xxxxxx (is not a character boundary)
+					skipped++;
+				} else if( (b & 0xdf) === b ){ //110xxxxx (2byte character boundary)
+					if( skipped === 0 ){
+						return 1;
+					} else if( skipped === 1 ){
+						return 0;
+					} else {
+						break; // invalid data
+					}
+				} else if( (b & 0xef) === b ){ //1110xxxx (3byte character boundary)
+					if( skipped <= 1 ){
+						return 1 + skipped;
+					} else if( skipped === 2 ){
+						return 0;
+					} else {
+						break; // invalid data
+					}
+				} else if( (b & 0xf7) === b ){ //11110xxx (4byte character boundary)
+					if( skipped <= 2 ){
+						return 1 + skipped;
+					} else if( skipped === 3 ) {
+						return 0;
+					} else {
+						break; // invalid data
+					}
+				}
+			}
+			// invalid data, return 0
+			return 0;
 		}
 
 		// if we're dealing with gzipped input, set up a stream decompressor to handle output
