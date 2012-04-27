@@ -261,7 +261,7 @@ function proxy(request, response) {
 		var chunk_remainder;
 		
 		// if charset is utf8, chunk may be cut in the middle of 3byte character,
-		// we need to buffer the cutted data and prepend it to the next chunk
+		// we need to buffer the cut data and prepend it to the next chunk
 		var chunk_remainder_bin;
 		
 		// todo : account for varying encodings
@@ -276,12 +276,12 @@ function proxy(request, response) {
 				chunk = buf;
 			}
 			if( charset_aliases[charset] === 'utf8' ){
-				var cutted = utf8_cuttedSizeOfTail(chunk);
-				//console.log('cutted = ' + cutted);
-				if( cutted > 0 ){
-					chunk_remainder_bin = new Buffer(cutted);
-					chunk.copy(chunk_remainder_bin, 0, chunk.length - cutted);
-					chunk = chunk.slice(0, chunk.length - cutted);
+				var cut_size = utf8_cutDataSizeOfTail(chunk);
+				//console.log('cut_size = ' + cut_size);
+				if( cut_size > 0 ){
+					chunk_remainder_bin = new Buffer(cut_size);
+					chunk.copy(chunk_remainder_bin, 0, chunk.length - cut_size);
+					chunk = chunk.slice(0, chunk.length - cut_size);
 				}
 			}
 			
@@ -357,9 +357,9 @@ function proxy(request, response) {
 			}
 		}
 
-		// check tail of the utf8 binary and return the size of cutted data
+		// check tail of the utf8 binary and return the size of cut data
 		// if the data is invalid, return 0
-		function utf8_cuttedSizeOfTail(bin){
+		function utf8_cutDataSizeOfTail(bin){
 			var len = bin.length;
 			if( len < 4 ) return 0; // don't think about the data of less than 4byte
 
