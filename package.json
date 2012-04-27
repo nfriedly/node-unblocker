@@ -8,7 +8,8 @@
         "redis-url": 	"0.1.x",
         "redis": 		"0.7.x",
         "connect": 		"git://github.com/senchalabs/connect.git",
-        "connect-redis": "1.2.x"
+        "connect-redis": "1.2.x",
+        "iconv":		"1.1.x"
     },
 	"engines": {
 		"node": "0.6.x",

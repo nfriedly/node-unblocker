@@ -129,6 +129,27 @@ var portmap 		= {"http:":80,"https:":443},
 	re_html_partial = /("|'|=|\(\s*)[ht]{1,3}$/ig, // ', ", or = followed by one to three h's and t's at the end of the line
 	re_css_partial = /(url\(\s*)[ht]{1,3}$/ig; // above, but for url( htt
 
+// charset aliases which charset supported by native node.js
+var charset_aliases = {
+	'ascii':           'ascii',
+	'us':              'ascii',
+	'us-ascii':        'ascii',
+	'utf8':            'utf8',
+	'utf-8':           'utf8',
+	'ucs-2':           'ucs2',
+	'ucs2':            'ucs2',
+	'csunicode':       'ucs2',
+	'iso-10646-ucs-2': 'ucs2'
+};
+
+// charset aliases which iconv doesn't support
+// this is popular jp-charset only, I think there are more...
+var charset_aliases_iconv = {
+	'windows-31j':  'cp932',
+	'cswindows31j': 'cp932',
+	'ms932':        'cp932'
+};
+
 /**
 * Makes the outgoing request and relays it to the client, modifying it along the way if necessary
 *
@@ -184,7 +205,8 @@ function proxy(request, response) {
 		// make a copy of the headers to fiddle with
 		var headers = copy(remote_response.headers);
 		
-		var ct = (headers['content-type'] || "unknown").split(";")[0];
+		var content_type = headers['content-type'] || "unknown",
+			ct = content_type.split(";")[0];
 		
 		var needs_parsed = ([
 			'text/html', 
@@ -201,7 +223,10 @@ function proxy(request, response) {
 			delete headers['content-length'];
 		}
 		
-	
+		// detect charset from content-type headers
+		var charset = content_type.match(/\bcharset=([\w\-]+)\b/i);
+		charset = charset ? normalizeIconvCharset(charset[1].toLowerCase()) : undefined;
+
 		var needs_decoded = (needs_parsed && headers['content-encoding'] == 'gzip');
 		
 		// we're going to de-gzip it, so nuke that header
@@ -239,7 +264,7 @@ function proxy(request, response) {
 			//console.log("data event", request.url, chunk.toString());
 			
 			// stringily our chunk and grab the previous chunk (if any)
-			chunk = chunk.toString();
+			chunk = decodeChunk(chunk);
 			
 			if(chunk_remainder){
 				chunk = chunk_remainder + chunk;
@@ -270,10 +295,46 @@ function proxy(request, response) {
 			
 			chunk = add_ga(chunk);
 			
-			response.write(chunk);
+			response.write(encodeChunk(chunk));
 		}
-		
-		
+
+		// Iconv instance for decode and encode
+		var decodeIconv, encodeIconv;
+
+		// decode chunk binary to string using charset
+		function decodeChunk(chunk){
+			// if charset is undefined, detect from meta headers
+			if( !charset ){
+				var re = chunk.toString().match(/<meta\b[^>]*charset=([\w\-]+)/i);
+				// if we can't detect charset, use utf-8 as default
+				// CAUTION: this will become a bug if charset meta headers are not contained in the first chunk, but probability is low
+				charset = re ? normalizeIconvCharset(re[1].toLowerCase()) : 'utf-8';
+			}
+			//console.log("charset: " + charset);
+
+			if( charset in charset_aliases ){
+				return chunk.toString(charset_aliases[charset]);
+			} else {
+				if( !decodeIconv ) decodeIconv = new Iconv(charset, 'UTF-8//TRANSLIT//IGNORE');
+				return decodeIconv.convert(chunk).toString();
+			}
+		}
+
+		// normalize charset which iconv doesn't support
+		function normalizeIconvCharset(charset){
+			return charset in charset_aliases_iconv ? charset_aliases_iconv[charset] : charset;
+		}
+
+		// encode chunk string to binary using charset
+		function encodeChunk(chunk){
+			if( charset in charset_aliases ){
+				return new Buffer(chunk, charset_aliases[charset]);
+			} else {
+				if( !encodeIconv ) encodeIconv = new Iconv('UTF-8', charset + '//TRANSLIT//IGNORE');
+				return encodeIconv.convert(chunk);
+			}
+		}
+
 		// if we're dealing with gzipped input, set up a stream decompressor to handle output
 		if(needs_decoded) {
 			remote_response = remote_response.pipe(zlib.createUnzip());
