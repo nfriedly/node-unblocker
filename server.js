@@ -29,6 +29,7 @@ var http = require('http'),
 	fs = require("fs"),
 	zlib = require('zlib'),
 	cluster = require('cluster'),
+	Iconv = require('iconv').Iconv,
 	numCPUs = require('os').cpus().length;
 
 
@@ -129,6 +130,27 @@ var portmap 		= {"http:":80,"https:":443},
 	re_html_partial = /("|'|=|\(\s*)[ht]{1,3}$/ig, // ', ", or = followed by one to three h's and t's at the end of the line
 	re_css_partial = /(url\(\s*)[ht]{1,3}$/ig; // above, but for url( htt
 
+// charset aliases which charset supported by native node.js
+var charset_aliases = {
+	'ascii':           'ascii',
+	'us':              'ascii',
+	'us-ascii':        'ascii',
+	'utf8':            'utf8',
+	'utf-8':           'utf8',
+	'ucs-2':           'ucs2',
+	'ucs2':            'ucs2',
+	'csunicode':       'ucs2',
+	'iso-10646-ucs-2': 'ucs2'
+};
+
+// charset aliases which iconv doesn't support
+// this is popular jp-charset only, I think there are more...
+var charset_aliases_iconv = {
+	'windows-31j':  'cp932',
+	'cswindows31j': 'cp932',
+	'ms932':        'cp932'
+};
+
 /**
 * Makes the outgoing request and relays it to the client, modifying it along the way if necessary
 *
@@ -184,7 +206,8 @@ function proxy(request, response) {
 		// make a copy of the headers to fiddle with
 		var headers = copy(remote_response.headers);
 		
-		var ct = (headers['content-type'] || "unknown").split(";")[0];
+		var content_type = headers['content-type'] || "unknown",
+			ct = content_type.split(";")[0];
 		
 		var needs_parsed = ([
 			'text/html', 
@@ -201,7 +224,10 @@ function proxy(request, response) {
 			delete headers['content-length'];
 		}
 		
-	
+		// detect charset from content-type headers
+		var charset = content_type.match(/\bcharset=([\w\-]+)\b/i);
+		charset = charset ? normalizeIconvCharset(charset[1].toLowerCase()) : undefined;
+
 		var needs_decoded = (needs_parsed && headers['content-encoding'] == 'gzip');
 		
 		// we're going to de-gzip it, so nuke that header
@@ -234,12 +260,33 @@ function proxy(request, response) {
 		// in that case, buffer the end and prepend it to the next chunk
 		var chunk_remainder;
 		
+		// if charset is utf8, chunk may be cut in the middle of 3byte character,
+		// we need to buffer the cut data and prepend it to the next chunk
+		var chunk_remainder_bin;
+		
 		// todo : account for varying encodings
 		function parse(chunk){
 			//console.log("data event", request.url, chunk.toString());
 			
+			if( chunk_remainder_bin ){
+				var buf = new Buffer(chunk_remainder_bin.length + chunk.length);
+				chunk_remainder_bin.copy(buf);
+				chunk.copy(buf, chunk_remainder_bin.length);
+				chunk_remainder_bin = undefined;
+				chunk = buf;
+			}
+			if( charset_aliases[charset] === 'utf8' ){
+				var cut_size = utf8_cutDataSizeOfTail(chunk);
+				//console.log('cut_size = ' + cut_size);
+				if( cut_size > 0 ){
+					chunk_remainder_bin = new Buffer(cut_size);
+					chunk.copy(chunk_remainder_bin, 0, chunk.length - cut_size);
+					chunk = chunk.slice(0, chunk.length - cut_size);
+				}
+			}
+			
 			// stringily our chunk and grab the previous chunk (if any)
-			chunk = chunk.toString();
+			chunk = decodeChunk(chunk);
 			
 			if(chunk_remainder){
 				chunk = chunk_remainder + chunk;
@@ -270,10 +317,94 @@ function proxy(request, response) {
 			
 			chunk = add_ga(chunk);
 			
-			response.write(chunk);
+			response.write(encodeChunk(chunk));
 		}
-		
-		
+
+		// Iconv instance for decode and encode
+		var decodeIconv, encodeIconv;
+
+		// decode chunk binary to string using charset
+		function decodeChunk(chunk){
+			// if charset is undefined, detect from meta headers
+			if( !charset ){
+				var re = chunk.toString().match(/<meta\b[^>]*charset=([\w\-]+)/i);
+				// if we can't detect charset, use utf-8 as default
+				// CAUTION: this will become a bug if charset meta headers are not contained in the first chunk, but probability is low
+				charset = re ? normalizeIconvCharset(re[1].toLowerCase()) : 'utf-8';
+			}
+			//console.log("charset: " + charset);
+
+			if( charset in charset_aliases ){
+				return chunk.toString(charset_aliases[charset]);
+			} else {
+				if( !decodeIconv ) decodeIconv = new Iconv(charset, 'UTF-8//TRANSLIT//IGNORE');
+				return decodeIconv.convert(chunk).toString();
+			}
+		}
+
+		// normalize charset which iconv doesn't support
+		function normalizeIconvCharset(charset){
+			return charset in charset_aliases_iconv ? charset_aliases_iconv[charset] : charset;
+		}
+
+		// encode chunk string to binary using charset
+		function encodeChunk(chunk){
+			if( charset in charset_aliases ){
+				return new Buffer(chunk, charset_aliases[charset]);
+			} else {
+				if( !encodeIconv ) encodeIconv = new Iconv('UTF-8', charset + '//TRANSLIT//IGNORE');
+				return encodeIconv.convert(chunk);
+			}
+		}
+
+		// check tail of the utf8 binary and return the size of cut data
+		// if the data is invalid, return 0
+		function utf8_cutDataSizeOfTail(bin){
+			var len = bin.length;
+			if( len < 4 ) return 0; // don't think about the data of less than 4byte
+
+			// count bytes from tail to last character boundary
+			var skipped = 0;
+			for( var i=len; i>len-4; i-- ){
+				var b = bin[i-1];
+				if( (b & 0x7f) === b ){ // 0xxxxxxx (1byte character boundary)
+					if( i === len ){
+						return 0;
+					} else {
+						break; // invalid data
+					}
+				} else if( (b & 0xbf) === b ){ //10xxxxxx (is not a character boundary)
+					skipped++;
+				} else if( (b & 0xdf) === b ){ //110xxxxx (2byte character boundary)
+					if( skipped === 0 ){
+						return 1;
+					} else if( skipped === 1 ){
+						return 0;
+					} else {
+						break; // invalid data
+					}
+				} else if( (b & 0xef) === b ){ //1110xxxx (3byte character boundary)
+					if( skipped <= 1 ){
+						return 1 + skipped;
+					} else if( skipped === 2 ){
+						return 0;
+					} else {
+						break; // invalid data
+					}
+				} else if( (b & 0xf7) === b ){ //11110xxx (4byte character boundary)
+					if( skipped <= 2 ){
+						return 1 + skipped;
+					} else if( skipped === 3 ) {
+						return 0;
+					} else {
+						break; // invalid data
+					}
+				}
+			}
+			// invalid data, return 0
+			return 0;
+		}
+
 		// if we're dealing with gzipped input, set up a stream decompressor to handle output
 		if(needs_decoded) {
 			remote_response = remote_response.pipe(zlib.createUnzip());
