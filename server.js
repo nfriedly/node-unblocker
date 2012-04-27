@@ -29,6 +29,7 @@ var http = require('http'),
 	fs = require("fs"),
 	zlib = require('zlib'),
 	cluster = require('cluster'),
+	Iconv = require('iconv').Iconv,
 	numCPUs = require('os').cpus().length;
 
 
