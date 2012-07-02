@@ -43,7 +43,16 @@ Analytics.
 ## License
 This project and related problems are released under the terms of the [GNU GPL version 3](http://www.gnu.org/licenses/gpl.html)
 
+## Contributors 
+* [Nathan Friedly](http://nfriedly.com)
+* [Arturo Filastò](https://github.com/hellais)
+* [tfMen](https://github.com/tfMen)
+
 ## Change log
+
+### v0.8.0 - 2012-4-29
+* Added support for more charsets via Iconv. (Issues #10 & #11)
+** This may have broken compatibility with Windows, more investigation to come. https://github.com/nfriedly/node-unblocker/zipball/v0.7.1 is pure JS and known to be Windows-compatible.
 
 ### v0.7.1 - 2012-3-6
 * Added GA tracking and and noindex/nofollow meta tags to proxied pages
