@@ -912,7 +912,7 @@ if (cluster.isMaster) {
 	}
 	
 	// when the worker dies, note the exit code, remove it from the workers array, and create a new one 
-	cluster.on('death', function(worker) {
+	cluster.on('exit', function(worker) {
 		total_open_requests = total_open_requests - worker.open_requests;
 		workers = workersExcept(worker.pid)
 		createWorker();
