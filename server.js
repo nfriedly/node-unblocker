@@ -34,7 +34,7 @@ var http = require('http'),
 
 
 // local dependencies
-var blocklist = require('./blocklist');
+var blocklist = require('./lib/blocklist');
   
 // the configuration file
 var config = require('./config');
