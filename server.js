@@ -649,7 +649,7 @@ function redirectTo(request, response, site){
 	}
 	if(site == "/") site = ""; // no endless redirect loops
 	try {
-		response.writeHead('302', {'Location': thisSite(request) + site});
+		response.writeHead('307', {'Location': thisSite(request) + site});
 		console.log("recirecting to " + thisSite(request) + site);
 	} catch(ex) {
 		// the headers were already sent - we can't redirect them
