@@ -1,6 +1,7 @@
 var cluster = require('cluster'),
 	numCPUs = require('os').cpus().length;
 
+<<<<<<< HEAD
 // the master will track a few statics and keep the workers up and running
 cluster.setupMaster({
     exec: './proxy_worker.js'
