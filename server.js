@@ -467,7 +467,7 @@ function getCookies(request, uri){
 		path_parts = uri.pathname.split("/"),	
 		cookies = {}, // key-value store of cookies.
 		output = [], // array of cookie strings to be joined later
-		session = request.session;
+		session = request.session || {};
 		
 	// We start at the least specific domain/path and loop towards most specific so that a more 
 	// overwrite specific cookie will a less specific one of the same name.
