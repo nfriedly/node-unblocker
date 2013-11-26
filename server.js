@@ -191,7 +191,7 @@ function proxy(request, response) {
 	}
 	
 	var options = {
-		host: uri.host,
+		host: uri.hostname,
 		port: uri.port,
 		path: uri.pathname,
 		method: request.method,
