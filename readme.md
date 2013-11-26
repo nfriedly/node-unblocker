@@ -34,7 +34,15 @@ only you know]` to make the session cookies secure. You may also want to run
 `heroku config:add GA_ID=[your Google Analytics ID, ex: UA-12345-78]` to enable usage tracking via Google 
 Analytics. 
 
-## High-level Todo list
+## Todo
+
+* Make a cleaner separation of various concerns within the proxy
+* Make the tests less awful
+* Write more tests
+* Write unit tests to compliment the integration tests
+* Set up automatic deployment on clean checkins 
+
+## Maybe Todo list
 
 * Mini-url form
 * Allow for removal of scripts (both <script /> tags and on*= handlers)
