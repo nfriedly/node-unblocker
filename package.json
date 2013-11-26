@@ -15,5 +15,15 @@
     "node": "0.10.x",
     "npm": "1.2.x"
   },
-  "main": "server"
+  "main": "server",
+  "devDependencies": {
+    "node-static": "~0.7.2",
+    "tap": "~0.4.6",
+    "hyperquest": "~0.1.8",
+    "concat-stream": "~1.2.0",
+    "taskgroup": "~3.3.2"
+  },
+  "scripts": {
+    "test-performance": "node test/performance.js"
+  }
 }
