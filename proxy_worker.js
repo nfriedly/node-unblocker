@@ -114,20 +114,20 @@ var server = connect()
 }); // we'll start the server at the bottom of the file
 
 
-var portmap 		= {"http:":80,"https:":443},
-	re_abs_url = /("|'|=)(http:(\/\/|\\\/\\\/)|https:(\/\/|\\\/\\\/))/ig, // "http, 'http, or =http
+var portmap         = {"http:":80,"https:":443},
+	re_abs_url      = /("|'|=)(http:(\/\/|\\\/\\\/)|https:(\/\/|\\\/\\\/))/ig, // "http, 'http, or =http
 	re_abs_no_proto = /("|'|=)(\/\/\w)/ig, // matches //site.com style urls where the protocol is auto-sensed
-	re_rel_root = /((href|src|action)=['"]{0,1})(\/\w)/ig, // matches src="/asdf/asdf"
+	re_rel_root     = /((href|src|action)=['"]{0,1})(\/\w)/ig, // matches src="/asdf/asdf"
 	// no need to match href="asdf/adf" relative links - those will work without modification
 	
 	
-	re_css_abs = /(url\(\s*['"]{0,1})(http:(\/\/|\\\/\\\/)|https:(\/\/|\\\/\\\/)|\/\/)/ig, // matches url( http
-	re_css_abs_no_proto = /(url\(\s*)(\/\/)/ig, // matches url( //
-	re_css_rel_root = /(url\(\s*['"]{0,1})(\/\w)/ig, // matches url( /asdf/img.jpg
+	re_css_abs     = /(url\(\s*['"]{0,1})(http:(\/\/|\\\/\\\/)|https:(\/\/|\\\/\\\/))/ig, // matches url( http
+	re_css_abs_no_proto   = /(url\(\s*['"]{0,1})(\/\/\w)/ig,
+	re_css_rel_root   = /(url\(\s*['"]{0,1})(\/\w)/ig, // matches url( /asdf/img.jpg
 	
 	// partial's dont cause anything to get changed, they just cause the packet to be buffered and rechecked
-	re_html_partial = /("|'|=|\(\s*)[ht]{1,3}$/ig, // ', ", or = followed by one to three h's and t's at the end of the line
-	re_css_partial = /(url\(\s*['"]{0,1})[ht]{1,3}$/ig; // above, but for url( htt
+	re_html_partial   = /("|'|=|\(\s*)[ht]{1,3}$/ig, // ', ", or = followed by one to three h's and t's at the end of the line
+	re_css_partial     = /(url\(\s*['"]{0,1})[ht]{1,3}$/ig; // above, but for url( htt
 	
 function rewrite_urls(chunk, uri, ct, thisSite) {
 
@@ -137,13 +137,10 @@ function rewrite_urls(chunk, uri, ct, thisSite) {
     // next replace urls that are relative to the root of the domain
     chunk = chunk.replace(re_rel_root, "$1" + thisSite + "/" + uri.protocol + "//" + uri.host + "$3");
     
-    // if we're in a stylesheet, run a couple of extra regexs to avoid 302's
-    if(ct == 'text/css' || ct == 'text/html'){
-        console.log('running css rules');
-        chunk = chunk.replace(re_css_abs, "$1" + thisSite + "/$2");
-        chunk = chunk.replace(re_css_abs_no_proto, "$1" + thisSite + "/" + uri.protocol + "$2");
-        chunk = chunk.replace(re_css_rel_root, "$1" + thisSite + "/" + uri.protocol + "//" + uri.host + "$2");			
-    }
+    console.log('running css rules');
+    chunk = chunk.replace(re_css_abs, "$1" + thisSite + "/$2");
+    chunk = chunk.replace(re_css_abs_no_proto, "$1" + thisSite + "/" + uri.protocol + "$2");
+    chunk = chunk.replace(re_css_rel_root, "$1" + thisSite + "/" + uri.protocol + "//" + uri.host + "$2");
     
     return chunk;
 }
