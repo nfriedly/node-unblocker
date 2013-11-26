@@ -20,5 +20,8 @@
     "concat-stream": "~1.2.0",
     "tap": "~0.4.6",
     "hyperquest": "~0.1.8"
+  },
+  "scripts": {
+    "test": "node test/url_rewriting.js"
   }
 }

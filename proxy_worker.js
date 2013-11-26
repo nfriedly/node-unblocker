@@ -115,37 +115,37 @@ var server = connect()
 
 
 var portmap 		= {"http:":80,"https:":443},
-	re_abs_url 	= /("|'|=)(http)/ig, // "http, 'http, or =http (no :// so that it matches http & https)
+	re_abs_url 	= /("|'|=)(https?:\/\/)/ig, // "http://, 'http://, or =http:// (and with https)
 	re_abs_no_proto 	= /("|'|=)(\/\/)/ig, // matches //site.com style urls where the protocol is auto-sensed
 	re_rel_root = /((href|src)=['"]{0,1})(\/\w)/ig, // matches src="/asdf/asdf"
 	// no need to match href="asdf/adf" relative links - those will work without modification
 	
 	
 	re_css_abs = /(url\(\s*)(http)/ig, // matches url( http
+	re_css_abs_no_proto = /(url\(\s*)(\/\/)/ig, // matches url( //
 	re_css_rel_root = /(url\(\s*['"]{0,1})(\/\w)/ig, // matches url( /asdf/img.jpg
 	
 	// partial's dont cause anything to get changed, they just cause the packet to be buffered and rechecked
 	re_html_partial = /("|'|=|\(\s*)[ht]{1,3}$/ig, // ', ", or = followed by one to three h's and t's at the end of the line
 	re_css_partial = /(url\(\s*)[ht]{1,3}$/ig; // above, but for url( htt
 	
-function rewrite_urls(chunk, uri, ct) {
+function rewrite_urls(chunk, uri, ct, thisSite) {
     // first replace any complete urls
-    chunk = chunk.replace(re_abs_url, "$1" + thisSite(request) + "/$2");
-    chunk = chunk.replace(re_abs_no_proto, "$1" + thisSite(request) + "/" + uri.protocol + "$2");
+    chunk = chunk.replace(re_abs_url, "$1" + thisSite + "/$2");
+    chunk = chunk.replace(re_abs_no_proto, "$1" + thisSite + "/" + uri.protocol + "$2");
     // next replace urls that are relative to the root of the domain
-    chunk = chunk.replace(re_rel_root, "$1" + thisSite(request) + "/" + uri.protocol + "//" + uri.hostname + "$3");
+    chunk = chunk.replace(re_rel_root, "$1" + thisSite + "/" + uri.protocol + "//" + uri.host + "$3");
     
     // if we're in a stylesheet, run a couple of extra regexs to avoid 302's
-    if(ct == 'text/css'){
+    if(ct == 'text/css' || ct == 'text/html'){
         console.log('running css rules');
-        chunk = chunk.replace(re_css_abs, "$1" + thisSite(request) + "/$2");
-        chunk = chunk.replace(re_css_rel_root, "$1" + thisSite(request) + "/" + uri.protocol + "//" + uri.hostname + "$2");			
+        chunk = chunk.replace(re_css_abs, "$1" + thisSite + "/$2");
+        chunk = chunk.replace(re_css_abs_no_proto, "$1" + thisSite + "/" + uri.protocol + "$2");
+        chunk = chunk.replace(re_css_rel_root, "$1" + thisSite + "/" + uri.protocol + "//" + uri.host + "$2");			
     }
     
     return chunk;
 }
-
-module.exports.rewrite_urls = rewrite_urls;
 
 // charset aliases which charset supported by native node.js
 var charset_aliases = {
@@ -170,12 +170,9 @@ var charset_aliases_iconv = {
 
 /**
 * Makes the outgoing request and relays it to the client, modifying it along the way if necessary
-*
-* todo: get better at fixing / urls
-* todo: fix urls that start with //
 */
 function proxy(request, response) {
-
+    request.session = request.session || {};
 
 	var uri = url.parse(getRealUrl(request.url));
 	// make sure the url in't blocked
@@ -310,7 +307,7 @@ function proxy(request, response) {
 				chunk_remainder = undefined;
 			}
 			
-            chunk = rewrite_urls(chunk, uri, ct);
+            chunk = rewrite_urls(chunk, uri, ct, thisSite(request));
             
 			// second, check if any urls are partially present in the end of the chunk,
 			// and buffer the end of the chunk if so; otherwise pass it along
@@ -319,7 +316,7 @@ function proxy(request, response) {
 				chunk = chunk.substr(0, chunk.length -4);
 			}
 			
-			chunk = chunk.replace('</head>', '<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">\r\n</head>');
+			chunk = chunk.replace('</head>', '<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">\n</head>');
 			
 			chunk = add_ga(chunk);
 			
@@ -473,7 +470,7 @@ function getCookies(request, uri){
 		path_parts = uri.pathname.split("/"),	
 		cookies = {}, // key-value store of cookies.
 		output = [], // array of cookie strings to be joined later
-		session = request.session || {};
+		session = request.session;
 		
 	// We start at the least specific domain/path and loop towards most specific so that a more 
 	// overwrite specific cookie will a less specific one of the same name.
@@ -637,7 +634,14 @@ function getRealUrl(path){
 
 // returns the configured host if one exists, otherwise the host that the current request came in on
 function thisHost(request){
-	return (config.host) ? config.host : request.headers.host;
+	if (config.host) {
+	    return config.host;
+	} 
+	if (request.headers.host == 'localhost') {
+	    request.headers.host + config.port; // special case to make testing & development easier
+	} else  {
+	    return request.headers.host; // normal case: include the hostname but assume we're either on a standard port or behind a reverse proxy
+	}
 }
 
 // returns the http://site.com/proxy
