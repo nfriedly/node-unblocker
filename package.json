@@ -19,9 +19,12 @@
   "devDependencies": {
     "concat-stream": "~1.2.0",
     "tap": "~0.4.6",
-    "hyperquest": "~0.1.8"
+    "hyperquest": "~0.1.8",
+    "math-helpers": "~0.1.0",
+    "taskgroup": "~3.3.2"
   },
   "scripts": {
-    "test": "node test/url_rewriting.js"
+    "test": "node test/url_rewriting.js",
+    "test-perf": "node test/performance.js"
   }
 }
