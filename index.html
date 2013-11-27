@@ -99,12 +99,18 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 			return document.getElementById(id);
 		}
 		
+		var l = window.location
+		
+		var baseUrl = l.hostname == "nodeunblocker.com" ?
+		     "https://node-unblocker.herokuapp.com/proxy/" : 
+		     l.protocol + '//' +  l.host + '/proxy/';
+		
 		$('unblocker-form').onsubmit = function(){
 			var url = $('url').value;
 			if(url.substr(0,4) != "http"){
 				url = "http://" + url;
 			}
-			window.location = "https://node-unblocker.herokuapp.com/proxy/" + url;
+			window.location = baseUrl + url;
 			return false;
 		}
 		
