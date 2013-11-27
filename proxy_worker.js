@@ -30,6 +30,11 @@ var http = require('http'),
 	zlib = require('zlib'),
 	Iconv = require('iconv').Iconv;
 
+// for great performance!
+// kind of hard to see much difference in local testing, but I think this should make an appreciable improvement in production
+// https://github.com/substack/hyperquest#rant
+http.globalAgent.maxSockets = 64;
+https.globalAgent.maxSockets = 64;
 
 // local dependencies
 var blocklist = require('./lib/blocklist');

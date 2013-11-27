@@ -118,9 +118,12 @@ function printStats(stats, baseline) {
     console.log(format("\n%s/%s iterations completed successfully in %s miliseconds %s", 
         stats.successes, stats.iterations, stats.ms, printDifference("ms", stats, baseline)));
     console.log("Average response time: " + stats.average + " miliseconds", printDifference("average", stats, baseline));
+    if (baseline) {
+        console.log(format("Proxy adds %s ms to each request on average", stats.average - baseline.average))
+    }
     console.log("Standard Deviation: " + stats.stdDev, 
         printDifference("stdDev", stats, baseline).replace("slower", "worse").replace("faster", "better"));
-    console.log(format("Percentile speeds:\n  50%: %smss %s\n  75%: %smss %s\n  90%: %smss %s\n  95%: %smss %s", 
+    console.log(format("Percentile speeds:\n  50%: %sms %s\n  75%: %sms %s\n  90%: %sms %s\n  95%: %sms %s", 
         stats._50, printDifference("_50", stats, baseline), 
         stats._75, printDifference("_75", stats, baseline), 
         stats._90, printDifference("_90", stats, baseline), 
