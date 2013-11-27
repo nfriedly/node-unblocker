@@ -1,7 +1,11 @@
 var fork = require('child_process').fork,
     http = require('http');
 
-exports.getServers = function(sourceContent, next) {
+exports.getServers = function(sourceContent, cluster, next) {
+    if (typeof cluster == 'function') {
+        next = cluster;
+        cluster = false;
+    }
     var servers = {};
     servers.kill = function() {
         servers.remoteServer.close();
@@ -14,7 +18,8 @@ exports.getServers = function(sourceContent, next) {
     });
 
     servers.remoteServer.listen(8081, function () {
-        servers.proxyServer = fork(__dirname + '/../proxy_worker.js', {silent: false});
+        var file = cluster ? 'server.js' : 'proxy_worker.js';
+        servers.proxyServer = fork(__dirname + '/../' + file, {silent: false});
         servers.proxyServer.once('message', function(msg) {
             next(null, servers);
         });

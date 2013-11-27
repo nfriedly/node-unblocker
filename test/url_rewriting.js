@@ -24,3 +24,22 @@ test("url_rewriting should support support all kinds of links", function(t) {
             });
     });
 })
+
+
+test("clustering should not break url rewriting", function(t) {
+    getServers(source, true, function(err, servers) {
+        function cleanup() {
+            servers.kill();
+            t.end();
+        }
+        hyperquest("http://localhost:8080/proxy/http://localhost:8081/")
+            .pipe(concat(function(data) {
+                t.equal(data.toString(), expected.toString());
+                cleanup();
+            }))
+            .on('error', function(err) {
+                console.error('error retrieving data from proxy', err);
+                cleanup();
+            });
+    });
+})

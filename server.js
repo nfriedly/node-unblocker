@@ -1,8 +1,6 @@
 var cluster = require('cluster'),
 	numCPUs = require('os').cpus().length;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // the master will track a few statics and keep the workers up and running
 cluster.setupMaster({
     exec: './proxy_worker.js'
@@ -51,6 +49,11 @@ function createWorker() {
         // if there's no type, then we don't care about it here
         if(!message.type) {
             return;
+        }
+        
+        // for automated tests
+        if (message.type == 'ready' && process.send) {
+            return process.send(message);
         }
         
         console.log('message recieved by master ', message);
