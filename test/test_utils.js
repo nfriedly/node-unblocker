@@ -30,13 +30,7 @@ exports.getServers = function(sourceContent, cluster, next) {
 
     servers.remoteServer.listen(8081, function () {
         var file = cluster ? 'server.js' : 'proxy_worker.js';
-        // travis CI seems to have a conflict when two tests in a row both use port 8080, even if the first test waits for the previous one to close
-        var proxyPort = Math.round(Math.random() * (65535-1024) + 1024);
-        servers.proxyServer = fork(__dirname + '/../' + file, {
-            silent: false,
-            env: { PORT: proxyPort }
-        });
-        servers.proxyServer.port = proxyPort;
+        servers.proxyServer = fork(__dirname + '/../' + file, {silent: false});
         servers.proxyServer.once('message', function(msg) {
             next(null, servers);
         });
