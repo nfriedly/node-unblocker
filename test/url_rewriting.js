@@ -7,7 +7,7 @@ var fs = require('fs'),
 var source = fs.readFileSync(__dirname + '/source/index.html');
 var expected = fs.readFileSync(__dirname + '/expected/index.html');
 
-/*
+
 test("url_rewriting should support support all kinds of links", function(t) {
     getServers(source, function(err, servers) {
         function cleanup() {
@@ -26,8 +26,8 @@ test("url_rewriting should support support all kinds of links", function(t) {
             });
     });
 })
-*/
 
+/*
 test("clustering should not break url rewriting", function(t) {
     getServers(source, true, function(err, servers) {
         function cleanup() {
@@ -46,3 +46,4 @@ test("clustering should not break url rewriting", function(t) {
             });
     });
 })
+*/

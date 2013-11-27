@@ -50,7 +50,7 @@ to run this to enable usage tracking via Google Analytics:
 * Make the tests less awful
 * Write more tests
 * Write unit tests to compliment the integration tests
-* Set up automatic deployment on clean checkins 
+* Figure out how to test the cluster master on Travis CI
 
 ## Maybe Todo list
 
