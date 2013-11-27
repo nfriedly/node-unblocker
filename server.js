@@ -7,7 +7,7 @@ cluster.setupMaster({
 });
 
 var child_count = 0,
-    startTime = new Date(),
+    startTime = Date.now(),
     total_requests = 0,
     total_open_requests = 0,
     max_open_requests = 0;
@@ -16,8 +16,8 @@ var MINUTE = 60,
     HOUR = 60 * 60,
     DAY = HOUR * 24;
     
-function prettyTime(date) {
-    var diff = ((new Date()).getTime() - date.getTime())/1000;
+function prettyTime(time) {
+    var diff = (Date.now() - time)/1000;
     if (diff > DAY) {
         return Math.floor(diff/DAY) + " days";
     } else if (diff > HOUR) {
@@ -38,12 +38,17 @@ function workersExcept(pid) {
 var workers = [];
 
 function createWorker() {
+    if (Date.now() - startTime < 300 && child_count > 4) {
+        console.error("\nToo many instant deaths, shutting down.\n");
+        process.exit(1);
+    }
+
     var worker = cluster.fork();
     child_count++;
     workers.push(worker);
     
     worker.open_requests = 0;
-    worker.start_time = new Date();
+    worker.start_time = Date.now();
     
     worker.on('message', function (message) {
         // if there's no type, then we don't care about it here
@@ -109,6 +114,8 @@ function createWorker() {
 for (var i = 0; i < numCPUs; i++) {
     createWorker();
 }
+
+var recentDeaths = 0;
 
 // when the worker dies, note the exit code, remove it from the workers array, and create a new one 
 cluster.on('exit', function(worker) {
