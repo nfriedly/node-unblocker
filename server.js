@@ -56,7 +56,7 @@ function createWorker() {
             return process.send(message);
         }
         
-        console.log('message recieved by master ', message);
+        //console.log('message recieved by master ', message);
         
         // if it's a status request sent to everyone, respond with the master's status before passing it along
         if (message.type == "status.request") {
