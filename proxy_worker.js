@@ -120,9 +120,9 @@ var portmap         = {"http:":80,"https:":443},
 	re_rel_root     = /((href|src|action)=['"]{0,1})(\/\w)/ig, // matches src="/asdf/asdf"
 	// no need to match href="asdf/adf" relative links - those will work without modification
 	
-	
-	re_css_abs     = /(url\(\s*['"]{0,1})(http:(\/\/|\\\/\\\/)|https:(\/\/|\\\/\\\/))/ig, // matches url( http
-	re_css_abs_no_proto   = /(url\(\s*['"]{0,1})(\/\/\w)/ig,
+	// note: we con't check for urls in quotes here because the previous check will have already handled them
+	re_css_abs     = /(url\(\s*)(http:(\/\/|\\\/\\\/)|https:(\/\/|\\\/\\\/))/ig, // matches url( http
+	re_css_abs_no_proto   = /(url\(\s*)(\/\/\w)/ig,
 	re_css_rel_root   = /(url\(\s*['"]{0,1})(\/\w)/ig, // matches url( /asdf/img.jpg
 	
 	// partial's dont cause anything to get changed, they just cause the packet to be buffered and rechecked
@@ -314,7 +314,7 @@ function proxy(request, response) {
 				chunk = chunk.substr(0, chunk.length -4);
 			}
 			
-			chunk = chunk.replace('</head>', '<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">\r\n</head>');
+			chunk = chunk.replace('</head>', '<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">\n</head>');
 
 
 			chunk = add_ga(chunk);
