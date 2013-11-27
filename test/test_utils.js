@@ -7,8 +7,19 @@ exports.getServers = function(sourceContent, cluster, next) {
         cluster = false;
     }
     var servers = {};
-    servers.kill = function() {
-        servers.remoteServer.close();
+    servers.kill = function(next) {
+        servers.remoteServer.close(function() {
+            servers.remoteServer.off = true;
+            if (servers.proxyServer.off) {
+                next && next();
+            }
+        });
+        servers.proxyServer.on('close', function() {
+            servers.proxyServer.off = true;
+            if (servers.remoteServer.off) {
+                next && next();
+            }
+        });
         servers.proxyServer.kill();
     }
     

@@ -10,8 +10,9 @@ var expected = fs.readFileSync(__dirname + '/expected/index.html');
 test("url_rewriting should support support all kinds of links", function(t) {
     getServers(source, function(err, servers) {
         function cleanup() {
-            servers.kill();
-            t.end();
+            servers.kill(function() {
+                t.end();
+            });
         }
         hyperquest("http://localhost:8080/proxy/http://localhost:8081/")
             .pipe(concat(function(data) {
@@ -29,8 +30,9 @@ test("url_rewriting should support support all kinds of links", function(t) {
 test("clustering should not break url rewriting", function(t) {
     getServers(source, true, function(err, servers) {
         function cleanup() {
-            servers.kill();
-            t.end();
+            servers.kill(function() {
+                t.end();
+            });
         }
         hyperquest("http://localhost:8080/proxy/http://localhost:8081/")
             .pipe(concat(function(data) {
