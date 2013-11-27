@@ -14,9 +14,9 @@ test("url_rewriting should support support all kinds of links", function(t) {
                 t.end();
             });
         }
-        hyperquest("http://localhost:8080/proxy/http://localhost:8081/")
+        hyperquest('http://localhost:'+ servers.proxyServer.port + '/proxy/http://localhost:8081/')
             .pipe(concat(function(data) {
-                t.equal(data.toString(), expected.toString());
+                t.equal(data.toString(), expected.toString().replace(/<proxyPort>/g, servers.proxyServer.port));
                 cleanup();
             }))
             .on('error', function(err) {
@@ -34,9 +34,9 @@ test("clustering should not break url rewriting", function(t) {
                 t.end();
             });
         }
-        hyperquest("http://localhost:8080/proxy/http://localhost:8081/")
+        hyperquest('http://localhost:'+ servers.proxyServer.port + '/proxy/http://localhost:8081/')
             .pipe(concat(function(data) {
-                t.equal(data.toString(), expected.toString());
+                t.equal(data.toString(), expected.toString().replace(/<proxyPort>/g, servers.proxyServer.port));
                 cleanup();
             }))
             .on('error', function(err) {

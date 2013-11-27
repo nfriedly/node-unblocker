@@ -25,16 +25,16 @@ getServers(source, function(err, servers) {
         concurrency: 1, // these should be run in order, not in parallel
         tasks: [
             function(next) {
-                console.log("\n\n=========\nBaseline\n=========");
-                runTest("http://localhost:8081/", iterations, concurrency, function(baseFailures, baseSuccesses, time) {
+                console.log('\n\n=========\nBaseline\n=========');
+                runTest('http://localhost:8081/', iterations, concurrency, function(baseFailures, baseSuccesses, time) {
                     baseline = getStats(iterations, baseFailures, baseSuccesses, time);
                     printStats(baseline);
                     next(); 
                 });   
             },
             function(next) {
-                console.log("\n\n=========\nProxy\n=========");
-                runTest("http://localhost:8080/proxy/http://localhost:8081/", iterations, concurrency, function(proxyFailures, proxySuccesses, time) {
+                console.log('\n\n=========\nProxy\n=========');
+                runTest('http://localhost: + servers.proxyServer.port + /proxy/http://localhost:8081/', iterations, concurrency, function(proxyFailures, proxySuccesses, time) {
                     proxy = getStats(iterations, proxyFailures, proxySuccesses, time);
                     printStats(proxy, baseline);
                     next();
