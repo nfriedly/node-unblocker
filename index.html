@@ -68,6 +68,20 @@
 
       </form>
       
+<div id="google-ad" style="float:right; margin:34px 2px 20px 20px;">
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-9477050254721722";
+/* nodeunblocker 300x250 */
+google_ad_slot = "9913058370";
+google_ad_width = 300;
+google_ad_height = 250;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</div>
+      
       <h3>About Node Unblocker</h3>
       <p>Node Unblocker is a web proxy, similar to CGIProxy, PHProxy, or Glype, that alows users to evade filters and unblock blocked sites. </p>
       <p>It's designed to be extremely fast and compatible: It processes the data on-the-fly rather than buffering the entire response, and it only modifies URLs when necessary - relative ones will "just work". </p>
@@ -90,7 +104,7 @@
 			if(url.substr(0,4) != "http"){
 				url = "http://" + url;
 			}
-			window.location.pathname = "/proxy/" + url;
+			window.location = "https://node-unblocker.herokuapp.com/proxy/" + url;
 			return false;
 		}
 		
