@@ -59,7 +59,7 @@ var server = connect()
 	.use(function(request, response){
 	var url_data = url.parse(request.url);
 	
-	console.log("(" + process.pid + ") New Request: ", request.url);
+	//console.log("(" + process.pid + ") New Request: ", request.url);
 	
 	
     incrementRequests();
@@ -137,7 +137,6 @@ function rewrite_urls(chunk, uri, ct, thisSite) {
     // next replace urls that are relative to the root of the domain
     chunk = chunk.replace(re_rel_root, "$1" + thisSite + "/" + uri.protocol + "//" + uri.host + "$3");
     
-    console.log('running css rules');
     chunk = chunk.replace(re_css_abs, "$1" + thisSite + "/$2");
     chunk = chunk.replace(re_css_abs_no_proto, "$1" + thisSite + "/" + uri.protocol + "$2");
     chunk = chunk.replace(re_css_rel_root, "$1" + thisSite + "/" + uri.protocol + "//" + uri.host + "$2");
@@ -195,7 +194,7 @@ function proxy(request, response) {
 	// (assume / path and same domain as request's referer)
 	headers.cookie = getCookies(request, uri);
 	
-	console.log("sending these cookies: " + headers.cookie);
+	//console.log("sending these cookies: " + headers.cookie);
 	
 	// overwrite the referer with the correct referer
 	if(request.headers.referer){
@@ -252,7 +251,7 @@ function proxy(request, response) {
 		// todo: also fix refresh and url headers
 		if(headers.location && headers.location.substr(0,4) == 'http'){
 			headers.location = thisSite(request) + "/" + headers.location;
-			console.log("fixing redirect");
+			//console.log("fixing redirect");
 		}
 		
 		if(headers['set-cookie']){
@@ -521,7 +520,7 @@ function getCookies(request, uri){
 * Parses the set-cookie header from the remote server and stores the cookies in the user's session
 */
 function storeCookies(request, uri, cookies){
-	console.log('storing these cookies: ', cookies);
+	//console.log('storing these cookies: ', cookies);
 
 	if(!cookies) return;
 	
@@ -554,7 +553,7 @@ function storeCookies(request, uri, cookies){
 		// now that the cookie is set (deleting any older cookie of the same name), 
 		// check the expiration date and delete it if it is outdated
 		if(isExpired(thisCookie)){
-			console.log('deleting cookie', thisCookie.expires);
+			//console.log('deleting cookie', thisCookie.expires);
 			delete request.session[domain][thisCookie.path][thisCookie.name];
 		}
 
@@ -659,7 +658,7 @@ function redirectTo(request, response, site){
 	if(site == "/") site = ""; // no endless redirect loops
 	try {
 		response.writeHead(307, {'Location': thisSite(request) + site});
-		console.log("recirecting to " + thisSite(request) + site);
+		//console.log("recirecting to " + thisSite(request) + site);
 	} catch(ex) {
 		// the headers were already sent - we can't redirect them
 		console.error("Failed to send redirect", ex);
@@ -763,18 +762,18 @@ var waitingStatusResponses = [];
 
 // simple way to get the curent status of the server
 function status(request, response){
-	console.log("status request recieved on pid " + process.pid);
+	//console.log("status request recieved on pid " + process.pid);
 	response.writeHead("200", {"Content-Type": "text/plain", "Expires": 0});
 	
 	// only send out a new status request if we don't already have one in the pipe
 	if(waitingStatusResponses.length == 0) {
-		console.log("sending status request message");
+		//console.log("sending status request message");
 		process.send({type: "status.request", from: process.pid});
 	}
 	
 	// 1 second timeout in case the master doesn't respond quickly enough
 	response.timeout = setTimeout(function(){
-		console.log("Error: status responses timeout reached");
+		//console.log("Error: status responses timeout reached");
 		sendStatus({error: "No response from the cluster master after 1 second"});
 	}, 1000);
 	
@@ -830,7 +829,7 @@ process.on('message', function (message) {
     if (!message.type) {
         return;
     }
-    console.log("messge recieved by child (" + process.pid + ") ", message);
+    //console.log("messge recieved by child (" + process.pid + ") ", message);
     if (message.type == "status.response") {
         sendStatus(message);
     }
