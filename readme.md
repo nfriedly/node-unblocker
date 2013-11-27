@@ -14,27 +14,35 @@ The script uses "pretty" urls which, besides looking pretty, allow links with re
 to just work without modification. (E.g. `<a href="path/to/file2.html"></a>`) 
 
 In addition to this, links that are relative to the root (E.g. `<a href="/path/to/file2.html"></a>`) 
-can be handled without modification by checking the referrer and 302 redirecting them to the proper 
-location in the referring site.
+can be handled without modification by checking the referrer and 307 redirecting them to the proper 
+location in the referring site. (Although the proxy does attempt to rewrite these links to avoid the redirect.)
 
 Cookies are currently storred in the visitor's session on the server rather than being sent to the 
 visitor's browser to avoid having a large number of (possibly conflicting) browser cookies once they
 have browsed several sites through the proxy.
 
 ## Instalation on your system
-Requires [node.js](http://nodejs.org/) >= 0.6 and [Redis](http://redis.io/) for session storage. 
-Then download node-unblocker, cd into the directory, and run `npm install -d`. Optionally edit 
+
+Requires [node.js](http://nodejs.org/) >= 0.8 (0.10 is recommended) and [Redis](http://redis.io/) for session storage. 
+Then [download node-unblocker](https://github.com/nfriedly/node-unblocker/archive/master.zip), cd into the directory, 
+and run `npm install`. Optionally edit 
 config.js then run `node server.js` to start the server. It should spawn a new instance for each CPU 
 core you have.
 
 ## Installation on Heroku
+
 This project should be runnable on a free [Heroku](http://www.heroku.com/) instance without 
-modification - see http://node-unblocker.herokuapp.com/proxy for an example. You will need to run 
-`heroku addons:add redistogo` and it would also be wise to run `heroku config:add SECRET=[something 
-only you know]` to make the session cookies secure. You may also want to run 
-`heroku addons:add piggyback_ssl` to enable secure browsing and/or 
-`heroku config:add GA_ID=[your Google Analytics ID, ex: UA-12345-78]` to enable usage tracking via Google 
-Analytics. 
+modification - see http://node-unblocker.herokuapp.com/proxy for an example. You will want to run the 
+following commands:
+
+    heroku addons:add redistogo
+    heroku config:add SECRET=<TYPE SOMETHING SECRET AND/OR RANDOM HERE>
+    heroku addons:add piggyback_ssl
+
+This sets up a free redis cache instance, secures your cookies, and adds https support. You may also want 
+to run this to enable usage tracking via Google Analytics: 
+
+    heroku config:add GA_ID=[your Google Analytics ID, ex: UA-12345-78]
 
 ## Todo
 
@@ -47,11 +55,11 @@ Analytics.
 ## Maybe Todo list
 
 * Mini-url form
-* Allow for removal of scripts (both <script /> tags and on*= handlers)
+* Allow for removal of scripts (both script tags and on*= handlers)
 * Web interface for managing the blocklist
 
 ## License
-This project and related problems are released under the terms of the [GNU GPL version 3](http://www.gnu.org/licenses/gpl.html)
+This project is released under the terms of the [GNU GPL version 3](http://www.gnu.org/licenses/gpl.html)
 
 ## Contributors 
 * [Nathan Friedly](http://nfriedly.com)
