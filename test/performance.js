@@ -95,13 +95,13 @@ function getStats(iterations, failures, successes, time) {
         iterations: iterations,
         failures: failures.length, 
         successes: successes.length, 
-        seconds: time/1000,
-        average: math.avg(successes)/1000,
-        stdDev: math.stdDev(successes)/1000,
-        _50: sorted[Math.round(sorted.length/2)]/1000,
-        _75: sorted[Math.round(sorted.length/4 * 3)]/1000,
-        _90: sorted[Math.round(sorted.length/10 * 9)]/1000,
-        _95: sorted[Math.round(sorted.length/20 * 19)]/1000,
+        ms: time,
+        average: math.avg(successes),
+        stdDev: math.stdDev(successes),
+        _50: sorted[Math.round(sorted.length/2)],
+        _75: sorted[Math.round(sorted.length/4 * 3)],
+        _90: sorted[Math.round(sorted.length/10 * 9)],
+        _95: sorted[Math.round(sorted.length/20 * 19)],
     }
 }
 
@@ -115,11 +115,12 @@ function printStats(stats, baseline) {
     if (stats.failures) {
         console.error(failures + ' failures');
     }
-    console.log(format("\n%s/%s iterations completed successfully in %s seconds", stats.successes, stats.iterations, stats.seconds));
-    console.log("Average response time: " + stats.average + "seconds", printDifference("average", stats, baseline));
+    console.log(format("\n%s/%s iterations completed successfully in %s miliseconds %s", 
+        stats.successes, stats.iterations, stats.ms, printDifference("ms", stats, baseline)));
+    console.log("Average response time: " + stats.average + " miliseconds", printDifference("average", stats, baseline));
     console.log("Standard Deviation: " + stats.stdDev, 
         printDifference("stdDev", stats, baseline).replace("slower", "worse").replace("faster", "better"));
-    console.log(format("Percentile speeds:\n  50%: %ss %s\n  75%: %ss %s\n  90%: %ss %s\n  95%: %ss %s", 
+    console.log(format("Percentile speeds:\n  50%: %smss %s\n  75%: %smss %s\n  90%: %smss %s\n  95%: %smss %s", 
         stats._50, printDifference("_50", stats, baseline), 
         stats._75, printDifference("_75", stats, baseline), 
         stats._90, printDifference("_90", stats, baseline), 
