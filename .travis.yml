@@ -2,5 +2,9 @@ language: node_js
 node_js:
 - '0.10'
 deploy:
+  provider: heroku
   api_key:
-    secure: Yj9Az8aJYgknaG0BCwmisAhYK+mKPT/P7XKDGT63MFJIh0TEwNuOu8nPc8zQt2AnkWdOyIhx8gF7JjmPlsNUMBbdoATZGm1C2L196YA0I89PZbIuzn7rCXbrq/6G5sTl7ejr3s2bUNFIEY0xAnvSIuImlWGuaXJO08o9CuRcXqw=
+    secure: hUDfE1TPfQmKZ5ntE9j/BsJmswWFYHj7vkmXNhBwcxHzytRwtKm+/fsJL87uoEuLgyB3dt1nlr/qI9HaXX9aasyXK9oeziHTp7L0eiKG5pMLnbt7eqpuKf/VQYXpk3todUZGeC6JbZqTT4nS+d9RzM3/2FtW8fREvtqeidAs6L4=
+  app: node-unblocker
+  on:
+    repo: nfriedly/node-unblocker
