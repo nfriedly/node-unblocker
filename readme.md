@@ -57,8 +57,13 @@ This project and related problems are released under the terms of the [GNU GPL v
 * [Nathan Friedly](http://nfriedly.com)
 * [Arturo Filastò](https://github.com/hellais)
 * [tfMen](https://github.com/tfMen)
+* [Emil Hemdal](https://github.com/emilhem)
 
 ## Change log
+
+### v0.8.2 - 2013-11-26
+* Added tests
+* Fixed a few bugs with creating proxied links.
 
 ### v0.8.0 - 2012-4-29
 * Added support for more charsets via Iconv. (Issues #10 & #11)
