@@ -6,6 +6,8 @@ buffering.
 
 Any website that the proxy can access can now be reached by the proxy's users.
 
+[![Build Status](https://travis-ci.org/nfriedly/node-unblocker.png?branch=master)](https://travis-ci.org/nfriedly/node-unblocker)
+
 ### The magic part
 
 The script uses "pretty" urls which, besides looking pretty, allow links with relative paths 
