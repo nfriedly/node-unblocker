@@ -27,8 +27,7 @@ var http = require('http'),
 	querystring = require('querystring'),
 	path = require("path"),
 	fs = require("fs"),
-	zlib = require('zlib'),
-	Iconv = require('iconv').Iconv;
+	zlib = require('zlib');
 
 // for great performance!
 // kind of hard to see much difference in local testing, but I think this should make an appreciable improvement in production
@@ -37,10 +36,17 @@ http.globalAgent.maxSockets = 64;
 https.globalAgent.maxSockets = 64;
 
 // local dependencies
-var blocklist = require('./lib/blocklist');
+var encoding = require('./lib/encodingstream'),
+    urlPrefix = require('./lib/urlprefixstream'),
+    metaRobots = require('./lib/metarobotsstream'),
+    googleAnalytics = require('./lib/googleanalyticsstream'),
+    blocklist = require('./lib/blocklist');
   
 // the configuration file
 var config = require('./config');
+
+urlPrefix.setDefaults({prefix: '/proxy/'});
+googleAnalytics.setId(config.google_analytics_id);
 
 // third-party dependencies
 var connect = require('connect'), // todo: call by version once 2.x is listed in npm
@@ -52,7 +58,6 @@ if(config.redistogo_url) {
 } else {
 	redis = require('redis').createClient(config.redis_port, config.redis_host, config.redis_options);
 }
-
 	
 
 var server = connect()
@@ -119,56 +124,7 @@ var server = connect()
 }); // we'll start the server at the bottom of the file
 
 
-var portmap         = {"http:":80,"https:":443},
-	re_abs_url      = /("|'|=)(http:(\/\/|\\\/\\\/)|https:(\/\/|\\\/\\\/))/ig, // "http, 'http, or =http
-	re_abs_no_proto = /("|'|=)(\/\/\w)/ig, // matches //site.com style urls where the protocol is auto-sensed
-	re_rel_root     = /((href|src|action)=['"]{0,1})(\/\w)/ig, // matches src="/asdf/asdf"
-	// no need to match href="asdf/adf" relative links - those will work without modification
-	
-	// note: we con't check for urls in quotes here because the previous check will have already handled them
-	re_css_abs     = /(url\(\s*)(http:(\/\/|\\\/\\\/)|https:(\/\/|\\\/\\\/))/ig, // matches url( http
-	re_css_abs_no_proto   = /(url\(\s*)(\/\/\w)/ig,
-	re_css_rel_root   = /(url\(\s*['"]{0,1})(\/\w)/ig, // matches url( /asdf/img.jpg
-	
-	// partial's dont cause anything to get changed, they just cause the packet to be buffered and rechecked
-	re_html_partial   = /("|'|=|\(\s*)[ht]{1,3}$/ig, // ', ", or = followed by one to three h's and t's at the end of the line
-	re_css_partial     = /(url\(\s*['"]{0,1})[ht]{1,3}$/ig; // above, but for url( htt
-	
-function rewrite_urls(chunk, uri, ct, thisSite) {
-
-    // first replace any complete urls
-    chunk = chunk.replace(re_abs_url, "$1" + thisSite + "/$2");
-    chunk = chunk.replace(re_abs_no_proto, "$1" + thisSite + "/" + uri.protocol + "$2");
-    // next replace urls that are relative to the root of the domain
-    chunk = chunk.replace(re_rel_root, "$1" + thisSite + "/" + uri.protocol + "//" + uri.host + "$3");
-    
-    chunk = chunk.replace(re_css_abs, "$1" + thisSite + "/$2");
-    chunk = chunk.replace(re_css_abs_no_proto, "$1" + thisSite + "/" + uri.protocol + "$2");
-    chunk = chunk.replace(re_css_rel_root, "$1" + thisSite + "/" + uri.protocol + "//" + uri.host + "$2");
-    
-    return chunk;
-}
-
-// charset aliases which charset supported by native node.js
-var charset_aliases = {
-	'ascii':           'ascii',
-	'us':              'ascii',
-	'us-ascii':        'ascii',
-	'utf8':            'utf8',
-	'utf-8':           'utf8',
-	'ucs-2':           'ucs2',
-	'ucs2':            'ucs2',
-	'csunicode':       'ucs2',
-	'iso-10646-ucs-2': 'ucs2'
-};
-
-// charset aliases which iconv doesn't support
-// this is popular jp-charset only, I think there are more...
-var charset_aliases_iconv = {
-	'windows-31j':  'cp932',
-	'cswindows31j': 'cp932',
-	'ms932':        'cp932'
-};
+var portmap = {"http:":80,"https:":443};
 
 /**
 * Makes the outgoing request and relays it to the client, modifying it along the way if necessary
@@ -239,10 +195,6 @@ function proxy(request, response) {
 		if(needs_parsed){
 			delete headers['content-length'];
 		}
-		
-		// detect charset from content-type headers
-		var charset = content_type.match(/\bcharset=([\w\-]+)\b/i);
-		charset = charset ? normalizeIconvCharset(charset[1].toLowerCase()) : undefined;
 
 		var needs_decoded = (needs_parsed && headers['content-encoding'] == 'gzip');
 		
@@ -270,174 +222,25 @@ function proxy(request, response) {
 		//console.log("content-type: " + ct);
 		//console.log("needs_parsed: " + needs_parsed);
 		//console.log("needs_decoded: " + needs_decoded);
-		
-		
-		// sometimes a chunk will end in data that may need to be modified, but it is impossible to tell
-		// in that case, buffer the end and prepend it to the next chunk
-		var chunk_remainder;
-		
-		// if charset is utf8, chunk may be cut in the middle of 3byte character,
-		// we need to buffer the cut data and prepend it to the next chunk
-		var chunk_remainder_bin;
-		
-		// todo : account for varying encodings
-		function parse(chunk){
-			//console.log("data event", request.url, chunk.toString());
-			
-			if( chunk_remainder_bin ){
-				var buf = new Buffer(chunk_remainder_bin.length + chunk.length);
-				chunk_remainder_bin.copy(buf);
-				chunk.copy(buf, chunk_remainder_bin.length);
-				chunk_remainder_bin = undefined;
-				chunk = buf;
-			}
-			if( charset_aliases[charset] === 'utf8' ){
-				var cut_size = utf8_cutDataSizeOfTail(chunk);
-				//console.log('cut_size = ' + cut_size);
-				if( cut_size > 0 ){
-					chunk_remainder_bin = new Buffer(cut_size);
-					chunk.copy(chunk_remainder_bin, 0, chunk.length - cut_size);
-					chunk = chunk.slice(0, chunk.length - cut_size);
-				}
-			}
-			
-			// stringily our chunk and grab the previous chunk (if any)
-			chunk = decodeChunk(chunk);
-			
-			if(chunk_remainder){
-				chunk = chunk_remainder + chunk;
-				chunk_remainder = undefined;
-			}
-			
-            chunk = rewrite_urls(chunk, uri, ct, thisSite(request));
-            
-			// second, check if any urls are partially present in the end of the chunk,
-			// and buffer the end of the chunk if so; otherwise pass it along
-			if(chunk.match(re_html_partial)){
-				chunk_remainder = chunk.substr(-4); // 4 characters is enough for "http, the longest string we should need to buffer
-				chunk = chunk.substr(0, chunk.length -4);
-			}
-			
-			chunk = chunk.replace('</head>', '<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">\n</head>');
-
-
-			chunk = add_ga(chunk);
-			
-			response.write(encodeChunk(chunk));
-		}
-
-		// Iconv instance for decode and encode
-		var decodeIconv, encodeIconv;
-
-		// decode chunk binary to string using charset
-		function decodeChunk(chunk){
-			// if charset is undefined, detect from meta headers
-			if( !charset ){
-				var re = chunk.toString().match(/<meta\b[^>]*charset=([\w\-]+)/i);
-				// if we can't detect charset, use utf-8 as default
-				// CAUTION: this will become a bug if charset meta headers are not contained in the first chunk, but probability is low
-				charset = re ? normalizeIconvCharset(re[1].toLowerCase()) : 'utf-8';
-			}
-			//console.log("charset: " + charset);
-
-			if( charset in charset_aliases ){
-				return chunk.toString(charset_aliases[charset]);
-			} else {
-				if( !decodeIconv ) decodeIconv = new Iconv(charset, 'UTF-8//TRANSLIT//IGNORE');
-				return decodeIconv.convert(chunk).toString();
-			}
-		}
-
-		// normalize charset which iconv doesn't support
-		function normalizeIconvCharset(charset){
-			return charset in charset_aliases_iconv ? charset_aliases_iconv[charset] : charset;
-		}
-
-		// encode chunk string to binary using charset
-		function encodeChunk(chunk){
-			if( charset in charset_aliases ){
-				return new Buffer(chunk, charset_aliases[charset]);
-			} else {
-				if( !encodeIconv ) encodeIconv = new Iconv('UTF-8', charset + '//TRANSLIT//IGNORE');
-				return encodeIconv.convert(chunk);
-			}
-		}
-
-		// check tail of the utf8 binary and return the size of cut data
-		// if the data is invalid, return 0
-		function utf8_cutDataSizeOfTail(bin){
-			var len = bin.length;
-			if( len < 4 ) return 0; // don't think about the data of less than 4byte
-
-			// count bytes from tail to last character boundary
-			var skipped = 0;
-			for( var i=len; i>len-4; i-- ){
-				var b = bin[i-1];
-				if( (b & 0x7f) === b ){ // 0xxxxxxx (1byte character boundary)
-					if( i === len ){
-						return 0;
-					} else {
-						break; // invalid data
-					}
-				} else if( (b & 0xbf) === b ){ //10xxxxxx (is not a character boundary)
-					skipped++;
-				} else if( (b & 0xdf) === b ){ //110xxxxx (2byte character boundary)
-					if( skipped === 0 ){
-						return 1;
-					} else if( skipped === 1 ){
-						return 0;
-					} else {
-						break; // invalid data
-					}
-				} else if( (b & 0xef) === b ){ //1110xxxx (3byte character boundary)
-					if( skipped <= 1 ){
-						return 1 + skipped;
-					} else if( skipped === 2 ){
-						return 0;
-					} else {
-						break; // invalid data
-					}
-				} else if( (b & 0xf7) === b ){ //11110xxx (4byte character boundary)
-					if( skipped <= 2 ){
-						return 1 + skipped;
-					} else if( skipped === 3 ) {
-						return 0;
-					} else {
-						break; // invalid data
-					}
-				}
-			}
-			// invalid data, return 0
-			return 0;
-		}
 
 		// if we're dealing with gzipped input, set up a stream decompressor to handle output
 		if(needs_decoded) {
 			remote_response = remote_response.pipe(zlib.createUnzip());
 		}
 
-		// set up a listener for when we get data from the remote server - parse/decode as necessary
-		remote_response.addListener('data', function(chunk){
-			if(needs_parsed) {
-				parse(chunk);		
-			} else {
-				response.write(chunk);
-			}
-		});
-
-		// clean up the connection and send out any orphaned chunk
-		remote_response.addListener('end', function() {
-			// if we buffered a bit of text but we're now at the end of the data, then apparently
-			// it wasn't a url - send it along
-			if(chunk_remainder){
-				response.write(chunk_remainder);
-				chunk_remainder = undefined;
-			}
-			response.end();
-		});
-		
-
-		
+        if(needs_parsed) {
+            var encodingStreams = encoding.createStreams(content_type);
+            var urlPrefixStream = urlPrefix.createStream({uri: uri, prefix: thisSite(request)});
+            var metaRobotsStream = metaRobots.createStream();
+            var gAStream = googleAnalytics.createStream();
+            remote_response = remote_response.pipe(encodingStreams.decode)
+                .pipe(urlPrefixStream)
+                .pipe(metaRobotsStream)
+                .pipe(gAStream)
+                .pipe(encodingStreams.recode);
+        }
+        
+        remote_response.pipe(response);
 	});
 	
 	remote_request.addListener('error', function(err){
@@ -684,28 +487,6 @@ function copy(source){
 	return n;
 }
 
-var ga = "";
-function add_ga(html) {
-	if(config.google_analytics_id) {
-		ga = ga || [
-		  "<script type=\"text/javascript\">"
-		  ,"var _gaq = []; // overwrite the existing one, if any"
-		  ,"_gaq.push(['_setAccount', '" + config.google_analytics_id + "']);"
-		  ,"_gaq.push(['_trackPageview']);"
-		  ,"(function() {"
-		  ,"  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;"
-		  ,"  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';"
-		  ,"  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);"
-		  ,"})();"
-		  ,"</script>"
-		].join("\n");
-
-		html = html.replace("</body>", ga + "\n\n</body>");	
-	}
-	return html;
-}
-
-
 /**
  * placeholder for compressed & uncompressed versions of index.html
  */
@@ -718,7 +499,7 @@ function setupIndex(){
 	var raw_index = fs.readFileSync(path.join(__dirname,'index.html')).toString();
 	var package_info = JSON.parse(fs.readFileSync(path.join(__dirname,'package.json')));
 	raw_index = raw_index.replace('{version}', package_info.version)
-	raw_index = add_ga(raw_index);
+	raw_index = googleAnalytics.addGa(raw_index);
 	index.raw = raw_index;
 	zlib.deflate(raw_index, function(data){index.deflate = data;});
 	zlib.gzip(raw_index,  function(data){index.gzip = data;})
