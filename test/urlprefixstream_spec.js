@@ -63,11 +63,13 @@ var testLines =  {
   '<script src="//example.com/scripts.js"></script>': '<script src="/proxy/http://example.com/scripts.js"></script>',
   '<script src="/scripts.js"></script>': '<script src="/proxy/http://localhost:8081/scripts.js"></script>',
   '<script src="scripts.js"></script>': '<script src="scripts.js"></script>',
+  
   '<script src=\'http://example.com/scripts.js\'></script>': '<script src=\'/proxy/http://example.com/scripts.js\'></script>',
   '<script src=\'https://example.com/scripts.js\'></script>': '<script src=\'/proxy/https://example.com/scripts.js\'></script>',
   '<script src=\'//example.com/scripts.js\'></script>': '<script src=\'/proxy/http://example.com/scripts.js\'></script>',
   '<script src=\'/scripts.js\'></script>': '<script src=\'/proxy/http://localhost:8081/scripts.js\'></script>',
   '<script src=\'scripts.js\'></script>': '<script src=\'scripts.js\'></script>',
+  
   '<script src=http://example.com/scripts.js></script>': '<script src=/proxy/http://example.com/scripts.js></script>',
   '<script src=https://example.com/scripts.js></script>': '<script src=/proxy/https://example.com/scripts.js></script>',
   '<script src=//example.com/scripts.js></script>': '<script src=/proxy/http://example.com/scripts.js></script>',
@@ -77,6 +79,7 @@ var testLines =  {
   '<a href="/site/http/page.html">link with "http" in the url</a>': '<a href="/proxy/http://localhost:8081/site/http/page.html">link with "http" in the url</a>',
   '<a href="/site/https/page.html">link with "https" in the url</a>': '<a href="/proxy/http://localhost:8081/site/https/page.html">link with "https" in the url</a>',
   '<a href="http://localhost:8080">link with port number</a>': '<a href="/proxy/http://localhost:8080">link with port number</a>',
+  '<a href="/">link to site root</a>' :   '<a href="/proxy/http://localhost:8081/">link to site root</a>'
 };
 
 var testUri = URL.parse('http://localhost:8081/');
