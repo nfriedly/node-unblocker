@@ -46,11 +46,11 @@ to run this to enable usage tracking via Google Analytics:
 
 ## Todo
 
-* Make a cleaner separation of various concerns within the proxy
 * Make the tests less awful
 * Write more tests
-* Write unit tests to compliment the integration tests
 * Figure out how to test the cluster master on Travis CI
+* Further separation of various concerns within the proxy
+* remove weird status page stuff (And replace with New Relic? - https://newrelic.com/nodejs)
 
 ## Maybe Todo list
 
