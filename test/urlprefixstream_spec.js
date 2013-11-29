@@ -89,3 +89,11 @@ test("should rewrite (or not rewrite) various strings correctly", function(t) {
     });
     t.end();
 });
+
+// todo: add tests for streams split at various locations
+
+// todo: add tests for links pointing to  / and #anchors and a few other oddball locations
+
+// todo: add tests for forms
+
+// todo: add tests for javascript (?)
