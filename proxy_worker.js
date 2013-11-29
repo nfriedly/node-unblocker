@@ -230,7 +230,7 @@ function proxy(request, response) {
 
         if(needs_parsed) {
             var encodingStreams = encoding.createStreams(content_type);
-            var urlPrefixStream = urlPrefix.createStream({uri: uri, prefix: thisSite(request)});
+            var urlPrefixStream = urlPrefix.createStream({uri: uri});
             var metaRobotsStream = metaRobots.createStream();
             var gAStream = googleAnalytics.createStream();
             remote_response = remote_response.pipe(encodingStreams.decode)
