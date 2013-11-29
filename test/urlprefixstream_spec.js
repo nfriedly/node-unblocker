@@ -79,7 +79,21 @@ var testLines =  {
   '<a href="/site/http/page.html">link with "http" in the url</a>': '<a href="/proxy/http://localhost:8081/site/http/page.html">link with "http" in the url</a>',
   '<a href="/site/https/page.html">link with "https" in the url</a>': '<a href="/proxy/http://localhost:8081/site/https/page.html">link with "https" in the url</a>',
   '<a href="http://localhost:8080">link with port number</a>': '<a href="/proxy/http://localhost:8080">link with port number</a>',
-  '<a href="/">link to site root</a>' :   '<a href="/proxy/http://localhost:8081/">link to site root</a>'
+  
+  '<a href="/">link to site root</a>' :   '<a href="/proxy/http://localhost:8081/">link to site root</a>',
+  
+  '<a href="#anchor">link to anchor</a>' :   '<a href="#anchor">link to anchor</a>',
+  '<a href="http://example.com/#anchor">offsite link with anchor</a>' : '<a href="/proxy/http://example.com/#anchor">offsite link with anchor</a>',
+  '<a href="/#anchor">link to site root with anchor</a>' :   '<a href="/proxy/http://localhost:8081/#anchor">link to site root with anchor</a>',
+  
+  '<form action="">' : '<form action="">',
+  '<form action="/mytarget">' : '<form action="/proxy/http://localhost:8081/mytarget">',
+  '<form action="mytarget.php">' : '<form action="mytarget.php">',
+  
+  // yes, this is a real thing. https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formaction
+  '<button formaction="">' : '<button formaction="">',
+  '<button formaction="/mytarget">' : '<button formaction="/proxy/http://localhost:8081/mytarget">',
+  '<button formaction="mytarget.php">' : '<button formaction="mytarget.php">'
 };
 
 var testUri = URL.parse('http://localhost:8081/');
@@ -94,9 +108,5 @@ test("should rewrite (or not rewrite) various strings correctly", function(t) {
 });
 
 // todo: add tests for streams split at various locations
-
-// todo: add tests for links pointing to  / and #anchors and a few other oddball locations
-
-// todo: add tests for forms
 
 // todo: add tests for javascript (?)
