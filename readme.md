@@ -51,6 +51,7 @@ to run this to enable usage tracking via Google Analytics:
 * Figure out how to test the cluster master on Travis CI
 * Further separation of various concerns within the proxy
 * remove weird status page stuff (And replace with New Relic? - https://newrelic.com/nodejs)
+* automatic code formatting - maybe make that and unit tests into a pre-commit hook?
 
 ## Maybe Todo list
 

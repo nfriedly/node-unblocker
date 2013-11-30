@@ -1,7 +1,8 @@
 var fs = require('fs'),
     URL = require('url'),
     test = require('tap').test,
-    _ = require('underscore');
+    _ = require('underscore')
+    concat = require('concat-stream');
     
 var urlPrefix = require('../lib/urlprefixstream');
     
@@ -107,6 +108,31 @@ test("should rewrite (or not rewrite) various strings correctly", function(t) {
     t.end();
 });
 
-// todo: add tests for streams split at various locations
+
+test("should correctly handle packets split at different locations", function(t) {
+    var fullSource =  _.keys(testLines).join('\n'),
+        expected = _.values(testLines).join('\n');
+
+    function createSubTest(start, end) {
+        // this causes the following warning:
+        // (node) warning: Recursive process.nextTick detected. This will break in the next version of node. Please use setImmediate for recursive deferral.
+        //t.test("Should handle breaks between '" + start.substr(-20) + "' and '" + end.substr(0,20) + "' correctly", function(t) {
+            var stream = urlPrefix.createStream({prefix: testPrefix, uri: testUri});
+            stream.pipe(concat(function(actual) {
+                t.equal(actual, expected, "Should handle chunk breaks between '" + start.substr(-20) + "' and '" + end.substr(0,20) + "' correctly");
+                if ( actual != expected ) throw "stopping early";
+            }));
+            stream.write(start);
+            stream.end(end);
+        //});
+    }
+
+    t.plan(fullSource.length);
+    for (var splitLocation=0, l = fullSource.length; splitLocation<l; splitLocation++) {
+        var start = fullSource.substr(0, splitLocation);
+        var end = fullSource.substr(splitLocation);
+        createSubTest(start, end);
+    }
+});
 
 // todo: add tests for javascript (?)
