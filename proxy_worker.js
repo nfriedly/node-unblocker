@@ -36,20 +36,14 @@ http.globalAgent.maxSockets = 64;
 https.globalAgent.maxSockets = 64;
 
 // local dependencies
-var encoding = require('./lib/encodingstream'),
-    urlPrefix = require('./lib/urlprefixstream'),
-    metaRobots = require('./lib/metarobotsstream'),
-    googleAnalytics = require('./lib/googleanalyticsstream'),
+var googleAnalytics = require('./lib/googleanalyticsstream'),
     blocklist = require('./lib/blocklist'),
-    serveStatic = require('./lib/static')
-    cookies = require('./lib/cookies');
+    serveStatic = require('./lib/static'),
+    proxy = require('./lib/proxy');
 
 // the configuration file
 var config = require('./config');
 
-urlPrefix.setDefaults({
-    prefix: '/proxy/'
-});
 googleAnalytics.setId(config.google_analytics_id);
 serveStatic.setGa(googleAnalytics);
 
@@ -65,7 +59,6 @@ if (config.redistogo_url) {
     redis = require('redis')
         .createClient(config.redis_port, config.redis_host, config.redis_options);
 }
-
 
 var server = connect()
     .use(connect.cookieParser(config.secret))
@@ -87,6 +80,11 @@ var server = connect()
 
         incrementRequests();
         request.on('end', decrementRequests);
+        
+        // convenience methods 
+        request.thisHost = thisHost.bind(thisHost, request);
+        request.thisSite = thisSite.bind(thisSite, request);
+        request.redirectTo = redirectTo.bind(redirectTo, request, response);
 
         // if the user requested the "home" page
         // (located at /proxy so that we can more easily tell the difference 
@@ -107,13 +105,20 @@ var server = connect()
                 .query)
                 .url;
             // and redirect the user to /proxy/url
-            redirectTo(request, response, site || "");
+            request.redirectTo(site || "");
         }
 
         // only requests that start with this get proxied - the rest get 
         // redirected to either a url that matches this or the home page
         if (url_data.pathname.indexOf("/proxy/http") == 0) {
-            return proxy(request, response);
+        
+            var uri = url.parse(proxy.getRealUrl(request.url));
+            // make sure the url in't blocked
+            if (!blocklist.urlAllowed(uri)) {
+                return request.redirectTo("?error=Please use a different proxy to access this site");
+            }
+
+            return proxy(uri, request, response);
         }
 
         // the status page
@@ -128,144 +133,6 @@ var server = connect()
     }); // we'll start the server at the bottom of the file
 
 
-var portmap = {
-    "http:": 80,
-    "https:": 443
-};
-
-/**
- * Makes the outgoing request and relays it to the client, modifying it along the way if necessary
- */
-function proxy(request, response) {
-    request.session = request.session || {};
-
-    var uri = url.parse(getRealUrl(request.url));
-    // make sure the url in't blocked
-    if (!blocklist.urlAllowed(uri)) {
-        return redirectTo(request, response, "?error=Please use a different proxy to access this site");
-    }
-
-    // redirect urls like /proxy/http://asdf.com to /proxy/http://asdf.com/ to make relative image paths work
-    if (uri.pathname == "/" && request.url.substr(-1) != "/") {
-        return redirectTo(request, response, request.url + "/");
-    }
-
-    uri.port = uri.port || portmap[uri.protocol];
-    uri.pathname = uri.search ? uri.pathname + uri.search : uri.pathname;
-
-
-    headers = copy(request.headers);
-
-    delete headers.host;
-
-    // todo: grab any new cookies in headers.cookie (set by JS) and store them in the session
-    // (assume / path and same domain as request's referer)
-    headers.cookie = cookies.get(request, uri);
-
-    //console.log("sending these cookies: " + headers.cookie);
-
-    // overwrite the referer with the correct referer
-    if (request.headers.referer) {
-        headers.referer = getRealUrl(request.headers.referer);
-    }
-
-    var options = {
-        host: uri.hostname,
-        port: uri.port,
-        path: uri.pathname,
-        method: request.method,
-        headers: headers
-    }
-
-    // what protocol to use for outgoing connections.
-    var proto = (uri.protocol == 'https:') ? https : http;
-
-    var remote_request = proto.request(options, function(remote_response) {
-
-        // make a copy of the headers to fiddle with
-        var headers = copy(remote_response.headers);
-
-        var content_type = headers['content-type'] || "unknown",
-            ct = content_type.split(";")[0];
-
-        var needs_parsed = ([
-            'text/html',
-            'application/xml+xhtml',
-            'application/xhtml+xml',
-            'text/css',
-            'text/javascript',
-            'application/javascript',
-            'application/x-javascript'
-        ].indexOf(ct) != -1);
-
-        // if we might be modifying the response, nuke any content-length headers
-        if (needs_parsed) {
-            delete headers['content-length'];
-        }
-
-        var needs_decoded = (needs_parsed && headers['content-encoding'] == 'gzip');
-
-        // we're going to de-gzip it, so nuke that header
-        if (needs_decoded) {
-            delete headers['content-encoding'];
-        }
-
-        // fix absolute path redirects 
-        // (relative redirects will be 302'd to the correct path, and they're disallowed by the RFC anyways
-        // todo: also fix refresh and url headers
-        if (headers.location && headers.location.substr(0, 4) == 'http') {
-            headers.location = thisSite(request) + "/" + headers.location;
-            //console.log("fixing redirect");
-        }
-
-        if (headers['set-cookie']) {
-            cookies.set(request, uri, headers['set-cookie']);
-            delete headers['set-cookie'];
-        }
-
-        //  fire off out (possibly modified) headers
-        response.writeHead(remote_response.statusCode, headers);
-
-        //console.log("content-type: " + ct);
-        //console.log("needs_parsed: " + needs_parsed);
-        //console.log("needs_decoded: " + needs_decoded);
-
-        // if we're dealing with gzipped input, set up a stream decompressor to handle output
-        if (needs_decoded) {
-            remote_response = remote_response.pipe(zlib.createUnzip());
-        }
-
-        if (needs_parsed) {
-            var encodingStreams = encoding.createStreams(content_type);
-            var urlPrefixStream = urlPrefix.createStream({
-                uri: uri
-            });
-            var metaRobotsStream = metaRobots.createStream();
-            var gAStream = googleAnalytics.createStream();
-            remote_response = remote_response.pipe(encodingStreams.decode)
-                .pipe(urlPrefixStream)
-                .pipe(metaRobotsStream)
-                .pipe(gAStream)
-                .pipe(encodingStreams.recode);
-        }
-
-        remote_response.pipe(response);
-    });
-
-    remote_request.addListener('error', function(err) {
-        redirectTo(request, response, "?error=" + err.toString());
-    });
-
-    // pass along POST data
-    request.addListener('data', function(chunk) {
-        remote_request.write(chunk);
-    });
-
-    // let the remote server know when we're done sending data
-    request.addListener('end', function() {
-        remote_request.end();
-    });
-}
 
 
 /**
@@ -280,48 +147,37 @@ function handleUnknown(request, response) {
     if (request.url.indexOf('/proxy/') == 0) {
         // no trailing slashes
         if (request.url == "/proxy/") {
-            return redirectTo(request, response, "");
+            return request.redirectTo("");
         }
 
         // we already know it doesn't start with http, so lets fix that first
-        return redirectTo(request, response,
-            "/http://" + request.url.substr(7) // "/proxy/".length = 7
-        );
+        // "/proxy/".length = 7
+        return request.redirectTo( "/http://" + request.url.substr(7));
     }
 
     // if there is no referer, then either they just got here or we can't help them
     if (!request.headers.referer) {
-        return redirectTo(request, response, ""); // "" because we don't want a trailing slash
+        return request.redirectTo(""); // "" because we don't want a trailing slash
     }
 
     var ref = url.parse(request.headers.referer);
 
     // if we couldn't parse the referrer or they came from another site, they send them to the home page
     if (!ref || ref.host != thisHost(request)) {
-        return redirectTo(request, response, ""); // "" because we don't want a trailing slash
+        return request.redirectTo(""); // "" because we don't want a trailing slash
     }
 
     // now we know where they came from, so we can do something for them
     if (ref.pathname.indexOf('/proxy/http') == 0) {
-        var real_url = url.parse(getRealUrl(ref.pathname));
+        var real_url = url.parse(proxy.getRealUrl(ref.pathname));
 
         // now, take the requested pat on the previous known host and send the user on their way
-        return redirectTo(request, response, real_url.protocol + "//" + real_url.host + request.url);
+        return request.redirectTo(real_url.protocol + "//" + real_url.host + request.url);
     }
 
     // else they were refered by something on this site that wasn't the home page and didn't come 
     // through the proxy - aka this shouldn't happen
-    redirectTo(request, response, "");
-}
-
-/**
- * Takes a /proxy/http://site.com url from a request or a referer and returns the http://site.com/ part
- */
-function getRealUrl(path) {
-    var uri = url.parse(path),
-        real_url = uri.pathname.substr(7); // "/proxy/" is 7 characters long.
-    // we also need to include any querystring data in the real_url
-    return uri.search ? real_url + uri.search : real_url;
+    request.redirectTo("");
 }
 
 // returns the configured host if one exists, otherwise the host that the current request came in on
@@ -360,19 +216,6 @@ function redirectTo(request, response, site) {
         console.error("Failed to send redirect", ex);
     }
     response.end();
-}
-
-/**
- * returns a shallow copy of an object
- */
-function copy(source) {
-    var n = {};
-    for (var key in source) {
-        if (source.hasOwnProperty(key)) {
-            n[key] = source[key];
-        }
-    }
-    return n;
 }
 
 function incrementRequests() {
