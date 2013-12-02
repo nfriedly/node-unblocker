@@ -77,8 +77,7 @@ function createWorker() {
                 "Max Open Requests": max_open_requests
             };
 
-            var uptime = ((new Date)
-                .getTime() - startTime.getTime()) / 1000;
+            var uptime = (Date.now() - startTime.getTime()) / 1000;
             if (total_requests > uptime) {
                 data["Requests Per Second (average)"] = total_requests / uptime;
             } else if (total_requests > uptime / MINUTE) {
@@ -123,6 +122,6 @@ var recentDeaths = 0;
 // when the worker dies, note the exit code, remove it from the workers array, and create a new one 
 cluster.on('exit', function(worker) {
     total_open_requests = total_open_requests - worker.open_requests;
-    workers = workersExcept(worker.pid)
+    workers = workersExcept(worker.pid);
     createWorker();
 });

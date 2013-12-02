@@ -1,8 +1,7 @@
 var fs = require('fs'),
     URL = require('url'),
-    test = require('tap')
-        .test,
-    _ = require('underscore')
+    test = require('tap').test,
+    _ = require('underscore'),
     concat = require('concat-stream');
 
 var urlPrefix = require('../lib/urlprefixstream');

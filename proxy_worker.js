@@ -27,7 +27,8 @@ var http = require('http'),
     querystring = require('querystring'),
     path = require("path"),
     fs = require("fs"),
-    zlib = require('zlib');
+    zlib = require('zlib'),
+    domain = require('domain');
 
 // for great performance!
 // kind of hard to see much difference in local testing, but I think this should make an appreciable improvement in production
@@ -60,7 +61,7 @@ if (config.redistogo_url) {
         .createClient(config.redis_port, config.redis_host, config.redis_options);
 }
 
-var server = connect()
+var app = connect()
     .use(connect.cookieParser(config.secret))
     .use(connect.session({
         store: new RedisStore({
@@ -73,18 +74,62 @@ var server = connect()
         }
     }))
     .use(function(request, response) {
-        var url_data = url.parse(request.url);
+        
+        var d = domain.create();
+        d.add(request);
+        d.add(response);
+        d.on('error', function(er) {
+          console.error('error', er.stack);
+
+          // Note: we're in dangerous territory!
+          // By definition, something unexpected occurred,
+          // which we probably didn't want.
+          // Anything can happen now!  Be very careful!
+
+          try {
+            // make sure we close down within 30 seconds
+            var killtimer = setTimeout(function() {
+              process.exit(1);
+            }, 30000);
+            // But don't keep the process open just for that!
+            killtimer.unref();
+
+            // stop taking new requests.
+            server.close();
+
+            // Let the master know we're dead.  This will trigger a
+            // 'disconnect' in the cluster master, and then it will fork
+            // a new worker.
+            cluster.worker.disconnect();
+
+            // try to send an error to the request that triggered the problem
+            res.statusCode = 500;
+            res.setHeader('content-type', 'text/plain');
+            res.end('Oops, there was a problem!\n');
+          } catch (er2) {
+            // oh well, not much we can do at this point.
+            console.error('Error sending 500!', er2.stack);
+          }
+        });
+    
 
         //console.log("(" + process.pid + ") New Request: ", request.url);
+        d.run(function() {
+            handleRequest(request, response);
+        });
 
+    }); // we'll start the server at the bottom of the file
 
+function handleRequest(request, response) {
         incrementRequests();
         request.on('end', decrementRequests);
-        
+
         // convenience methods 
         request.thisHost = thisHost.bind(thisHost, request);
         request.thisSite = thisSite.bind(thisSite, request);
-        request.redirectTo = redirectTo.bind(redirectTo, request, response);
+        response.redirectTo = redirectTo.bind(redirectTo, request, response);
+        
+        var url_data = url.parse(request.url);
 
         // if the user requested the "home" page
         // (located at /proxy so that we can more easily tell the difference 
@@ -105,17 +150,17 @@ var server = connect()
                 .query)
                 .url;
             // and redirect the user to /proxy/url
-            request.redirectTo(site || "");
+            response.redirectTo(site || "");
         }
 
         // only requests that start with this get proxied - the rest get 
         // redirected to either a url that matches this or the home page
-        if (url_data.pathname.indexOf("/proxy/http") == 0) {
-        
+        if (url_data.pathname.indexOf("/proxy/http") === 0) {
+
             var uri = url.parse(proxy.getRealUrl(request.url));
             // make sure the url in't blocked
             if (!blocklist.urlAllowed(uri)) {
-                return request.redirectTo("?error=Please use a different proxy to access this site");
+                return response.redirectTo("?error=Please use a different proxy to access this site");
             }
 
             return proxy(uri, request, response);
@@ -129,10 +174,7 @@ var server = connect()
         // any other url gets redirected to the correct proxied url if we can
         // determine it based on their referrer, or the home page otherwise
         return handleUnknown(request, response);
-
-    }); // we'll start the server at the bottom of the file
-
-
+}
 
 
 /**
@@ -144,49 +186,46 @@ var server = connect()
  */
 function handleUnknown(request, response) {
 
-    if (request.url.indexOf('/proxy/') == 0) {
+    if (request.url.indexOf('/proxy/') === 0) {
         // no trailing slashes
         if (request.url == "/proxy/") {
-            return request.redirectTo("");
+            return response.redirectTo("");
         }
 
         // we already know it doesn't start with http, so lets fix that first
         // "/proxy/".length = 7
-        return request.redirectTo( "/http://" + request.url.substr(7));
+        return response.redirectTo("/http://" + request.url.substr(7));
     }
 
     // if there is no referer, then either they just got here or we can't help them
     if (!request.headers.referer) {
-        return request.redirectTo(""); // "" because we don't want a trailing slash
+        return response.redirectTo(""); // "" because we don't want a trailing slash
     }
 
     var ref = url.parse(request.headers.referer);
 
     // if we couldn't parse the referrer or they came from another site, they send them to the home page
     if (!ref || ref.host != thisHost(request)) {
-        return request.redirectTo(""); // "" because we don't want a trailing slash
+        return response.redirectTo(""); // "" because we don't want a trailing slash
     }
 
     // now we know where they came from, so we can do something for them
-    if (ref.pathname.indexOf('/proxy/http') == 0) {
+    if (ref.pathname.indexOf('/proxy/http') === 0) {
         var real_url = url.parse(proxy.getRealUrl(ref.pathname));
 
         // now, take the requested pat on the previous known host and send the user on their way
-        return request.redirectTo(real_url.protocol + "//" + real_url.host + request.url);
+        return response.redirectTo(real_url.protocol + "//" + real_url.host + request.url);
     }
 
     // else they were refered by something on this site that wasn't the home page and didn't come 
     // through the proxy - aka this shouldn't happen
-    request.redirectTo("");
+    response.redirectTo("");
 }
 
 // returns the configured host if one exists, otherwise the host that the current request came in on
 function thisHost(request) {
     if (config.host) {
         return config.host;
-    }
-    if (request.headers.host == 'localhost') {
-        request.headers.host + config.port; // special case to make testing & development easier
     } else {
         return request.headers.host; // normal case: include the hostname but assume we're either on a standard port or behind a reverse proxy
     }
@@ -241,7 +280,7 @@ function status(request, response) {
     });
 
     // only send out a new status request if we don't already have one in the pipe
-    if (waitingStatusResponses.length == 0) {
+    if (waitingStatusResponses.length === 0) {
         //console.log("sending status request message");
         process.send({
             type: "status.request",
@@ -272,7 +311,7 @@ function sendStatus(status) {
         small_break
     ];
 
-    for (key in status) {
+    for (var key in status) {
         if (status.hasOwnProperty(key)) {
             if (key == "type" || key == "to") {
                 continue;
@@ -290,12 +329,12 @@ function sendStatus(status) {
     });
 
     waitingStatusResponses.length = 0;
-};
+}
 
 /**
  * Set up the server (assumes it's a child in a cluster)
  */
-http.Server(server)
+var server = http.createServer(app)
     .listen(config.port, config.ip, function() {
         // this is to let the integration tests know when it's safe to run
         process.send({

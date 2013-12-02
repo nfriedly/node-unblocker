@@ -59,7 +59,7 @@ getServers(source, function(err, servers) {
 function runTest(url, iterations, concurrency, cb) {
     var start = Date.now(),
         times = [],
-        failures = []
+        failures = [],
         tasks = new TaskGroup({
             concurrency: concurrency,
             pauseOnError: false
@@ -71,7 +71,7 @@ function runTest(url, iterations, concurrency, cb) {
         cb(failures, times, totalTime);
     });
 
-    for (var i = 0; i < iterations; i++) {
+    function addTask() {
         tasks.addTask(function(step) {
             var start = Date.now();
             hyperquest(url)
@@ -91,6 +91,10 @@ function runTest(url, iterations, concurrency, cb) {
         });
     }
 
+    for (var i = 0; i < iterations; i++) {
+        addTask();
+    }
+
     tasks.run();
 }
 
@@ -106,8 +110,8 @@ function getStats(iterations, failures, successes, time) {
         _50: sorted[Math.round(sorted.length / 2)],
         _75: sorted[Math.round(sorted.length / 4 * 3)],
         _90: sorted[Math.round(sorted.length / 10 * 9)],
-        _95: sorted[Math.round(sorted.length / 20 * 19)],
-    }
+        _95: sorted[Math.round(sorted.length / 20 * 19)]
+    };
 }
 
 function printDifference(stat, proxy, baseline) {
@@ -124,7 +128,7 @@ function printStats(stats, baseline) {
         stats.successes, stats.iterations, stats.ms, printDifference("ms", stats, baseline)));
     console.log("Average response time: " + stats.average + " miliseconds", printDifference("average", stats, baseline));
     if (baseline) {
-        console.log(format("Proxy adds %s ms to each request on average", stats.average - baseline.average))
+        console.log(format("Proxy adds %s ms to each request on average", stats.average - baseline.average));
     }
     console.log("Standard Deviation: " + stats.stdDev,
         printDifference("stdDev", stats, baseline)

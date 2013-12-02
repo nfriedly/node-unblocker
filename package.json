@@ -30,10 +30,9 @@
     "js-beautify": "~1.4.2"
   },
   "scripts": {
-    "todo-test": "npm run jshint && npm run test-spec",
-    "test": "npm run test-spec",
+    "test": "npm run jshint && npm run test-spec",
     "pre-commit": "npm run beautify && npm test",
-    "beautify": "js-beautify --replace --break-chained-method ./*.js ./lib/*.js ./test/*.js",
+    "beautify": "js-beautify --replace ./*.js ./lib/*.js ./test/*.js",
     "jshint": "jshint ./ --exclude node_modules/",
     "test-spec": "tap test/*_spec.js",
     "test-perf": "node test/performance.js"
