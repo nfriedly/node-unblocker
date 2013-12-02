@@ -1,9 +1,11 @@
 var fs = require('fs'),
     concat = require('concat-stream'),
-    test = require('tap').test,
+    test = require('tap')
+        .test,
     hyperquest = require('hyperquest'),
-    getServers = require('./test_utils.js').getServers;
-    
+    getServers = require('./test_utils.js')
+        .getServers;
+
 var source = fs.readFileSync(__dirname + '/source/index.html');
 var expected = fs.readFileSync(__dirname + '/expected/index.html');
 

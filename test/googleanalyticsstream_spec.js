@@ -1,12 +1,13 @@
 var fs = require('fs'),
     URL = require('url'),
-    test = require('tap').test,
+    test = require('tap')
+        .test,
     _ = require('underscore');
-    
+
 var googleAnalytics = require('../lib/googleanalyticsstream');
 
 var html = '<html><head><title>test</title><body><p>asdf</p></body></html>';
-    
+
 test("should do nothing when there is no ID set", function(t) {
     var expected = html;
     var actual = googleAnalytics.addGa(html);

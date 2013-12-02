@@ -1,11 +1,14 @@
 var fs = require('fs'),
-    format = require('util').format,
+    format = require('util')
+        .format,
     concat = require('concat-stream'),
     hyperquest = require('hyperquest'),
     math = require('math-helpers')(),
-    TaskGroup = require('taskgroup').TaskGroup,
-    getServers = require('./test_utils.js').getServers;
-    
+    TaskGroup = require('taskgroup')
+        .TaskGroup,
+    getServers = require('./test_utils.js')
+        .getServers;
+
 var source = fs.readFileSync(__dirname + '/source/index.html');
 var expected = fs.readFileSync(__dirname + '/expected/index.html');
 
@@ -18,19 +21,20 @@ getServers(source, function(err, servers) {
 
     var iterations = 1000;
     var concurrency = 30;
-    
+
     var baseline, proxy;
 
     new TaskGroup({
         concurrency: 1, // these should be run in order, not in parallel
         tasks: [
+
             function(next) {
                 console.log("\n\n=========\nBaseline\n=========");
                 runTest("http://localhost:8081/", iterations, concurrency, function(baseFailures, baseSuccesses, time) {
                     baseline = getStats(iterations, baseFailures, baseSuccesses, time);
                     printStats(baseline);
-                    next(); 
-                });   
+                    next();
+                });
             },
             function(next) {
                 console.log("\n\n=========\nProxy\n=========");
@@ -38,15 +42,16 @@ getServers(source, function(err, servers) {
                     proxy = getStats(iterations, proxyFailures, proxySuccesses, time);
                     printStats(proxy, baseline);
                     next();
-                 });
+                });
             }
         ],
         next: function(err) {
-                console.log(err || '');
-                servers.kill();
-                process.exit();
-            }
-        }).run();
+            console.log(err || '');
+            servers.kill();
+            process.exit();
+        }
+    })
+        .run();
 });
 
 
@@ -59,14 +64,14 @@ function runTest(url, iterations, concurrency, cb) {
             concurrency: concurrency,
             pauseOnError: false
         });
-        
+
     tasks.once('complete', function(err) {
         if (err) failures.push(err);
         var totalTime = Date.now() - start;
         cb(failures, times, totalTime);
     });
 
-    for (var i=0; i<iterations; i++) {
+    for (var i = 0; i < iterations; i++) {
         tasks.addTask(function(step) {
             var start = Date.now();
             hyperquest(url)
@@ -85,7 +90,7 @@ function runTest(url, iterations, concurrency, cb) {
                 });
         });
     }
-    
+
     tasks.run();
 }
 
@@ -93,15 +98,15 @@ function getStats(iterations, failures, successes, time) {
     var sorted = successes.sort();
     return {
         iterations: iterations,
-        failures: failures.length, 
-        successes: successes.length, 
+        failures: failures.length,
+        successes: successes.length,
         ms: time,
         average: math.avg(successes),
         stdDev: math.stdDev(successes),
-        _50: sorted[Math.round(sorted.length/2)],
-        _75: sorted[Math.round(sorted.length/4 * 3)],
-        _90: sorted[Math.round(sorted.length/10 * 9)],
-        _95: sorted[Math.round(sorted.length/20 * 19)],
+        _50: sorted[Math.round(sorted.length / 2)],
+        _75: sorted[Math.round(sorted.length / 4 * 3)],
+        _90: sorted[Math.round(sorted.length / 10 * 9)],
+        _95: sorted[Math.round(sorted.length / 20 * 19)],
     }
 }
 
@@ -115,17 +120,19 @@ function printStats(stats, baseline) {
     if (stats.failures) {
         console.error(failures + ' failures');
     }
-    console.log(format("\n%s/%s iterations completed successfully in %s miliseconds %s", 
+    console.log(format("\n%s/%s iterations completed successfully in %s miliseconds %s",
         stats.successes, stats.iterations, stats.ms, printDifference("ms", stats, baseline)));
     console.log("Average response time: " + stats.average + " miliseconds", printDifference("average", stats, baseline));
     if (baseline) {
         console.log(format("Proxy adds %s ms to each request on average", stats.average - baseline.average))
     }
-    console.log("Standard Deviation: " + stats.stdDev, 
-        printDifference("stdDev", stats, baseline).replace("slower", "worse").replace("faster", "better"));
-    console.log(format("Percentile speeds:\n  50%: %sms %s\n  75%: %sms %s\n  90%: %sms %s\n  95%: %sms %s", 
-        stats._50, printDifference("_50", stats, baseline), 
-        stats._75, printDifference("_75", stats, baseline), 
-        stats._90, printDifference("_90", stats, baseline), 
+    console.log("Standard Deviation: " + stats.stdDev,
+        printDifference("stdDev", stats, baseline)
+        .replace("slower", "worse")
+        .replace("faster", "better"));
+    console.log(format("Percentile speeds:\n  50%: %sms %s\n  75%: %sms %s\n  90%: %sms %s\n  95%: %sms %s",
+        stats._50, printDifference("_50", stats, baseline),
+        stats._75, printDifference("_75", stats, baseline),
+        stats._90, printDifference("_90", stats, baseline),
         stats._95, printDifference("_95", stats, baseline)));
 }
