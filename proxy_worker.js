@@ -40,13 +40,15 @@ var encoding = require('./lib/encodingstream'),
     urlPrefix = require('./lib/urlprefixstream'),
     metaRobots = require('./lib/metarobotsstream'),
     googleAnalytics = require('./lib/googleanalyticsstream'),
-    blocklist = require('./lib/blocklist');
+    blocklist = require('./lib/blocklist')
+    serveStatic = require('./lib/static');
   
 // the configuration file
 var config = require('./config');
 
 urlPrefix.setDefaults({prefix: '/proxy/'});
 googleAnalytics.setId(config.google_analytics_id);
+serveStatic.setGa(googleAnalytics);
 
 // third-party dependencies
 var connect = require('connect'), // todo: call by version once 2.x is listed in npm
@@ -79,9 +81,12 @@ var server = connect()
 	// (located at /proxy so that we can more easily tell the difference 
 	// between a user who is looking for the home page and a "/" link)
 	if(url_data.pathname == "/proxy"){
-		request.url = "/index.html"; 
-		// todo: refactor this to make more sense
-		return sendIndex(request, response);
+		request.url = "/index.html";
+		return serveStatic(request, response);
+	}
+	// disallow almost everything via robots.txt
+	if(url_data.pathname == "/robots.txt"){
+        return serveStatic(request, response);
 	}
 	
 	// this is for users who's form actually submitted due to JS being disabled
@@ -101,20 +106,6 @@ var server = connect()
 	// the status page
 	if(url_data.pathname == "/proxy/status"){
 		return status(request, response);
-	}
-	
-	// disallow almost everything via robots.txt
-	if(url_data.pathname == "robots.txt"){
-		response.writeHead("200", {"Content-Type": "text/plain"});
-		response.write("User-agent: *\n" + 
-			"Disallow: /proxy/http\n" +
-			"Disallow: /proxy/http:\n" + 
-			"Disallow: /proxy/http:/\n\n" + 
-			"Disallow: /proxy/https\n" +
-			"Disallow: /proxy/https:\n" + 
-			"Disallow: /proxy/https:/\n\n"
-		);
-		response.end(); 
 	}
 	
 	// any other url gets redirected to the correct proxied url if we can
@@ -487,55 +478,6 @@ function copy(source){
 	return n;
 }
 
-/**
- * placeholder for compressed & uncompressed versions of index.html
- */
-var index = {};
-
-/**
- * Reads the index.html file into memory and compresses it so that it can be more quickly served
- */
-function setupIndex(){
-	var raw_index = fs.readFileSync(path.join(__dirname,'index.html')).toString();
-	var package_info = JSON.parse(fs.readFileSync(path.join(__dirname,'package.json')));
-	raw_index = raw_index.replace('{version}', package_info.version)
-	raw_index = googleAnalytics.addGa(raw_index);
-	index.raw = raw_index;
-	zlib.deflate(raw_index, function(data){index.deflate = data;});
-	zlib.gzip(raw_index,  function(data){index.gzip = data;})
-}
-
-/**
- * Sends out the index.html, using compression if the client supports it
- */
-function sendIndex(request, response, google_analytics_id){
-	var headers = {"content-type": "text/html"};
-	
-	var acceptEncoding = request.headers['accept-encoding'];
-	if (!acceptEncoding) {
-		acceptEncoding = '';
-	}
-	
-	var data;
-	
-	// check that the compressed version exists in case we get a request 
-	// that comes in before the compression finishes (serve those raw)
-	if (acceptEncoding.match(/\bdeflate\b/) && index.deflate) {
-		headers['content-encoding'] = 'deflate';
-		data = index.deflate
-	} else if (acceptEncoding.match(/\bgzip\b/) && index.gzip) {
-		headers['content-encoding'] = 'gzip';
-		data = index.gzip;
-	} else {
-		data = index.raw;
-	}
-
-	response.writeHead(200, headers);
-	response.end(data);
-}
-
-
-
 function incrementRequests(){
 	process.send({type: "request.start"});
 }
@@ -601,8 +543,6 @@ function sendStatus(status){
 /**
  * Set up the server (assumes it's a child in a cluster)
  */
-//read the index file and then fire up the server
-setupIndex();
 http.Server(server).listen(config.port, config.ip, function() {
     // this is to let the integration tests know when it's safe to run
     process.send({type: 'ready'});

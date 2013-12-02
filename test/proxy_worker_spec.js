@@ -25,7 +25,28 @@ test("url_rewriting should support support all kinds of links", function(t) {
                 cleanup();
             });
     });
-})
+});
+
+
+test("should serve robots.txt when requested", function(t) {
+    var expected = fs.readFileSync(__dirname + '/../public/robots.txt');
+    getServers(source, function(err, servers) {
+        function cleanup() {
+            servers.kill(function() {
+                t.end();
+            });
+        }
+        hyperquest("http://localhost:8080/robots.txt")
+            .pipe(concat(function(data) {
+                t.equal(data.toString(), expected.toString());
+                cleanup();
+            }))
+            .on('error', function(err) {
+                console.error('error retrieving robots.txt from proxy', err);
+                cleanup();
+            });
+    });
+});
 
 /*
 test("clustering should not break url rewriting", function(t) {

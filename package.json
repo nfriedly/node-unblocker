@@ -11,7 +11,9 @@
     "connect-redis": "1.4.x",
     "iconv": "2.0.x",
     "underscore": "~1.5.2",
-    "through": "~2.3.4"
+    "through": "~2.3.4",
+    "async": "~0.2.9",
+    "mime": "~1.2.11"
   },
   "engines": {
     "node": "0.10.x",
