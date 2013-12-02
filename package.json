@@ -2,7 +2,7 @@
   "name": "node-unblocker",
   "description": "Web proxy for evading internet censorship",
   "author": "Nathan Friedly - http://nfriedly.com",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "repository": "git://github.com/nfriedly/node-unblocker.git",
   "dependencies": {
     "redis-url": "0.1.x",
@@ -33,10 +33,8 @@
     "todo-test": "npm run jshint && npm run test-spec",
     "test": "npm run test-spec",
     "pre-commit": "npm run beautify && npm test",
-    
     "beautify": "js-beautify --replace --break-chained-method ./*.js ./lib/*.js ./test/*.js",
     "jshint": "jshint ./ --exclude node_modules/",
-    
     "test-spec": "tap test/*_spec.js",
     "test-perf": "node test/performance.js"
   }
