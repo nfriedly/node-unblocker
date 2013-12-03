@@ -9,16 +9,10 @@
  * Released under the terms of the GPL v3
  */
 
-/*
-todo:
- - stress test (apache bench?)
- - add error handeling
- - look into npm
- - mini-form, no cookies,  and no script options
- - figure out why the google png has extra data at the beginning and end
- - clean things up a bit
- - turn simple-session into a standalone library
-*/
+// load newrelic for monitoring, but only if there's a license key
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+    require('newrelic');
+}
 
 // native imports
 var http = require('http'),
