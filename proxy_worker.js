@@ -74,44 +74,30 @@ var app = connect()
         }
     }))
     .use(function(request, response) {
-        
+
         var d = domain.create();
         d.add(request);
         d.add(response);
         d.on('error', function(er) {
-          console.error('error', er.stack);
+            console.error('error', er.stack);
 
-          // Note: we're in dangerous territory!
-          // By definition, something unexpected occurred,
-          // which we probably didn't want.
-          // Anything can happen now!  Be very careful!
+            // Note: we're in dangerous territory!
+            // By definition, something unexpected occurred,
+            // which we probably didn't want.
+            // Anything can happen now!  Be very careful!
 
-          try {
-            // make sure we close down within 30 seconds
-            var killtimer = setTimeout(function() {
-              process.exit(1);
-            }, 30000);
-            // But don't keep the process open just for that!
-            killtimer.unref();
-
-            // stop taking new requests.
-            server.close();
-
-            // Let the master know we're dead.  This will trigger a
-            // 'disconnect' in the cluster master, and then it will fork
-            // a new worker.
-            cluster.worker.disconnect();
-
-            // try to send an error to the request that triggered the problem
-            res.statusCode = 500;
-            res.setHeader('content-type', 'text/plain');
-            res.end('Oops, there was a problem!\n');
-          } catch (er2) {
-            // oh well, not much we can do at this point.
-            console.error('Error sending 500!', er2.stack);
-          }
+            try {
+                die();
+                // try to send an error to the request that triggered the problem
+                res.statusCode = 500;
+                res.setHeader('content-type', 'text/plain');
+                res.end('Oops, there was a problem!\n');
+            } catch (er2) {
+                // oh well, not much we can do at this point.
+                console.error('Error sending 500!', er2.stack);
+            }
         });
-    
+
 
         //console.log("(" + process.pid + ") New Request: ", request.url);
         d.run(function() {
@@ -121,59 +107,57 @@ var app = connect()
     }); // we'll start the server at the bottom of the file
 
 function handleRequest(request, response) {
-        incrementRequests();
-        request.on('end', decrementRequests);
 
-        // convenience methods 
-        request.thisHost = thisHost.bind(thisHost, request);
-        request.thisSite = thisSite.bind(thisSite, request);
-        response.redirectTo = redirectTo.bind(redirectTo, request, response);
-        
-        var url_data = url.parse(request.url);
+    // convenience methods 
+    request.thisHost = thisHost.bind(thisHost, request);
+    request.thisSite = thisSite.bind(thisSite, request);
+    response.redirectTo = redirectTo.bind(redirectTo, request, response);
 
-        // if the user requested the "home" page
-        // (located at /proxy so that we can more easily tell the difference 
-        // between a user who is looking for the home page and a "/" link)
-        if (url_data.pathname == "/proxy") {
-            request.url = "/index.html";
-            return serveStatic(request, response);
-        }
-        // disallow almost everything via robots.txt
-        if (url_data.pathname == "/robots.txt") {
-            return serveStatic(request, response);
-        }
+    var url_data = url.parse(request.url);
 
-        // this is for users who's form actually submitted due to JS being disabled
-        if (url_data.pathname == "/proxy/no-js") {
-            // grab the "url" parameter from the querystring
-            var site = querystring.parse(url.parse(request.url)
-                .query)
-                .url;
-            // and redirect the user to /proxy/url
-            response.redirectTo(site || "");
-        }
+    // if the user requested the "home" page
+    // (located at /proxy so that we can more easily tell the difference 
+    // between a user who is looking for the home page and a "/" link)
+    if (url_data.pathname == "/proxy") {
+        request.url = "/index.html";
+        return serveStatic(request, response);
+    }
+    // disallow almost everything via robots.txt
+    if (url_data.pathname == "/robots.txt") {
+        return serveStatic(request, response);
+    }
 
-        // only requests that start with this get proxied - the rest get 
-        // redirected to either a url that matches this or the home page
-        if (url_data.pathname.indexOf("/proxy/http") === 0) {
+    // this is for users who's form actually submitted due to JS being disabled
+    if (url_data.pathname == "/proxy/no-js") {
+        // grab the "url" parameter from the querystring
+        var site = querystring.parse(url.parse(request.url)
+            .query)
+            .url;
+        // and redirect the user to /proxy/url
+        response.redirectTo(site || "");
+    }
 
-            var uri = url.parse(proxy.getRealUrl(request.url));
-            // make sure the url in't blocked
-            if (!blocklist.urlAllowed(uri)) {
-                return response.redirectTo("?error=Please use a different proxy to access this site");
-            }
+    // only requests that start with this get proxied - the rest get 
+    // redirected to either a url that matches this or the home page
+    if (url_data.pathname.indexOf("/proxy/http") === 0) {
 
-            return proxy(uri, request, response);
+        var uri = url.parse(proxy.getRealUrl(request.url));
+        // make sure the url in't blocked
+        if (!blocklist.urlAllowed(uri)) {
+            return response.redirectTo("?error=Please use a different proxy to access this site");
         }
 
-        // the status page
-        if (url_data.pathname == "/proxy/status") {
-            return status(request, response);
-        }
+        return proxy(uri, request, response);
+    }
 
-        // any other url gets redirected to the correct proxied url if we can
-        // determine it based on their referrer, or the home page otherwise
-        return handleUnknown(request, response);
+    // the status page
+    if (url_data.pathname == "/proxy/status") {
+        return status(request, response);
+    }
+
+    // any other url gets redirected to the correct proxied url if we can
+    // determine it based on their referrer, or the home page otherwise
+    return handleUnknown(request, response);
 }
 
 
@@ -257,78 +241,21 @@ function redirectTo(request, response, site) {
     response.end();
 }
 
-function incrementRequests() {
-    process.send({
-        type: "request.start"
-    });
-}
+function die() {
+    // make sure we close down within 30 seconds
+    var killtimer = setTimeout(function() {
+        process.exit(1);
+    }, 30000);
+    // But don't keep the process open just for that!
+    killtimer.unref();
 
-function decrementRequests() {
-    process.send({
-        type: "request.end"
-    });
-}
+    // stop taking new requests.
+    server.close();
 
-var waitingStatusResponses = [];
-
-// simple way to get the curent status of the server
-function status(request, response) {
-    //console.log("status request recieved on pid " + process.pid);
-    response.writeHead("200", {
-        "Content-Type": "text/plain",
-        "Expires": 0
-    });
-
-    // only send out a new status request if we don't already have one in the pipe
-    if (waitingStatusResponses.length === 0) {
-        //console.log("sending status request message");
-        process.send({
-            type: "status.request",
-            from: process.pid
-        });
-    }
-
-    // 1 second timeout in case the master doesn't respond quickly enough
-    response.timeout = setTimeout(function() {
-        //console.log("Error: status responses timeout reached");
-        sendStatus({
-            error: "No response from the cluster master after 1 second"
-        });
-    }, 1000);
-
-    waitingStatusResponses.push(response);
-}
-
-function sendStatus(status) {
-    var big_break = "====================";
-    var small_break = "--------------------";
-    var lines = [
-        "Server Status",
-        big_break, (new Date())
-        .toString(),
-        "",
-        "Cluster Status",
-        small_break
-    ];
-
-    for (var key in status) {
-        if (status.hasOwnProperty(key)) {
-            if (key == "type" || key == "to") {
-                continue;
-            }
-            var val = status[key];
-            lines.push(key + ": " + val);
-        }
-    }
-
-    var body = lines.join("\n");
-
-    waitingStatusResponses.forEach(function(response) {
-        response.end(body);
-        clearTimeout(response.timeout);
-    });
-
-    waitingStatusResponses.length = 0;
+    // Let the master know we're dead.  This will trigger a
+    // 'disconnect' in the cluster master, and then it will fork
+    // a new worker.
+    cluster.worker.disconnect();
 }
 
 /**
@@ -349,8 +276,8 @@ process.on('message', function(message) {
     if (!message.type) {
         return;
     }
-    //console.log("messge recieved by child (" + process.pid + ") ", message);
-    if (message.type == "status.response") {
-        sendStatus(message);
+    //todo: see if this helps with unit testing
+    if (message.type == "kill") {
+        die();
     }
 });
