@@ -150,11 +150,6 @@ function handleRequest(request, response) {
         return proxy(uri, request, response);
     }
 
-    // the status page
-    if (url_data.pathname == "/proxy/status") {
-        return status(request, response);
-    }
-
     // any other url gets redirected to the correct proxied url if we can
     // determine it based on their referrer, or the home page otherwise
     return handleUnknown(request, response);
