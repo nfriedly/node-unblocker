@@ -1,3 +1,8 @@
+// load newrelic for monitoring, but only if there's a license key
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+    require('newrelic');
+}
+
 var cluster = require('cluster'),
     numCPUs = require('os').cpus().length;
 

@@ -38,8 +38,9 @@ following commands:
     heroku addons:add redistogo
     heroku config:add SECRET=<TYPE SOMETHING SECRET AND/OR RANDOM HERE>
     heroku addons:add piggyback_ssl
+    heroku addons:add newrelic:stark
 
-This sets up a free redis cache instance, secures your cookies, and adds https support. You may also want 
+This sets up a free redis cache instance, secures your cookies, and adds https support, and sets up free monitoring with newrelic (optional). You may also want 
 to run this to enable usage tracking via Google Analytics: 
 
     heroku config:add GA_ID=[your Google Analytics ID, ex: UA-12345-78]
@@ -50,8 +51,6 @@ to run this to enable usage tracking via Google Analytics:
 * Write more tests
 * Figure out how to test the cluster master on Travis CI
 * Further separation of various concerns within the proxy
-* remove weird status page stuff (And replace with New Relic? - https://newrelic.com/nodejs)
-* automatic code formatting - maybe make that and unit tests into a pre-commit hook?
 
 ## Maybe Todo list
 
