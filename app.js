@@ -9,20 +9,11 @@
  * Released under the terms of the GPL v3
  */
 
-// load newrelic for monitoring, but only if there's a license key
-if (process.env.NEW_RELIC_LICENSE_KEY) {
-    require('newrelic');
-}
-
 // native imports
 var http = require('http'),
     https = require('https'),
     url = require('url'),
-    querystring = require('querystring'),
-    path = require("path"),
-    fs = require("fs"),
-    zlib = require('zlib'),
-    domain = require('domain');
+    querystring = require('querystring');
 
 // for great performance!
 // kind of hard to see much difference in local testing, but I think this should make an appreciable improvement in production
@@ -48,11 +39,9 @@ var connect = require('connect'), // todo: call by version once 2.x is listed in
     redis;
 // the redis client differs depending on if you're using redistogo (heroku) or not
 if (config.redistogo_url) {
-    redis = require('redis-url')
-        .connect(config.redistogo_url);
+    redis = require('redis-url').connect(config.redistogo_url);
 } else {
-    redis = require('redis')
-        .createClient(config.redis_port, config.redis_host, config.redis_options);
+    redis = require('redis').createClient(config.redis_port, config.redis_host, config.redis_options);
 }
 
 var app = connect()
@@ -69,85 +58,53 @@ var app = connect()
     }))
     .use(function(request, response) {
 
-        var d = domain.create();
-        d.add(request);
-        d.add(response);
-        d.on('error', function(er) {
-            console.error('error', er.stack);
+        // convenience methods 
+        request.thisHost = thisHost.bind(thisHost, request);
+        request.thisSite = thisSite.bind(thisSite, request);
+        response.redirectTo = redirectTo.bind(redirectTo, request, response);
 
-            // Note: we're in dangerous territory!
-            // By definition, something unexpected occurred,
-            // which we probably didn't want.
-            // Anything can happen now!  Be very careful!
+        var url_data = url.parse(request.url);
 
-            try {
-                die();
-                // try to send an error to the request that triggered the problem
-                res.statusCode = 500;
-                res.setHeader('content-type', 'text/plain');
-                res.end('Oops, there was a problem!\n');
-            } catch (er2) {
-                // oh well, not much we can do at this point.
-                console.error('Error sending 500!', er2.stack);
-            }
-        });
-
-
-        //console.log("(" + process.pid + ") New Request: ", request.url);
-        d.run(function() {
-            handleRequest(request, response);
-        });
-
-    }); // we'll start the server at the bottom of the file
-
-function handleRequest(request, response) {
-
-    // convenience methods 
-    request.thisHost = thisHost.bind(thisHost, request);
-    request.thisSite = thisSite.bind(thisSite, request);
-    response.redirectTo = redirectTo.bind(redirectTo, request, response);
-
-    var url_data = url.parse(request.url);
-
-    // if the user requested the "home" page
-    // (located at /proxy so that we can more easily tell the difference 
-    // between a user who is looking for the home page and a "/" link)
-    if (url_data.pathname == "/proxy") {
-        request.url = "/index.html";
-        return serveStatic(request, response);
-    }
-    // disallow almost everything via robots.txt
-    if (url_data.pathname == "/robots.txt") {
-        return serveStatic(request, response);
-    }
-
-    // this is for users who's form actually submitted due to JS being disabled
-    if (url_data.pathname == "/proxy/no-js") {
-        // grab the "url" parameter from the querystring
-        var site = querystring.parse(url.parse(request.url)
-            .query)
-            .url;
-        // and redirect the user to /proxy/url
-        response.redirectTo(site || "");
-    }
-
-    // only requests that start with this get proxied - the rest get 
-    // redirected to either a url that matches this or the home page
-    if (url_data.pathname.indexOf("/proxy/http") === 0) {
-
-        var uri = url.parse(proxy.getRealUrl(request.url));
-        // make sure the url in't blocked
-        if (!blocklist.urlAllowed(uri)) {
-            return response.redirectTo("?error=Please use a different proxy to access this site");
+        // if the user requested the "home" page
+        // (located at /proxy so that we can more easily tell the difference 
+        // between a user who is looking for the home page and a "/" link)
+        if (url_data.pathname == "/proxy") {
+            request.url = "/index.html";
+            return serveStatic(request, response);
+        }
+        // disallow almost everything via robots.txt
+        if (url_data.pathname == "/robots.txt") {
+            return serveStatic(request, response);
         }
 
-        return proxy(uri, request, response);
-    }
+        // this is for users who's form actually submitted due to JS being disabled
+        if (url_data.pathname == "/proxy/no-js") {
+            // grab the "url" parameter from the querystring
+            var site = querystring.parse(url.parse(request.url)
+                .query)
+                .url;
+            // and redirect the user to /proxy/url
+            response.redirectTo(site || "");
+        }
 
-    // any other url gets redirected to the correct proxied url if we can
-    // determine it based on their referrer, or the home page otherwise
-    return handleUnknown(request, response);
-}
+        // only requests that start with this get proxied - the rest get 
+        // redirected to either a url that matches this or the home page
+        if (url_data.pathname.indexOf("/proxy/http") === 0) {
+
+            var uri = url.parse(proxy.getRealUrl(request.url));
+            // make sure the url in't blocked
+            if (!blocklist.urlAllowed(uri)) {
+                return response.redirectTo("?error=Please use a different proxy to access this site");
+            }
+
+            return proxy(uri, request, response);
+        }
+
+        // any other url gets redirected to the correct proxied url if we can
+        // determine it based on their referrer, or the home page otherwise
+        return handleUnknown(request, response);
+    });
+
 
 
 /**
@@ -230,43 +187,4 @@ function redirectTo(request, response, site) {
     response.end();
 }
 
-function die() {
-    // make sure we close down within 30 seconds
-    var killtimer = setTimeout(function() {
-        process.exit(1);
-    }, 30000);
-    // But don't keep the process open just for that!
-    killtimer.unref();
-
-    // stop taking new requests.
-    server.close();
-
-    // Let the master know we're dead.  This will trigger a
-    // 'disconnect' in the cluster master, and then it will fork
-    // a new worker.
-    cluster.worker.disconnect();
-}
-
-/**
- * Set up the server (assumes it's a child in a cluster)
- */
-var server = http.createServer(app)
-    .listen(config.port, config.ip, function() {
-        // this is to let the integration tests know when it's safe to run
-        process.send({
-            type: 'ready'
-        });
-        console.log('node-unblocker proxy server with pid ' + process.pid + ' running on ' +
-            ((config.ip) ? config.ip + ":" : "port ") + config.port
-        );
-    });
-
-process.on('message', function(message) {
-    if (!message.type) {
-        return;
-    }
-    //todo: see if this helps with unit testing
-    if (message.type == "kill") {
-        die();
-    }
-});
+module.exports = app;

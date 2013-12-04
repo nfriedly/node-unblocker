@@ -1,5 +1,4 @@
-var fs = require('fs'),
-    URL = require('url'),
+var URL = require('url'),
     test = require('tap').test,
     _ = require('underscore'),
     concat = require('concat-stream');
@@ -110,10 +109,8 @@ test("should rewrite (or not rewrite) various strings correctly", function(t) {
 
 
 test("should correctly handle packets split at different locations", function(t) {
-    var fullSource = _.keys(testLines)
-        .join('\n'),
-        expected = _.values(testLines)
-            .join('\n');
+    var fullSource = _.keys(testLines).join('\n'),
+        expected = _.values(testLines).join('\n');
 
     function createSubTest(start, end) {
         // this causes the following warning:

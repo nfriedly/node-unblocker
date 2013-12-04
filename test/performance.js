@@ -1,32 +1,27 @@
 var fs = require('fs'),
-    format = require('util')
-        .format,
+    format = require('util').format,
     concat = require('concat-stream'),
     hyperquest = require('hyperquest'),
     math = require('math-helpers')(),
-    TaskGroup = require('taskgroup')
-        .TaskGroup,
-    getServers = require('./test_utils.js')
-        .getServers;
+    async = require('async'),
+    getServers = require('./test_utils.js').getServers;
 
 var source = fs.readFileSync(__dirname + '/source/index.html');
-var expected = fs.readFileSync(__dirname + '/expected/index.html');
+//var expected = fs.readFileSync(__dirname + '/expected/index.html');
 
 
 // fire up the server and actually run the tests
 getServers(source, function(err, servers) {
     // set up the cleanup work first
-    process.on('SIGINT', servers.kill);
-    process.on('SIGTERM', servers.kill);
+    //process.on('SIGINT', servers.kill);
+    //process.on('SIGTERM', servers.kill);
 
     var iterations = 1000;
     var concurrency = 30;
 
     var baseline, proxy;
 
-    new TaskGroup({
-        concurrency: 1, // these should be run in order, not in parallel
-        tasks: [
+    new async.series([
 
             function(next) {
                 console.log("\n\n=========\nBaseline\n=========");
@@ -45,13 +40,10 @@ getServers(source, function(err, servers) {
                 });
             }
         ],
-        next: function(err) {
+        function(err) {
             console.log(err || '');
             servers.kill();
-            process.exit();
-        }
-    })
-        .run();
+        });
 });
 
 
@@ -60,29 +52,19 @@ function runTest(url, iterations, concurrency, cb) {
     var start = Date.now(),
         times = [],
         failures = [],
-        tasks = new TaskGroup({
-            concurrency: concurrency,
-            pauseOnError: false
-        });
-
-    tasks.once('complete', function(err) {
-        if (err) failures.push(err);
-        var totalTime = Date.now() - start;
-        cb(failures, times, totalTime);
-    });
+        tasks = [];
 
     function addTask() {
-        tasks.addTask(function(step) {
+        tasks.push(function(step) {
             var start = Date.now();
             hyperquest(url)
-                .pipe(concat(function(data) {
+                .pipe(concat(function( /*data*/ ) {
                     var time = Date.now() - start;
                     times.push(time);
                     process.stdout.write('.');
                     step();
                 }))
                 .on('error', function(err) {
-                    err.file = file;
                     err.time = Date.now() - start;
                     failures.push(err);
                     process.stdout.write('x');
@@ -95,7 +77,11 @@ function runTest(url, iterations, concurrency, cb) {
         addTask();
     }
 
-    tasks.run();
+    async.parallelLimit(tasks, concurrency, function(err) {
+        if (err) failures.push(err);
+        var totalTime = Date.now() - start;
+        cb(failures, times, totalTime);
+    });
 }
 
 function getStats(iterations, failures, successes, time) {
@@ -122,7 +108,7 @@ function printDifference(stat, proxy, baseline) {
 
 function printStats(stats, baseline) {
     if (stats.failures) {
-        console.error(failures + ' failures');
+        console.error(stats.failures + ' failures');
     }
     console.log(format("\n%s/%s iterations completed successfully in %s miliseconds %s",
         stats.successes, stats.iterations, stats.ms, printDifference("ms", stats, baseline)));

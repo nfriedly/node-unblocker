@@ -47,16 +47,16 @@ to run this to enable usage tracking via Google Analytics:
 
 ## Todo
 
-* Make the tests less awful
 * Write more tests
-* Figure out how to test the cluster master on Travis CI
-* Further separation of various concerns within the proxy
+* Figure out how to test the cluster on Travis CI
+* Mobile-first design
+* Figure out what is keeping node open in app.js and kill it (this is probably related to the culster tests on Travis CI)
 
 ## Maybe Todo list
 
 * Mini-url form
 * Allow for removal of scripts (both script tags and on*= handlers)
-* Web interface for managing the blocklist
+* Figure out how to make the blocklist work with heroku without shipping a default one with the source.
 
 ## License
 This project is released under the terms of the [GNU GPL version 3](http://www.gnu.org/licenses/gpl.html)

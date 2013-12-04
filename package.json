@@ -14,7 +14,8 @@
     "through": "~2.3.4",
     "async": "~0.2.9",
     "mime": "~1.2.11",
-    "newrelic": "~1.1.1"
+    "newrelic": "~1.1.1",
+    "memwatch": "~0.2.2"
   },
   "engines": {
     "node": "0.10.x",
@@ -29,6 +30,18 @@
     "taskgroup": "~3.3.2",
     "jshint": "~2.3.0",
     "js-beautify": "~1.4.2"
+  },
+  "jshintConfig": {
+    "undef": true,
+    "unused": true,
+    "newcap": true,
+    "node": true,
+    "browser": false,
+    "devel": true
+  },
+  "todoJshintConfig": {
+    "strict": true,
+    "camelcase": true
   },
   "scripts": {
     "test": "npm run jshint && npm run test-spec",

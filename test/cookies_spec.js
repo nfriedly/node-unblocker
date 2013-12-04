@@ -2,7 +2,6 @@ var test = require('tap')
     .test,
     cookies = require('../lib/cookies');
 
-
 test('should handle weird / invalid request urls without crashing', function(t) {
     var fakeRequest = {
         session: {}

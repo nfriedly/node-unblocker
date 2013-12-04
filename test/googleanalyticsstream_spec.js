@@ -1,8 +1,4 @@
-var fs = require('fs'),
-    URL = require('url'),
-    test = require('tap')
-        .test,
-    _ = require('underscore');
+var test = require('tap').test;
 
 var googleAnalytics = require('../lib/googleanalyticsstream');
 
