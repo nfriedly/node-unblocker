@@ -192,7 +192,7 @@ function initApp() {
 }
 
 function getApp(withRedis) { 
-    return withRedis ? initApp : handleRequest; 
+    return withRedis ? initApp() : handleRequest; 
 }
 
 module.exports.getApp = getApp;
