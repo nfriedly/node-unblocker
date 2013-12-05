@@ -32,7 +32,7 @@ function createWorker() {
 // worker vars and methods
 var http = require('http'),
     domain = require('domain'),
-    app = require('./app'),
+    app = require('./app').getApp(true), // true = connect to redis
     config = require('./config'),
     server;
 

@@ -1,6 +1,6 @@
 var http = require('http'),
     async = require('async'),
-    app = require('../app');
+    app = require('../app').getApp(false); // false = no redis
 
 exports.getServers = function(sourceContent, cluster, next) {
     if (typeof cluster == 'function') {

@@ -37,28 +37,8 @@ serveStatic.setGa(googleAnalytics);
 var connect = require('connect'), // todo: call by version once 2.x is listed in npm
     RedisStore = require('connect-redis')(connect),
     redis;
-// the redis client differs depending on if you're using redistogo (heroku) or not
-if (config.redistogo_url) {
-    redis = require('redis-url').connect(config.redistogo_url);
-} else {
-    redis = require('redis').createClient(config.redis_port, config.redis_host, config.redis_options);
-
-}
-redis.unref();
-
-var app = connect()
-    .use(connect.cookieParser(config.secret))
-    .use(connect.session({
-        store: new RedisStore({
-            client: redis
-        }),
-        cookie: {
-            path: '/',
-            httpOnly: false,
-            maxAge: null
-        }
-    }))
-    .use(function(request, response) {
+    
+function handleRequest(request, response) {
 
         // convenience methods 
         request.thisHost = thisHost.bind(thisHost, request);
@@ -105,9 +85,7 @@ var app = connect()
         // any other url gets redirected to the correct proxied url if we can
         // determine it based on their referrer, or the home page otherwise
         return handleUnknown(request, response);
-    });
-
-
+    }
 
 /**
  * This is what makes this server magic: if we get an unrecognized request that wasn't corrected by
@@ -189,4 +167,32 @@ function redirectTo(request, response, site) {
     response.end();
 }
 
-module.exports = app;
+function initApp() {
+    // the redis client differs depending on if you're using redistogo (heroku) or not
+    if (config.redistogo_url) {
+        redis = require('redis-url').connect(config.redistogo_url);
+    } else {
+        redis = require('redis').createClient(config.redis_port, config.redis_host, config.redis_options);
+    }
+    redis.unref();
+
+    return connect()
+        .use(connect.cookieParser(config.secret))
+        .use(connect.session({
+            store: new RedisStore({
+                client: redis
+            }),
+            cookie: {
+                path: '/',
+                httpOnly: false,
+                maxAge: null
+            }
+        }))
+        .use(handleRequest);
+}
+
+function getApp(withRedis) { 
+    return withRedis ? initApp : handleRequest; 
+}
+
+module.exports.getApp = getApp;
