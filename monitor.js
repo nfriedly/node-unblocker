@@ -17,10 +17,9 @@ memwatch.once('leak', function(info) {
     memwatch.on('stats', function(stats) {
 
         var diff = hd.end();
-        console.warn('Memory leak detected, stats:\n', util.inspect(stats), '\nHeap diff since last GC:\n', util.inspect(diff));
+        console.warn('Memory leak detected, stats:\n', util.inspect(stats), '\nHeap diff since last GC:\n', util.inspect(diff.change.details));
 
         hd = new memwatch.HeapDiff();
     });
-
 
 });
