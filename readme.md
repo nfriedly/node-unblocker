@@ -48,9 +48,8 @@ to run this to enable usage tracking via Google Analytics:
 ## Todo
 
 * Write more tests
+* Figure out how to test redis
 * Figure out how to test the cluster on Travis CI
-* Mobile-first design
-* Figure out what is keeping node open in app.js and kill it (this is probably related to the culster tests on Travis CI)
 
 ## Maybe Todo list
 
