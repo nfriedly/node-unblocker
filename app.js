@@ -42,7 +42,9 @@ if (config.redistogo_url) {
     redis = require('redis-url').connect(config.redistogo_url);
 } else {
     redis = require('redis').createClient(config.redis_port, config.redis_host, config.redis_options);
+
 }
+redis.unref();
 
 var app = connect()
     .use(connect.cookieParser(config.secret))
