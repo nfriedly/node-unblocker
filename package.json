@@ -14,8 +14,7 @@
     "through": "~2.3.4",
     "async": "~0.2.9",
     "mime": "~1.2.11",
-    "newrelic": "~1.1.1",
-    "memwatch": "~0.2.2"
+    "newrelic": "~1.1.1"
   },
   "engines": {
     "node": "0.10.x",
