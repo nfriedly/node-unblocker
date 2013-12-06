@@ -195,4 +195,12 @@ function getApp(withRedis) {
     return withRedis ? initApp() : handleRequest; 
 }
 
+// for compatibility with gatlin
+var app;
+module.exports = function(req, res) {
+    if (!app) app = initApp();
+    app(req, res);
+}
+
+// for testing
 module.exports.getApp = getApp;

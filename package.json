@@ -14,7 +14,8 @@
     "through": "~2.3.4",
     "async": "~0.2.9",
     "mime": "~1.2.11",
-    "newrelic": "~1.1.1"
+    "newrelic": "~1.1.1",
+    "gatling": "~1.0.0"
   },
   "engines": {
     "node": "0.10.x",
@@ -43,6 +44,7 @@
     "camelcase": true
   },
   "scripts": {
+    "start": "gatling ./app.js",
     "test": "npm run jshint && npm run test-spec",
     "pre-commit": "npm run beautify && npm test",
     "beautify": "js-beautify --replace ./*.js ./lib/*.js ./test/*.js",
