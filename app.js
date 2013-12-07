@@ -200,7 +200,7 @@ var app;
 module.exports = function(req, res) {
     if (!app) app = initApp();
     app(req, res);
-}
+};
 
 // for testing
 module.exports.getApp = getApp;
