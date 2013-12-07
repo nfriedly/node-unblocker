@@ -37,7 +37,9 @@ And then run the following command:
     
 That's it!
 
-(The reason this is needed is that Gatlin runs each request inside a domain. This prevents errors in one request from interfering with any other requests.
+(The reason this is needed is that Gatlin runs each request inside a domain. This prevents errors in one request from interfering with any other requests.)
+
+Gatling automatically loads `newrelic` if the `NEW_RELIC_LICENSE_KEY` environment variable is set.
 
 
 Todo: 
