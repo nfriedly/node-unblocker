@@ -62,11 +62,58 @@ This project is released under the terms of the [GNU GPL version 3](http://www.g
 
 ## Contributors 
 * [Nathan Friedly](http://nfriedly.com)
-* [Arturo Filastò](https://github.com/hellais)
+* [Arturo Filastï¿½](https://github.com/hellais)
 * [tfMen](https://github.com/tfMen)
 * [Emil Hemdal](https://github.com/emilhem)
 
 ## Change log
+
+### v0.12.0 - 3012-12-12
+* Replaced server.js with [Gatling](https://github.com/nfriedly/node-gatling)
+* Removed memwatch
+
+### v0.11.3 - 2013-12-4
+* Updated design to be mobile-friendly
+
+### v0.11.1 - 2013-12-4
+* Tweaked Redis client and blocklist to not keep server open after unit tests
+
+### v0.11.0 - 2013-12-3
+* Seperated app and server more cleanly
+* Additional JSHint checks
+* Added [memwatch](https://github.com/lloyd/node-memwatch)
+
+### v0.10.1
+* Replaced built-in monitoring code with (optional) New Relic support
+* Split proxying and server code into two files.
+
+### v0.9.4 - 2013-12-2
+* Fixed a bug when attempting to parse cookies on invalid urls
+
+### v0.9.3 - 2013-12-2
+* Added JSHint to the test suite
+* JSBeautify'd code
+* Moved static content and code to it's own directory and file
+* Added a test for static content
+
+### v0.9.2 - 2013-11-31
+* Added unit tests for url prefixing on streams that get split in various locations
+* Fixed bugs these tests revealed
+* Fixed bug with links pointing to / not getting rewritten
+* Added backpressure support to streams
+
+### v0.9.1 - 2013-11-31
+* Unit tests for Google Analytics
+* Google Analytics bug fix
+
+### v0.9.0 - 2013-11-31
+* Set up Continous Deployment
+* Default proxied traffic to SSL if url is nodeunblocker.com
+* Updated to Node.js v0.10-style streams
+* Split encoding, url prefixing, ROBOTS meta tag, and Google Analytics into individual files (and streams)
+* Unit tests for UrlPrefixStream.
+* Added a performance test
+* Increased the HTTP Agent's maximum number of Open Connections - issue https://github.com/nfriedly/node-unblocker/issues/17
 
 ### v0.8.2 - 2013-11-26
 * Added tests
