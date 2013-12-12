@@ -47,9 +47,8 @@ to run this to enable usage tracking via Google Analytics:
 
 ## Todo
 
-* Write more tests
-* Figure out how to test redis
-* Figure out how to test the cluster on Travis CI
+* Write more tests: character encoding, compression, end-to-end tests in real browsers
+* Consider gzipping all appropriate responses (anything text-like and more than a few kb)
 
 ## Maybe Todo list
 
@@ -62,7 +61,7 @@ This project is released under the terms of the [GNU GPL version 3](http://www.g
 
 ## Contributors 
 * [Nathan Friedly](http://nfriedly.com)
-* [Arturo Filast�](https://github.com/hellais)
+* [Arturo Filastò](https://github.com/hellais)
 * [tfMen](https://github.com/tfMen)
 * [Emil Hemdal](https://github.com/emilhem)
 
