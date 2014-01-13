@@ -67,7 +67,7 @@ This project is released under the terms of the [GNU GPL version 3](http://www.g
 
 ## Change log
 
-### v0.12.0 - 3012-12-12
+### v0.12.0 - 2013-12-12
 * Replaced server.js with [Gatling](https://github.com/nfriedly/node-gatling)
 * Removed memwatch
 
