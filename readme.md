@@ -26,8 +26,10 @@ have browsed several sites through the proxy.
 Requires [node.js](http://nodejs.org/) >= 0.8 (0.10 is recommended) and [Redis](http://redis.io/) for session storage. 
 Then [download node-unblocker](https://github.com/nfriedly/node-unblocker/archive/master.zip), cd into the directory, 
 and run `npm rebuild`. Optionally edit 
-config.js then run `node server.js` to start the server. It should spawn a new instance for each CPU 
-core you have.
+config.js then run `npm start` to start the server. It should spawn a new instance for each CPU 
+core you have. 
+
+(Note: running `node app.js` *will not work*. The server code is in the [Gatling](https://npmjs.org/package/gatling) package, which the `npm start` command calls automatically.)
 
 ## Installation on Heroku
 
