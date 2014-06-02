@@ -182,6 +182,7 @@ function initApp() {
             store: new RedisStore({
                 client: redis
             }),
+            key: 'unblocker.sid',
             cookie: {
                 path: '/',
                 httpOnly: false,
