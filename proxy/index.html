@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Node Unblocker</title>
+  
+  <!-- header font -->
+  <link href='http://fonts.googleapis.com/css?family=Orbitron' rel='stylesheet' type='text/css'>
+  
+  <!-- body font -->
+  <link href='http://fonts.googleapis.com/css?family=Droid+Sans' rel='stylesheet' type='text/css'>
+  
+  <link rel="canonical" href="http://nodeunblocker.com/proxy"/>
+  
+  <meta name="keywords" value="nodeunblocker,unblocker,proxy,phproxy,poxy,phpr0xi,a2,web,internet,anti,filter,block,censor,freedom,free,fast,secure,ssl,bypass,unblock,anonymous,tunnel,surf,pass" />
+  
+  <style type="text/css">
+  
+    /* fonts */
+    body { font-family: 'Droid Sans', arial, serif;  letter-spacing: 1px;}
+    h1, h1 a { font-family: 'Orbitron', arial, serif; letter-spacing: 2px; text-decoration:none; color:white;}
+    h2, h3, h4, h5, h6 { letter-spacing: 2px; font-weight: normal;}
+  
+    /* colors */
+    body { background-color: #000306; color: white;}
+    .container { background-color: #3F4038; border-color: #5B3E38}
+    a { color: #62BECB; }
+    a:hover {color: #82DEEB }
+
+	#error {  border:1px dotted white; background: brown; }
+    
+    /* stripes and borders */
+    
+    .main { background-repeat: repeat-x;  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAB9CAIAAADbWVFQAAADd0lEQVR4nO3d6VbbMBiE4Tcm3Tf2tRfSf+393wd03/dCk/6AgjF2otiSvpGsuYBY52HO4JPEMHn+4hl6eTqzPkFbptYHaMnRjLn1GW7muKKyPkMzR5KdOq4AMSxlKaSwxKXQ2axDyZ06ud4liWYdSnbq5IaNPVYqUphjJSSF7WYdSO7Uy+7+mDXrQLJTC6SwwkpRChOsRKWIj5WuFJEHfl9y0V85FyZes/YlO+UuRTSsDKSIg5WHFBE2a09yp173KknYZu1JdqqfFEGxMpMiHFZ+UgTCylKKEAO/K7nob3y0wnOzdiU75UUKv1h5S+ERK3spfG3WjuROvfX928vD6+1Idsq7FMOxxiPFQKxRSTEEa2xS9B74bclFfxf4Dac+L78t2anQUvTAGq0Uq2KNWYqVNmtLcqfeR/wwz/VSW5KdiimFI1aROs/yCxapyyy5ZpGqZ9HAb0ou+ge77991XnlTslOGUnRhFanWtFy/SHWluVkbkjv1UUCKRrM2JDslIkUdq0gtzcVZipRLKoqUc6brkov+SU8K88dRWqMptT7Tw5KVQq1ZylLAVGewPktKPaltusoBZaXqkThjElIoYKUihTlWQlLYDvwXSanH3XfpZueVlVoQmyOnKIUJVqJSwHQ+CX+QWr7GvZxjHs1xcYj6U5aVckw8rNSliIaVgRRx7rO+SUo9nK/8rmfwZslK9UhYrJykCIqVmRThsPKTItDAf5eUerD6ojfiv1myUsPjGStjKfxi5S2Fx836ISl1f/BO1eOnWbJSfuMBayRSDMcajxQDsUYlxZCB/ykpdc/rojfSs1myUkHTB2ucUvTAGq0Uq27WL0mpuyF3qp4VmiUrFS2uWEUKR6widZ7lWEXqMksG/rek1J1Yi97IombJSlmlE6tI3Uw7VpFqTctm/ZGUum20U/U0myUrpZBrWEVqca6witTSXGAVKZdM53AqKXVLYNEbqWSlBKP4NWtNqdOJHpasFDr/OfM8U72dAs7+L5VQs4Qeqq3lrLbpKlj6UohgJSGFAlYqUpgP/Jrkov/tuPe0bNaaoFO3FIZYyUlhhZWiFCabVUnu1Ezt4UygEnRykyIyVtJSxMRKXYpoWBlIEWfgJ5KL3uPPDgRv1kTQqZcUobFykiIoVmZSBNwsyZ1i2KczYZql6DRUiiBYmUrhHytfKeAfdPYd7TpexlgAAAAASUVORK5CYII=); }
+    .footer { min-height: 60px; background-repeat: repeat-x; background-position: bottom left; background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAA8CAIAAAAfXYiZAAAB+ElEQVR4nO3b11aDQBSF4T2IXWM3lhfxTt//PWKvsTfwIllLEobQZuZsYM4DyFkffyKBRJ2encBPsQmlF9BNHEtvoBul+LBiAEp6idQogK0sRdlUrMYnjwhLUTYVJzZiwQoom4rUxMmjwAoom4pSG8ljzTEmhV/duQucrzExDZKCbFkhpdRP9vuBWFmNk4JUWfOUUt95/2MEymqoFNyXtUAp9VXsusVpWY2WgsuyFimlPstcCzsqqwVScIPVDik4eBkuUUp9VPokaresNknBalnLlFLvNe5u2CqrfVKwVNYKpdRb7Ttm5stqqxSMl7VKKfVq6C6sybLaLQWDZa1RSr0YvbNvpqwuSMFIWeuUUs8WnhbVLas7UqhZVo9SamjtCWR1rF5kcA1jM7T5Ybfi3+6gFKqVtUEp9WT/1lzpI3RWCmXL2qSUenT11KXEcTouheJlbVFKPbh9RlzoaF5qNPllbVNK3Ut8oyXnmF4qObPK2qGUupP7/l3mkb1UevRl7VJK3Qp/p1NXlpfKmumy9iilbgikMFWWl5o9/4t4qdwZvwz3KaWumaQwKstLFZywTyl1xScF8Z+jaIdTqh8hZPsx1iWl1EEEsJXFLAUwlXVBKXWYeE9nWZBfCiRlnVNKHaWuE+TXbIoUxMsaUEodZ1x7Si7bLCkAf1M7eHbSdYGuAAAAAElFTkSuQmCC); }
+    .container { border-style: solid; border-width: 1px; border-radius: 10px;  -moz-border-radius: 10px;  -webkit-border-radius: 10px;  overflow:hidden;  /* otherwise the background image appears on top of the curved border */ }
+    
+    
+    /* layout */
+    body { text-align: center; }
+    .container { width: 760px; margin: 40px auto; text-align: left;  }
+    
+    h2, h3, h4, h5, h6 { margin-bottom: 0;  }
+    ul { line-height: 150%; }
+    ul, p {  margin-top: 15px; margin-bottom: 0; line-height: 130%}
+    .main, .footer { padding: 1px 10px 0 10px; }
+    
+    .main { position: relative; }
+    #ssl { position: absolute; top: 20px; right: 20px; }
+    
+    #error { padding: 5px 10px; margin: 30px 10px; }
+    
+    form ul { list-style-type: none; padding-left: 25px;}
+    input[type=text] { width: 640px; }
+    
+    .footer { position: relative; }
+    .footer p { margin:0; position: absolute; bottom: 10px;  right: 10px;}
+    
+    #google-ad { float:right; margin:34px 2px 20px 20px;}
+    
+    
+  </style>
+</head>
+<body>
+
+  <div class="container">
+  
+    <div class="main">
+  
+      <h1><a href="http://nodeunblocker.com/proxy">Node Unblocker</a></h1>
+      
+      <div id="error">Heroku's abuse team is living up to their name and has taken the app offline due to an erroneous phishing report.</div>
+
+      <form action="https://node-unblocker.herokuapp.com/proxy/no-js" method="get" id="unblocker-form">
+        <p>
+          URL: 
+          <input type="text" id="url" name="url" autofocus="autofocus" />
+          <input type="submit" value="Go" />
+        </p>
+
+      </form>
+      
+      <div id="google-ad">
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-9477050254721722";
+/* nodeunblocker 300x250 */
+google_ad_slot = "9913058370";
+google_ad_width = 300;
+google_ad_height = 250;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</div>
+      
+      <h3>About Node Unblocker</h3>
+      <p>Node Unblocker is a web proxy, similar to CGIProxy, PHProxy, or Glype, that alows users to uncensor free speech, evade filters, and unblock blocked sites.</p>
+      <p>The proxy designed to be extremely fast and compatible: It processes the data on-the-fly rather than buffering the entire response, and it only modifies URLs when necessary - relative ones will "just work". </p>
+      <p>Node Unblocker is written in JavaScript with <a href="http://nodejs.org">node.js</a>. The source code is <a href="https://github.com/nfriedly/node-unblocker">avaliable on github</a>.</p>
+      
+
+    </div>
+    
+    <div class="footer">
+      <p><a href="http://nodeunblocker.com/proxy">Node Unblocker</a> by <a href="http://nfriedly.com/" title="Node.js developer and JavaScript Expert">Nathan Friedly</a></p>
+    </div>  
+  </div>
+  
+  
+	<script>
+		function $(id){
+			return document.getElementById(id);
+		}
+		
+		$('unblocker-form').onsubmit = function(){
+			var url = $('url').value;
+			if(url.substr(0,4) != "http"){
+				url = "http://" + url;
+			}
+			window.location = "https://node-unblocker.herokuapp.com/proxy/" + url;
+			return false;
+		}
+		
+		window.onload = function() { 
+			$('url').focus();
+		}
+	</script>
+  
+  
+<script type="text/javascript">
+var _gaq = []; // overwrite the existing one, if any
+_gaq.push(['_setAccount', 'UA-1735765-22']);
+_gaq.push(['_trackPageview']);
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+
+</body>
+</html>
