@@ -70,11 +70,9 @@
       <h1><a href="http://nodeunblocker.com/proxy">Node Unblocker</a></h1>
       
       <div id="error">
-          <p>Node Unblocker was erroneously reported as a phishing site and Heroku's abuse team took it offline <i>before</i> investigating or contacting me.</p>
-          <p>Hopefully they'll straighten things out soon, but in the meanwhile I'll be looking into alternative hosting options.</p>
       </div>
 
-      <form action="https://node-unblocker.herokuapp.com/proxy/no-js" method="get" id="unblocker-form">
+      <form action="https://node-unblocker.nodejitsu.com/proxy/no-js" method="get" id="unblocker-form">
         <p>
           URL: 
           <input type="text" id="url" name="url" autofocus="autofocus" />
@@ -121,7 +119,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 			if(url.substr(0,4) != "http"){
 				url = "http://" + url;
 			}
-			window.location = "https://node-unblocker.herokuapp.com/proxy/" + url;
+			window.location = "https://node-unblocker.nodejitsu.com/proxy/" + url;
 			return false;
 		}
 		
