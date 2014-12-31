@@ -21,10 +21,10 @@ Cookies are currently storred in the visitor's session on the server rather than
 visitor's browser to avoid having a large number of (possibly conflicting) browser cookies once they
 have browsed several sites through the proxy.
 
-## Instalation on your system
+## Installation on your system
 
 Requires [node.js](http://nodejs.org/) >= 0.8 (0.10 is recommended) and [Redis](http://redis.io/) for session storage. 
-Then [download node-unblocker](https://github.com/nfriedly/node-unblocker/archive/master.zip), cd into the directory, 
+Then [download node-unblocker](https://github.com/nfriedly/node-unblocker/archive/master.zip), `cd` into the directory, 
 and run `npm rebuild`. Optionally edit 
 config.js then run `npm start` to start the server. It should spawn a new instance for each CPU 
 core you have. 
@@ -39,24 +39,27 @@ following commands:
 
     heroku addons:add redistogo
     heroku config:add SECRET=<TYPE SOMETHING SECRET AND/OR RANDOM HERE>
-    heroku addons:add piggyback_ssl
+    
+This sets up a free redis cache instance and secures your cookies.
+
+Optionally, you may want to run one or both of the following lines:
+
+    # newrelic monitoring so that you can be alerted when there's an issue
     heroku addons:add newrelic:stark
-
-This sets up a free redis cache instance, secures your cookies, and adds https support, and sets up free monitoring with newrelic (optional). You may also want 
-to run this to enable usage tracking via Google Analytics: 
-
+    
+    # google analytics so that you can see how much usage your proxy is getting
     heroku config:add GA_ID=[your Google Analytics ID, ex: UA-12345-78]
 
 ## Todo
 
 * Write more tests: character encoding, compression, end-to-end tests in real browsers
 * Consider gzipping all appropriate responses (anything text-like and more than a few kb)
+* Break things into sub-modules and make the core easier to embed and extend
 
 ## Maybe Todo list
 
 * Mini-url form
 * Allow for removal of scripts (both script tags and on*= handlers)
-* Figure out how to make the blocklist work with heroku without shipping a default one with the source.
 
 ## License
 This project is released under the terms of the [GNU GPL version 3](http://www.gnu.org/licenses/gpl.html)
