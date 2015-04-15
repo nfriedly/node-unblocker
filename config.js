@@ -6,7 +6,7 @@ exports.ip = null;
 
 exports.port = process.env.PORT || 8080;
 
- // if set, GA tracking code will be inserted into the bottom of every page
+// if set, GA tracking code will be inserted into the bottom of every page
 exports.google_analytics_id = process.env.GA_ID || null;
 
 // this is used connect to keep session cookies secure. You should change this.

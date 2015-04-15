@@ -1,4 +1,11 @@
 language: node_js
 node_js:
 - '0.10'
-- '0.8'
+before_install: npm rebuild
+deploy:
+  provider: heroku
+  api_key:
+    secure: hUDfE1TPfQmKZ5ntE9j/BsJmswWFYHj7vkmXNhBwcxHzytRwtKm+/fsJL87uoEuLgyB3dt1nlr/qI9HaXX9aasyXK9oeziHTp7L0eiKG5pMLnbt7eqpuKf/VQYXpk3todUZGeC6JbZqTT4nS+d9RzM3/2FtW8fREvtqeidAs6L4=
+  app: node-unblocker
+  on:
+    repo: nfriedly/node-unblocker
