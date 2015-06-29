@@ -2,7 +2,7 @@
   "name": "node-unblocker",
   "description": "Web proxy for evading internet censorship",
   "author": "Nathan Friedly - http://nfriedly.com",
-  "version": "0.13.1",
+  "version": "0.14.0",
   "repository": "git://github.com/nfriedly/node-unblocker.git",
   "dependencies": {
     "async": "~0.2.9",
