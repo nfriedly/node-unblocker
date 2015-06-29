@@ -8,7 +8,7 @@ var getServers = require('./test_utils.js').getServers;
 
 // source is http://qa-dev.w3.org/wmvs/HEAD/dev/tests/xhtml-windows-1250.xhtml which is linked to from http://validator.w3.org/dev/tests/#encoding
 var source = fs.readFileSync(__dirname + '/source/xhtml-windows-1250.xhtml');
-var expected =  fs.readFileSync(__dirname + '/expected/xhtml-windows-1250.xhtml');
+var expected = fs.readFileSync(__dirname + '/expected/xhtml-windows-1250.xhtml');
 
 // first validate that the IDE or whatever didn't change the file encoding
 var SOURCE_HASH = '11f694099b205b26a19648ab22602b39c6deb125';
@@ -19,7 +19,7 @@ test("source and expected xhtml-windows-1250.xhtml files should not have changed
     t.end();
 });
 
-test("should properly decode, update, and re-encode non-native charsets when charset is in header", function(t){
+test("should properly decode, update, and re-encode non-native charsets when charset is in header", function(t) {
     t.plan(1);
     getServers(source, 'windows-1250', function(err, servers) {
         http.get("http://localhost:8080/proxy/http://localhost:8081/", function(res) {
@@ -33,7 +33,7 @@ test("should properly decode, update, and re-encode non-native charsets when cha
     });
 });
 
-test("should properly decode, update, and re-encode non-native charsets when charset is in body", function(t){
+test("should properly decode, update, and re-encode non-native charsets when charset is in body", function(t) {
     t.plan(1);
     getServers(source, function(err, servers) {
         http.get("http://localhost:8080/proxy/http://localhost:8081/", function(res) {
@@ -46,5 +46,3 @@ test("should properly decode, update, and re-encode non-native charsets when cha
         });
     });
 });
-
-

@@ -26,4 +26,3 @@ test("should do nothing to the body", function(t) {
     }));
     stream.end(body);
 });
-

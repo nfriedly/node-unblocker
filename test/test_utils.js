@@ -10,7 +10,7 @@ exports.getServers = function(sourceContent, charset, next) {
 
     function sendContent(req, res) {
         res.writeHead(200, {
-            'content-type': 'text/html' + (charset ?  '; charset=' + charset : '')
+            'content-type': 'text/html' + (charset ? '; charset=' + charset : '')
         });
         res.end(sourceContent);
     }
