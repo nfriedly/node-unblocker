@@ -2,15 +2,15 @@ var http = require('http'),
     async = require('async'),
     app = require('../app').getApp(false); // false = no redis
 
-exports.getServers = function(sourceContent, cluster, next) {
-    if (typeof cluster == 'function') {
-        next = cluster;
-        cluster = false;
+exports.getServers = function(sourceContent, charset, next) {
+    if (typeof charset == 'function') {
+        next = charset;
+        charset = false;
     }
 
     function sendContent(req, res) {
         res.writeHead(200, {
-            'content-type': 'text/html'
+            'content-type': 'text/html' + (charset ?  '; charser=' + charset : '')
         });
         res.end(sourceContent);
     }
