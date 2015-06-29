@@ -1,10 +1,3 @@
-/*
- test/expected/charset-iso-2022-jp-to-utf-8.html
- test/expected/charset-windows-latin-1-to-utf-8.html
- test/source/charset-iso-2022-jp.html
- test/source/charset-windows-latin-1.html
- */
-
 var test = require('tap').test;
 var fs = require('fs');
 var crypto = require('crypto');
@@ -26,7 +19,7 @@ test("source and expected xhtml-windows-1250.xhtml files should not have changed
     t.end();
 });
 
-test("should properly decode, update, and re-encode non-native charsets", function(t){
+test("should properly decode, update, and re-encode non-native charsets when charset is in header", function(t){
     t.plan(1);
     getServers(source, 'windows-1250', function(err, servers) {
         http.get("http://localhost:8080/proxy/http://localhost:8081/", function(res) {
@@ -40,6 +33,18 @@ test("should properly decode, update, and re-encode non-native charsets", functi
     });
 });
 
-
+test("should properly decode, update, and re-encode non-native charsets when charset is in body", function(t){
+    t.plan(1);
+    getServers(source, function(err, servers) {
+        http.get("http://localhost:8080/proxy/http://localhost:8081/", function(res) {
+            res.pipe(concat(function(actual) {
+                servers.kill();
+                t.same(actual, expected);
+            }));
+        }).on('error', function(e) {
+            t.bailout(e);
+        });
+    });
+});
 
 
