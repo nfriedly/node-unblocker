@@ -5,24 +5,24 @@
   "version": "0.13.1",
   "repository": "git://github.com/nfriedly/node-unblocker.git",
   "dependencies": {
-    "redis-url": "0.1.x",
-    "redis": "0.8.x",
+    "async": "~0.2.9",
     "connect": "2.7.x",
     "connect-redis": "1.4.x",
+    "gatling": "~1.1.1",
     "iconv": "2.0.x",
-    "underscore": "~1.5.2",
-    "through": "~2.3.4",
-    "async": "~0.2.9",
     "mime": "~1.2.11",
     "newrelic": "~1.1.1",
-    "gatling": "~1.1.1"
+    "redis": "0.8.x",
+    "redis-url": "0.1.x",
+    "through": "~2.3.4",
+    "underscore": "~1.5.2"
   },
   "engines": {
     "node": "0.10.x",
     "npm": "1.4.x"
   },
   "devDependencies": {
-    "concat-stream": "~1.2.0",
+    "concat-stream": "^1.5.0",
     "tap": "~0.4.6",
     "hyperquest": "~0.1.8",
     "math-helpers": "~0.1.0",
