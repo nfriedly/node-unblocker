@@ -22,7 +22,7 @@ test("source and expected xhtml-windows-1250.xhtml files should not have changed
 test("should properly decode, update, and re-encode non-native charsets when charset is in header", function(t) {
     t.plan(1);
     getServers(source, 'windows-1250', function(err, servers) {
-        http.get("http://localhost:8080/proxy/http://localhost:8081/", function(res) {
+        http.get(servers.proxiedUrl, function(res) {
             res.pipe(concat(function(actual) {
                 servers.kill();
                 t.same(actual, expected);
@@ -36,7 +36,7 @@ test("should properly decode, update, and re-encode non-native charsets when cha
 test("should properly decode, update, and re-encode non-native charsets when charset is in body", function(t) {
     t.plan(1);
     getServers(source, function(err, servers) {
-        http.get("http://localhost:8080/proxy/http://localhost:8081/", function(res) {
+        http.get(servers.proxiedUrl, function(res) {
             res.pipe(concat(function(actual) {
                 servers.kill();
                 t.same(actual, expected);

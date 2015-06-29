@@ -12,13 +12,13 @@ test("url_rewriting should support support all kinds of links", function(t) {
     getServers(source, function(err, servers) {
         function cleanup() {
             servers.kill(function() {
-                console.dir(arguments);
                 t.end();
             });
         }
-        hyperquest("http://localhost:8080/proxy/http://localhost:8081/")
+        console.log(servers.proxiedUrl);
+        hyperquest(servers.proxiedUrl)
             .pipe(concat(function(data) {
-                t.equal(data.toString(), expected.toString());
+                t.equal(data.toString(), expected.toString().replace(/<remotePort>/g, servers.remotePort));
                 cleanup();
             }))
             .on('error', function(err) {
@@ -34,13 +34,12 @@ test("should serve robots.txt when requested", function(t) {
     getServers(source, function(err, servers) {
         function cleanup() {
             servers.kill(function() {
-                console.dir(arguments);
                 t.end();
             });
         }
-        hyperquest("http://localhost:8080/robots.txt")
+        hyperquest(servers.homeUrl + "robots.txt")
             .pipe(concat(function(data) {
-                t.equal(data.toString(), expected.toString());
+                t.equal(data.toString(), expected.toString().replace(/<remotePort>/g, servers.remotePort));
                 cleanup();
             }))
             .on('error', function(err) {
@@ -49,24 +48,3 @@ test("should serve robots.txt when requested", function(t) {
             });
     });
 });
-
-/*
-test("clustering should not break url rewriting", function(t) {
-    getServers(source, true, function(err, servers) {
-        function cleanup() {
-            servers.kill(function() {
-                t.end();
-            });
-        }
-        hyperquest("http://localhost:8080/proxy/http://localhost:8081/")
-            .pipe(concat(function(data) {
-                t.equal(data.toString(), expected.toString());
-                cleanup();
-            }))
-            .on('error', function(err) {
-                console.error('error retrieving data from proxy', err);
-                cleanup();
-            });
-    });
-})
-*/

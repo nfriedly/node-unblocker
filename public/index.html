@@ -100,7 +100,7 @@
     </div>
     
     <div class="footer">
-      <p><a href="http://nodeunblocker.com/proxy">Node Unblocker</a> v{version} by <a href="http://nfriedly.com/" title="Node.js developer and JavaScript Expert">Nathan Friedly</a></p>
+      <p><a href="http://nodeunblocker.com/proxy">Node Unblocker</a> by <a href="http://nfriedly.com/" title="Node.js developer and JavaScript Expert">Nathan Friedly</a></p>
     </div>
   
   </div>
@@ -116,7 +116,7 @@
 			}
 			window.location.pathname = 'proxy/' + url;
 			return false;
-		}
+		};
 		
 		function checkError(){
 			var search = window.location.search;
@@ -126,8 +126,9 @@
 				if(stop == -1){ stop = undefined; }
 				// +6 for "error="
 				var err = search.substr(start+6, stop);
-				$('error').innerText = $('error').textContent = decodeURIComponent(err);
-				$('error').style.display = "block";
+                var $error = $('error');
+				$error.innerText = $error.textContent = decodeURIComponent(err);
+				$error.style.display = "block";
 			}
 		}
     

@@ -25,7 +25,7 @@ have browsed several sites through the proxy.
 
 Requires [node.js](http://nodejs.org/) >= 0.12 and [Redis](http://redis.io/) for session storage. 
 Then [download node-unblocker](https://github.com/nfriedly/node-unblocker/archive/master.zip), `cd` into the directory, 
-and run `npm rebuild`. Optionally edit 
+and run `npm install`. Optionally edit 
 config.js then run `npm start` to start the server. It should spawn a new instance for each CPU 
 core you have. 
 
@@ -62,7 +62,9 @@ Optionally, you may want to run one or both of the following lines:
 * Allow for removal of scripts (both script tags and on*= handlers)
 
 ## License
-This project is released under the terms of the [GNU GPL version 3](http://www.gnu.org/licenses/gpl.html)
+This project is released under the terms of the [GNU AGPL version 3](https://www.gnu.org/licenses/agpl-3.0.html).
+ 
+Commercial licensing and support are also available, contact Nathan Friedly (nathan@nfriedly.com) for details.
 
 ## Contributors 
 * [Nathan Friedly](http://nfriedly.com)

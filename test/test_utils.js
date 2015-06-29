@@ -22,18 +22,23 @@ exports.getServers = function(sourceContent, charset, next) {
     remoteServer.setTimeout(5000);
 
     async.parallel([
-        proxyServer.listen.bind(proxyServer, 8080),
-        remoteServer.listen.bind(remoteServer, 8081)
+        proxyServer.listen.bind(proxyServer),
+        remoteServer.listen.bind(remoteServer)
     ], function(err) {
-        next(err, {
+        var ret = {
             proxyServer: proxyServer,
+            proxyPort: proxyServer.address().port,
             remoteServer: remoteServer,
+            remotePort: remoteServer.address().port,
             kill: function(next) {
                 async.parallel([
                     remoteServer.close.bind(remoteServer),
                     proxyServer.close.bind(proxyServer),
                 ], next);
             }
-        });
+        };
+        ret.homeUrl = 'http://localhost:' + ret.proxyPort + '/';
+        ret.proxiedUrl = ret.homeUrl + 'proxy/http://localhost:' + ret.remotePort + '/';
+        next(err, ret);
     });
 };

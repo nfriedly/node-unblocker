@@ -7,7 +7,6 @@ var fs = require('fs'),
     getServers = require('./test_utils.js').getServers;
 
 var source = fs.readFileSync(__dirname + '/source/index.html');
-//var expected = fs.readFileSync(__dirname + '/expected/index.html');
 
 
 // fire up the server and actually run the tests
@@ -25,7 +24,7 @@ getServers(source, function(err, servers) {
 
             function(next) {
                 console.log("\n\n=========\nBaseline\n=========");
-                runTest("http://localhost:8081/", iterations, concurrency, function(baseFailures, baseSuccesses, time) {
+                runTest(servers.proxyHome, iterations, concurrency, function(baseFailures, baseSuccesses, time) {
                     baseline = getStats(iterations, baseFailures, baseSuccesses, time);
                     printStats(baseline);
                     next();
@@ -33,7 +32,7 @@ getServers(source, function(err, servers) {
             },
             function(next) {
                 console.log("\n\n=========\nProxy\n=========");
-                runTest("http://localhost:8080/proxy/http://localhost:8081/", iterations, concurrency, function(proxyFailures, proxySuccesses, time) {
+                runTest(servers.proxiedUrl, iterations, concurrency, function(proxyFailures, proxySuccesses, time) {
                     proxy = getStats(iterations, proxyFailures, proxySuccesses, time);
                     printStats(proxy, baseline);
                     next();
