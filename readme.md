@@ -17,13 +17,13 @@ In addition to this, links that are relative to the root (E.g. `<a href="/path/t
 can be handled without modification by checking the referrer and 307 redirecting them to the proper 
 location in the referring site. (Although the proxy does attempt to rewrite these links to avoid the redirect.)
 
-Cookies are currently storred in the visitor's session on the server rather than being sent to the 
+Cookies are currently stored in the visitor's session on the server rather than being sent to the 
 visitor's browser to avoid having a large number of (possibly conflicting) browser cookies once they
 have browsed several sites through the proxy.
 
 ## Installation on your system
 
-Requires [node.js](http://nodejs.org/) >= 0.8 (0.10 is recommended) and [Redis](http://redis.io/) for session storage. 
+Requires [node.js](http://nodejs.org/) >= 0.12 and [Redis](http://redis.io/) for session storage. 
 Then [download node-unblocker](https://github.com/nfriedly/node-unblocker/archive/master.zip), `cd` into the directory, 
 and run `npm rebuild`. Optionally edit 
 config.js then run `npm start` to start the server. It should spawn a new instance for each CPU 
@@ -71,6 +71,16 @@ This project is released under the terms of the [GNU GPL version 3](http://www.g
 * [Emil Hemdal](https://github.com/emilhem)
 
 ## Change log
+
+### v0.14.0 - 2015-06-29
+* Added charset encoding tests
+* Switched from iconv to iconv-lite: faster and no compiliation needed (this is especially helpful for running on Windows)
+* Bumped node.js requirement to 0.12
+* Added [dotenv](https://www.npmjs.com/package/dotenv) for local development
+
+### v0.13.1 - 2014-6-25
+* remove strict-transport-security header
+* tweaks to play nice on nodejitsu servers
 
 ### v0.12.0 - 2013-12-12
 * Replaced server.js with [Gatling](https://github.com/nfriedly/node-gatling)
