@@ -1,3 +1,5 @@
+require('dotenv').load(); //loads "environment" properties from git-ignore'd .env file
+
 // just "site.com" or "site.com:port", no "http://"
 exports.host = null;
 

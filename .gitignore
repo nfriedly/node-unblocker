@@ -1,3 +1,4 @@
 newrelic_agent.log
 .DS_Store
 node_modules/
+.env
