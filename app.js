@@ -36,7 +36,7 @@ function getApp(withRedis) {
         // prefix proxy urls with this path. This is also a good point to mount your homepage
         basePath: '/proxy',
         homepage: '/', // putting the homepage at / is not recommended because it makes the proxy more likely to incorrectly process a request
-        responseMiddleware: [
+        responseMiddleware  : [
             // middleware can be any object with a createStream(remoteResponseHeaders){} function
             unblocker.metaRobots
         ]
@@ -47,12 +47,14 @@ function getApp(withRedis) {
         unblockerConfig.middleware.push(require('./lib/googleanalyticsstream.js')(google_analytics_id));
     }
 
+    // this line must appear before any express.static calls (or anything else that sends responses
+    app.use(unblocker(unblockerConfig));
 
     // serve up static files at /proxy (or whatever basePath is set to
     app.use(unblockerConfig.homepage, express.static(__dirname + '/public'));
 
     // this is for users who's form actually submitted due to JS being disabled or whatever
-    app.get("/proxy/no-js", function(req, res) {
+    app.get(unblockerConfig.homepage + "no-js", function(req, res) {
         // grab the "url" parameter from the querystring
         var site = querystring.parse(url.parse(req.url).query).url;
         // and redirect the user to /proxy/url
@@ -60,8 +62,6 @@ function getApp(withRedis) {
     });
 
 
-    // GET, POST, etc to any URL that we don't already have a path configured for
-    app.all('*', unblocker(unblockerConfig));
 
     if (withRedis) {
 
