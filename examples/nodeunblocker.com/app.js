@@ -12,7 +12,7 @@
 var url = require('url');
 var querystring = require('querystring');
 var express = require('express');
-var unblocker = require('./lib/unblocker.js');
+var unblocker = require('unblocker');
 var through = require('through');
 
 var app = express();

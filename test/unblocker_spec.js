@@ -29,16 +29,15 @@ test("url_rewriting should support support all kinds of links", function(t) {
 
 
 test("should return control to parent when route doesn't match and no referer is sent", function(t) {
-    var expected = fs.readFileSync(__dirname + '/../examples/nodeunblocker.com/public/robots.txt');
     getServers(source, function(err, servers) {
         function cleanup() {
             servers.kill(function() {
                 t.end();
             });
         }
-        hyperquest(servers.homeUrl + "robots.txt")
+        hyperquest(servers.homeUrl)
             .pipe(concat(function(data) {
-                t.equal(data.toString(), expected.toString().replace(/<remotePort>/g, servers.remotePort));
+                t.equal(data.toString(), 'this is the home page', servers.remotePort);
                 cleanup();
             }))
             .on('error', function(err) {

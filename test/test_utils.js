@@ -1,7 +1,29 @@
 var http = require('http'),
     async = require('async'),
     PassThrough = require('stream').PassThrough,
-    app = require('../examples/nodeunblocker.com/app.js'); // todo: just start up my own server here...
+    Unblocker = require('../lib/unblocker.js');
+
+
+var unblocker = new Unblocker({});
+
+function app(req, res) {
+    // first let unblocker try to handle the requests
+    unblocker(req, res, function(err) {
+        // this callback will be fired for any request that unblocker does not serve
+        var headers = {'content-type': 'text/plain'};
+        if (err) {
+            res.writeHead(500, headers);
+            return res.end(err.stack || err.message);
+        }
+        if (req.url == '/') {
+            res.writeHead(200, headers);
+            return res.end('this is the home page');
+        } else {
+            res.writeHead(404, headers);
+            return res.end('Error 404: file not found.');
+        }
+    });
+}
 
 exports.getServers = function(sourceContent, charset, next) {
     if (typeof charset == 'function') {
