@@ -12,6 +12,6 @@
     "unblocker": "*"
   },
   "scripts": {
-    "start": "./node_modules/gatling/gatling.js --threads 2 ./app.js"
+    "start": "./node_modules/gatling/gatling.js ./app.js"
   }
 }

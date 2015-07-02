@@ -1,10 +1,10 @@
-# node-unblocker
+# unblocker
 
-A web proxy for evading corporate or government filters, similar to CGIproxy / PHProxy / Glype but 
-written in node.js. All data is processed and relayed to the client on the fly without unnecessary 
-buffering.
-
-Any website that the proxy can access can now be reached by the proxy's users.
+Unblocker was originally a web proxy for evading internet censorship, similar to CGIproxy / PHProxy / Glype but 
+written in node.js. It's since morphed into a general-purpose library for proxying and rewriting remote webpages.
+ 
+All data is processed and relayed to the client on the fly without unnecessary buffering, making unblocker one of the 
+fastest web proxies available.
 
 [![Build Status](https://travis-ci.org/nfriedly/node-unblocker.png?branch=master)](https://travis-ci.org/nfriedly/node-unblocker)
 
@@ -17,49 +17,35 @@ In addition to this, links that are relative to the root (E.g. `<a href="/path/t
 can be handled without modification by checking the referrer and 307 redirecting them to the proper 
 location in the referring site. (Although the proxy does attempt to rewrite these links to avoid the redirect.)
 
-Cookies are currently stored in the visitor's session on the server rather than being sent to the 
-visitor's browser to avoid having a large number of (possibly conflicting) browser cookies once they
-have browsed several sites through the proxy.
+Cookies are proxied by adjusting their path to include the proxy's URL, and a bit of extra work is done to ensure they 
+remain intact when switching protocols or subdomains.
 
-## Installation on your system
+## Running the website on your computer
 
-Requires [node.js](http://nodejs.org/) >= 0.12 and [Redis](http://redis.io/) for session storage. 
-Then [download node-unblocker](https://github.com/nfriedly/node-unblocker/archive/master.zip), `cd` into the directory, 
-and run `npm install`. Optionally edit 
-config.js then run `npm start` to start the server. It should spawn a new instance for each CPU 
+Requires [node.js](http://nodejs.org/) >= 0.12.
+Then [download node-unblocker](https://github.com/nfriedly/node-unblocker/archive/master.zip), 
+`cd` into the `examples/nodeunblocker.com/` directory, 
+and run `npm install` to set things up. 
+Then run `npm start` to start the server. It should spawn a new instance for each CPU 
 core you have. 
 
-(Note: running `node app.js` *will not work*. The server code is in the [Gatling](https://npmjs.org/package/gatling) package, which the `npm start` command calls automatically.)
+(Note: running `node app.js` *will not work*. The server code is in the [Gatling](https://npmjs.org/package/gatling) 
+package, which the `npm start` command calls automatically.)
 
-## Installation on Heroku
+## Running the website on heroku/bluemix/modulous/etc
 
 This project should be runnable on a free [Heroku](http://www.heroku.com/) instance without 
-modification - see http://node-unblocker.herokuapp.com/proxy for an example. You will want to run the 
-following commands:
+modification - just copy the `examples/nodeunblocker.com/` folder to a new git repo and push it.
 
-    heroku addons:add redistogo
-    heroku config:add SECRET=<TYPE SOMETHING SECRET AND/OR RANDOM HERE>
-    
-This sets up a free redis cache instance and secures your cookies.
+## Using unblocker as a library in your software
 
-Optionally, you may want to run one or both of the following lines:
-
-    # newrelic monitoring so that you can be alerted when there's an issue
-    heroku addons:add newrelic:stark
-    
-    # google analytics so that you can see how much usage your proxy is getting
-    heroku config:add GA_ID=[your Google Analytics ID, ex: UA-12345-78]
+See `examples/nodeunblocker.com/app.js` for an example of adding a bit of middleware, see `lib/unblocker.js` for all configuration options.
 
 ## Todo
 
-* Write more tests: character encoding, compression, end-to-end tests in real browsers
-* Consider gzipping all appropriate responses (anything text-like and more than a few kb)
-* Break things into sub-modules and make the core easier to embed and extend
-
-## Maybe Todo list
-
-* Mini-url form
-* Allow for removal of scripts (both script tags and on*= handlers)
+* Consider adding compress middleware to compress text-like responses
+* Fully document API
+* Even more tests
 
 ## License
 This project is released under the terms of the [GNU AGPL version 3](https://www.gnu.org/licenses/agpl-3.0.html).
@@ -73,6 +59,12 @@ Commercial licensing and support are also available, contact Nathan Friedly (nat
 * [Emil Hemdal](https://github.com/emilhem)
 
 ## Change log
+
+### v1.0.0 - 2015-07-03
+* Refactored unblocker into an express-compatible library with nodeunblocker.com code moved to examples folder
+* Added a middleware API and updated most internal logic to use the API
+* Added support for hosting the proxy at / rather than just at /proxy/
+* Rewrote cookie handling to no longer require a redis server
 
 ### v0.14.0 - 2015-06-29
 * Added charset encoding tests
