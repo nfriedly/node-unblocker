@@ -1,7 +1,7 @@
 var http = require('http'),
     async = require('async'),
     PassThrough = require('stream').PassThrough,
-    app = require('../app'); // false = no redis
+    app = require('../examples/nodeunblocker.com/app.js'); // todo: just start up my own server here...
 
 exports.getServers = function(sourceContent, charset, next) {
     if (typeof charset == 'function') {

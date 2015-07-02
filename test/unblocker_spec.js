@@ -29,7 +29,7 @@ test("url_rewriting should support support all kinds of links", function(t) {
 
 
 test("should return control to parent when route doesn't match and no referer is sent", function(t) {
-    var expected = fs.readFileSync(__dirname + '/../public/robots.txt');
+    var expected = fs.readFileSync(__dirname + '/../examples/nodeunblocker.com/public/robots.txt');
     getServers(source, function(err, servers) {
         function cleanup() {
             servers.kill(function() {
