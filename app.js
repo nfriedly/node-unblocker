@@ -57,6 +57,3 @@ app.get(unblockerConfig.homepage + "no-js", function(req, res) {
 
 // for compatibility with gatlin
 module.exports = app;
-
-// for testing
-module.exports.getApp = getApp;

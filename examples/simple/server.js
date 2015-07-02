@@ -20,5 +20,5 @@ http.createServer(function(req, res) {
             res.writeHead(404, headers);
             return res.end('Error 404: file not found.');
         }
-    })
+    });
 }).listen(8080);

@@ -3,7 +3,7 @@ var URL = require('url'),
     _ = require('lodash'),
     concat = require('concat-stream');
 
-var urlPrefix = require('../lib/urlprefixstream');
+var urlPrefix = require('../lib/url-prefixer.js')({prefix: '/proxy/'});
 
 var testLines = {
     // source => expected result
@@ -121,10 +121,7 @@ test("should correctly handle packets split at different locations", function(t)
         // this causes the following warning:
         // (node) warning: Recursive process.nextTick detected. This will break in the next version of node. Please use setImmediate for recursive deferral.
         //t.test("Should handle breaks between '" + start.substr(-20) + "' and '" + end.substr(0,20) + "' correctly", function(t) {
-        var stream = urlPrefix.createStream({
-            prefix: testPrefix,
-            uri: testUri
-        });
+        var stream = urlPrefix.createStream(testUri);
         stream.pipe(concat(function(actual) {
             t.equal(actual, expected, "Should handle chunk breaks between '" + start.substr(-20) + "' and '" + end.substr(0, 20) + "' correctly");
             if (actual != expected) throw "stopping early";

@@ -1,6 +1,7 @@
 var http = require('http'),
     async = require('async'),
-    app = require('../app').getApp(false); // false = no redis
+    PassThrough = require('stream').PassThrough,
+    app = require('../app'); // false = no redis
 
 exports.getServers = function(sourceContent, charset, next) {
     if (typeof charset == 'function') {
@@ -44,4 +45,13 @@ exports.getServers = function(sourceContent, charset, next) {
         ret.proxiedUrl = ret.homeUrl + 'proxy/http://localhost:' + ret.remotePort + '/';
         next(null, ret);
     });
+};
+
+exports.getData = function(){
+    return {
+        url: 'http://example.com/',
+        contentType: 'text/html',
+        headers: {},
+        stream: new PassThrough()
+    };
 };
