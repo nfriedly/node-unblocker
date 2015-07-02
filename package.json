@@ -1,23 +1,26 @@
 {
-  "name": "node-unblocker",
+  "name": "unblocker",
   "description": "Web proxy for evading internet censorship",
   "author": "Nathan Friedly - http://nfriedly.com",
-  "version": "0.14.0",
+  "version": "1.0.0-pre1",
   "repository": "git://github.com/nfriedly/node-unblocker.git",
   "dependencies": {
     "async": "^1.3.0",
     "connect-redis": "^2.3.0",
     "content-type": "^1.0.1",
+    "cookie": "^0.1.3",
     "express": "^4.13.0",
     "express-session": "^1.11.3",
     "gatling": "~1.1.1",
     "iconv-lite": "^0.4.10",
+    "lodash": "^3.10.0",
     "mime": "^1.3.4",
     "newrelic": "^1.20.2",
     "redis": "^0.12.1",
     "redis-url": "^1.2.0",
+    "set-cookie-parser": "^1.0.1",
     "through": "~2.3.4",
-    "underscore": "^1.8.3"
+    "tld": "0.0.2"
   },
   "engines": {
     "node": "0.12.x",
@@ -25,6 +28,7 @@
   },
   "devDependencies": {
     "concat-stream": "^1.5.0",
+    "debug": "^2.2.0",
     "dotenv": "^1.2.0",
     "hyperquest": "^1.2.0",
     "js-beautify": "^1.5.10",
@@ -55,6 +59,6 @@
     "test-perf": "node test/performance.js"
   },
   "subdomain": "node-unblocker",
-  "license": "AGPL"
-
+  "license": "AGPL-3.0",
+  "main": "lib/unblocker.js"
 }

@@ -25,6 +25,9 @@ exports.getServers = function(sourceContent, charset, next) {
         proxyServer.listen.bind(proxyServer),
         remoteServer.listen.bind(remoteServer)
     ], function(err) {
+        if (err) {
+            return next(err);
+        }
         var ret = {
             proxyServer: proxyServer,
             proxyPort: proxyServer.address().port,
@@ -39,6 +42,6 @@ exports.getServers = function(sourceContent, charset, next) {
         };
         ret.homeUrl = 'http://localhost:' + ret.proxyPort + '/';
         ret.proxiedUrl = ret.homeUrl + 'proxy/http://localhost:' + ret.remotePort + '/';
-        next(err, ret);
+        next(null, ret);
     });
 };

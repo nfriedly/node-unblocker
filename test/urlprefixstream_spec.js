@@ -1,6 +1,6 @@
 var URL = require('url'),
     test = require('tap').test,
-    _ = require('underscore'),
+    _ = require('lodash'),
     concat = require('concat-stream');
 
 var urlPrefix = require('../lib/urlprefixstream');
