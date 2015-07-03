@@ -57,3 +57,26 @@ test('should rewrite urls that change subdomain or protocol (but not domain)', f
     sourceStream.end(source);
 });
 
+test("should copy cookies and redirect in response to a __proxy_cookies_to query param", function(t) {
+    t.plan(2);
+    var instance = cookies({prefix: '/proxy/', processContentTypes: []});
+    var data = getData();
+    data.url += '?__proxy_cookies_to=https%3A%2F%2Fexample.com%2F';
+    data.headers['cookie'] = 'one=1; two=2; three=3';
+    data.clientResponse = {
+        redirectTo: function(path, headers) {
+            var expectedPath = 'https://example.com/';
+            var expectedHeaders =  {
+                'set-cookie': [
+                    'one=1; Path=/proxy/https://example.com/',
+                    'two=2; Path=/proxy/https://example.com/',
+                    'three=3; Path=/proxy/https://example.com/'
+                ]
+            };
+            t.equal(path, expectedPath);
+            t.same(headers, expectedHeaders);
+            t.end();
+        }
+    };
+    instance.handleRequest(data);
+});
