@@ -83,6 +83,10 @@ exports.getData = function(){
         url: 'http://example.com/',
         contentType: 'text/html',
         headers: {},
-        stream: new PassThrough()
+        stream: new PassThrough(),
+        clientRequest: {},
+        clientResponse: {},
+        remoteRequest: {},
+        remoteResponse: {statusCode: 200}
     };
 };

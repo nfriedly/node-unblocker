@@ -5,6 +5,31 @@ var test = require('tap').test,
     PassThrough = require('stream').PassThrough,
     concat = require('concat-stream');
 
+
+test("should copy cookies and redirect in response to a __proxy_cookies_to query param", function(t) {
+    t.plan(2);
+    var instance = cookies({prefix: '/proxy/', processContentTypes: []});
+    var data = getData();
+    data.url += '?__proxy_cookies_to=https%3A%2F%2Fexample.com%2F';
+    data.headers.cookie = 'one=1; two=2; three=3';
+    data.clientResponse = {
+        redirectTo: function(path, headers) {
+            var expectedPath = 'https://example.com/';
+            var expectedHeaders =  {
+                'set-cookie': [
+                    'one=1; Path=/proxy/https://example.com/',
+                    'two=2; Path=/proxy/https://example.com/',
+                    'three=3; Path=/proxy/https://example.com/'
+                ]
+            };
+            t.equal(path, expectedPath);
+            t.same(headers, expectedHeaders);
+            t.end();
+        }
+    };
+    instance.handleRequest(data);
+});
+
 test('should rewrite set-cookie paths', function(t) {
     var instance = cookies({prefix: '/proxy/', processContentTypes: []});
     var data = getData();
@@ -20,7 +45,31 @@ test('should rewrite set-cookie paths', function(t) {
 });
 
 
+
+test("should copy any missing cookies to a 3xx redirect", function(t) {
+    var instance = cookies({prefix: '/proxy/', processContentTypes: ['text/html']});
+    var data = getData();
+    data.clientRequest = {
+        headers: {
+            cookie: 'one=oldvalue; two=2'
+        }
+    };
+    data.headers = {
+        'set-cookie': 'one=1; Path=/; HttpOnly'
+    };
+    data.redirectUrl = 'https://example.com/'; // this is normally set by the redirects middleware before it changes the location header
+    instance.handleResponse(data);
+    var expected = {
+        'set-cookie': [
+            'one=1; Path=/proxy/https://example.com/; HttpOnly',
+            'two=2; Path=/proxy/https://example.com/'
+        ]
+    };
+    t.same(data.headers, expected);
+});
+
 test('should rewrite urls that change subdomain or protocol (but not domain)', function(t) {
+    t.plan(1);
     var instance = cookies({prefix: '/proxy/', processContentTypes: ['text/html']});
     var data = getData();
     var sourceStream = new PassThrough({
@@ -55,28 +104,4 @@ test('should rewrite urls that change subdomain or protocol (but not domain)', f
     }));
 
     sourceStream.end(source);
-});
-
-test("should copy cookies and redirect in response to a __proxy_cookies_to query param", function(t) {
-    t.plan(2);
-    var instance = cookies({prefix: '/proxy/', processContentTypes: []});
-    var data = getData();
-    data.url += '?__proxy_cookies_to=https%3A%2F%2Fexample.com%2F';
-    data.headers['cookie'] = 'one=1; two=2; three=3';
-    data.clientResponse = {
-        redirectTo: function(path, headers) {
-            var expectedPath = 'https://example.com/';
-            var expectedHeaders =  {
-                'set-cookie': [
-                    'one=1; Path=/proxy/https://example.com/',
-                    'two=2; Path=/proxy/https://example.com/',
-                    'three=3; Path=/proxy/https://example.com/'
-                ]
-            };
-            t.equal(path, expectedPath);
-            t.same(headers, expectedHeaders);
-            t.end();
-        }
-    };
-    instance.handleRequest(data);
 });
