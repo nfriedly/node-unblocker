@@ -21,7 +21,7 @@ test("source and expected xhtml-windows-1250.xhtml files should not have changed
 
 test("should properly decode and update non-native charsets when charset is in header", function(t) {
     t.plan(1);
-    getServers(source, 'windows-1250', function(err, servers) {
+    getServers({sourceContent: source, charset: 'windows-1250'}, function(err, servers) {
         http.get(servers.proxiedUrl, function(res) {
             res.pipe(concat(function(actual) {
                 servers.kill();

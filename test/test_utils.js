@@ -25,21 +25,30 @@ function app(req, res) {
     });
 }
 
-exports.getServers = function(sourceContent, charset, next) {
-    if (typeof charset == 'function') {
-        next = charset;
-        charset = false;
+/**
+ * Creates two servers, a proxy instance and a remote server that serves up sourceContent
+ * @param options|sourceContent
+ *  - options is an object with one or more of {sourceContent,charset,remoteFn},
+ *  or
+ *  - sourceContent can be a buffer or string that is automatically served by the default remoteFn
+ * @param next
+ */
+exports.getServers = function(options, next) {
+    if (typeof options == 'string' || options instanceof Buffer) {
+        options = {sourceContent: options};
     }
 
     function sendContent(req, res) {
         res.writeHead(200, {
-            'content-type': 'text/html' + (charset ? '; charset=' + charset : '')
+            'content-type': 'text/html' + (options.charset ? '; charset=' + options.charset : '')
         });
-        res.end(sourceContent);
+        res.end(options.sourceContent);
     }
 
+    options.remoteFn = options.remoteFn || sendContent;
+
     var proxyServer = http.createServer(app),
-        remoteServer = http.createServer(sendContent);
+        remoteServer = http.createServer(options.remoteFn);
 
     proxyServer.setTimeout(5000);
     remoteServer.setTimeout(5000);
