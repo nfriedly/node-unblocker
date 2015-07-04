@@ -16,10 +16,6 @@
     "through": "~2.3.4",
     "tld": "0.0.2"
   },
-  "engines": {
-    "node": "0.12.x",
-    "npm": "2.7.x"
-  },
   "devDependencies": {
     "concat-stream": "^1.5.0",
     "hyperquest": "^1.2.0",
