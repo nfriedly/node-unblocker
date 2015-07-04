@@ -10,7 +10,9 @@ function app(req, res) {
     // first let unblocker try to handle the requests
     unblocker(req, res, function(err) {
         // this callback will be fired for any request that unblocker does not serve
-        var headers = {'content-type': 'text/plain'};
+        var headers = {
+            'content-type': 'text/plain'
+        };
         if (err) {
             res.writeHead(500, headers);
             return res.end(err.stack || err.message);
@@ -35,7 +37,9 @@ function app(req, res) {
  */
 exports.getServers = function(options, next) {
     if (typeof options == 'string' || options instanceof Buffer) {
-        options = {sourceContent: options};
+        options = {
+            sourceContent: options
+        };
     }
 
     function sendContent(req, res) {
@@ -78,7 +82,7 @@ exports.getServers = function(options, next) {
     });
 };
 
-exports.getData = function(){
+exports.getData = function() {
     return {
         url: 'http://example.com/',
         contentType: 'text/html',
@@ -87,6 +91,8 @@ exports.getData = function(){
         clientRequest: {},
         clientResponse: {},
         remoteRequest: {},
-        remoteResponse: {statusCode: 200}
+        remoteResponse: {
+            statusCode: 200
+        }
     };
 };

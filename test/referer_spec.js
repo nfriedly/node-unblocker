@@ -9,7 +9,9 @@ test('should correctly rewrite referers', function(t) {
             referer: 'http://localhost:8080/proxy/' + expected
         }
     };
-    referer({prefix: '/proxy/'})(data);
+    referer({
+        prefix: '/proxy/'
+    })(data);
     t.equal(data.headers.referer, expected);
     t.end();
 });

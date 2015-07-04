@@ -3,7 +3,9 @@ var URL = require('url'),
     _ = require('lodash'),
     concat = require('concat-stream');
 
-var urlPrefix = require('../lib/url-prefixer.js')({prefix: '/proxy/'});
+var urlPrefix = require('../lib/url-prefixer.js')({
+    prefix: '/proxy/'
+});
 
 var testLines = {
     // source => expected result

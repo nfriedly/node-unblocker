@@ -55,7 +55,11 @@ test("should should redirect root-relative urls when the correct target can be d
                 t.end();
             });
         }
-        hyperquest(servers.homeUrl + 'bar', {headers: {'referer': servers.proxiedUrl + 'foo'}}, function(err, res){
+        hyperquest(servers.homeUrl + 'bar', {
+            headers: {
+                'referer': servers.proxiedUrl + 'foo'
+            }
+        }, function(err, res) {
             t.notOk(err);
             t.equal(res.statusCode, 307, 'http status code');
             t.equal(res.headers.location, servers.proxiedUrl + 'bar', 'redirect location');
@@ -72,7 +76,11 @@ test("should should redirect root-relative urls when the correct target can be d
                 t.end();
             });
         }
-        hyperquest(servers.homeUrl, {headers: {'referer': servers.proxiedUrl}}, function(err, res){
+        hyperquest(servers.homeUrl, {
+            headers: {
+                'referer': servers.proxiedUrl
+            }
+        }, function(err, res) {
             t.notOk(err);
             t.equal(res.statusCode, 307, 'http status code');
             t.equal(res.headers.location, servers.proxiedUrl, 'redirect location');
