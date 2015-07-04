@@ -227,6 +227,23 @@ config.responseMiddleware = [
 ];
 ```
 
+## Debugging
+
+Unblocker is fully instrumented with (debug)[https://www.npmjs.com/package/debug]. 
+Enable debugging via environment variables:
+
+    DEBUG=unblocker:* node mycoolapp.js
+    
+There is also a middleware debugger that adds extra debugging middleware before and after each existing middleware 
+function to report on changes. It's included with the default DEBUG activation and may be directly activated:
+
+
+    DEBUG=unblocker:middleware node mycoolapp.js
+    
+Deactivate middleware debugger:
+
+    DEBUG=*,-unblocker:middleware node mycoolapp.js
+
 ## Todo
 
 * Consider adding compress middleware to compress text-like responses
