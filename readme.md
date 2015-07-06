@@ -20,6 +20,14 @@ location in the referring site. (Although the proxy does attempt to rewrite thes
 Cookies are proxied by adjusting their path to include the proxy's URL, and a bit of extra work is done to ensure they 
 remain intact when switching protocols or subdomains.
 
+### Limitations
+
+Although the proxy works well for standard login forms and even most AJAX content, OAuth login forms and anything that uses 
+[postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) (Google, Facebook, etc.) are not 
+likely to work out of the box. This is not an insurmountable issue, but it's not one that I expect to have fixed in the 
+near term. Patches are welcome, including both a general-purpose fix to go into the main library, and site-specific 
+fixes to go in the examples folder.
+
 ## Running the website on your computer
 
 Requires [node.js](http://nodejs.org/) >= 0.12.
