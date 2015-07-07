@@ -237,7 +237,7 @@ config.responseMiddleware = [
 
 ## Debugging
 
-Unblocker is fully instrumented with (debug)[https://www.npmjs.com/package/debug]. 
+Unblocker is fully instrumented with [debug](https://www.npmjs.com/package/debug). 
 Enable debugging via environment variables:
 
     DEBUG=unblocker:* node mycoolapp.js
@@ -255,6 +255,8 @@ Deactivate middleware debugger:
 ## Todo
 
 * Consider adding compress middleware to compress text-like responses
+* Un-prefix urls in GET / POST data
+* Inject js to proxy postMessage data and fix origins
 * More examples
 * Even more tests
 
