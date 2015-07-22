@@ -183,7 +183,7 @@ Most of the internal functionality of the proxy is also implemented as middlewar
 * **metaRobots**: Injects a ROBOTS: NOINDEX, NOFOLLOW meta tag to prevent search engines from crawling the entire web through the proxy.
 * **contentLength**: Deletes the content-length header on responses if the body was modified.
 
-Setting the `standardMiddleware` configuration option is set to `false` disables all built-in middleware, allowing you to selectively enable, configure, and re-order the built-in middleware. 
+Setting the `standardMiddleware` configuration option to `false` disables all built-in middleware, allowing you to selectively enable, configure, and re-order the built-in middleware. 
 
 This configuration would mimic the defaults:
 
@@ -234,6 +234,8 @@ config.responseMiddleware = [
     // custom responseMiddleware here
     contentLength
 ];
+
+app.use(new Unblocker(config));
 ```
 
 ## Debugging
@@ -244,12 +246,12 @@ Enable debugging via environment variables:
     DEBUG=unblocker:* node mycoolapp.js
     
 There is also a middleware debugger that adds extra debugging middleware before and after each existing middleware 
-function to report on changes. It's included with the default DEBUG activation and may be directly activated:
+function to report on changes. It's included with the default DEBUG activation and may also be selectively enabled:
 
 
     DEBUG=unblocker:middleware node mycoolapp.js
     
-Deactivate middleware debugger:
+... or disabled:
 
     DEBUG=*,-unblocker:middleware node mycoolapp.js
 
