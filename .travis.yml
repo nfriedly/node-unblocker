@@ -1,6 +1,7 @@
 language: node_js
 node_js:
 - '0.12'
+sudo: false
 before_install: npm rebuild
 deploy:
   provider: heroku
