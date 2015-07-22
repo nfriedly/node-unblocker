@@ -107,7 +107,7 @@ If you're using express, the request and response objects will have all of the u
 ```js
 function validateRequest(data) {
     if (!data.url.match(/^https?:\/\/en.wikipedia.org\//) {
-        res.status(403).send('Wikipedia only.');
+        data.clientResponse.status(403).send('Wikipedia only.');
     }
 }
 var config = {
