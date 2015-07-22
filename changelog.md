@@ -2,7 +2,7 @@
 
 ## Changelog
 
-### v1.0.5 - 2015-07-22
+### v1.0.6 - 2015-07-22
 * Documentation improvements
 
 ### v1.0.4 - 2015-07-04
