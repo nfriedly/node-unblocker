@@ -176,10 +176,11 @@ Most of the internal functionality of the proxy is also implemented as middlewar
     Fixes the `Path` attribute of set-cookie headers to limit cookies to their "path" on the proxy (e.g. `Path=/proxy/http://example.com/`). 
     Also injects redirects to copy cookies from between protocoles and subdomains on a given domain.
 * **hsts**: Removes [Strict-Transport-Security](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security) headers because they can leak to other sites and can break the proxy.
-* **redirects**: * **decompress**: Decompresses `Content-Encoding: gzip` responses and also tweaks request headers to ask for either gzip-only or no compression at all. (It will attempt to decompress `deflate` content, but there are some issues, so it does not advertise support for `deflate`.)
-* **charsets**: Comverts the charset of responses to UTF-8 for safe string processing in node.js. Determines charset from headers or meta tags and rewrites all headers and meta tags in outgoing response.
-* **urlPrefixer**: Rewrites URLs to ensure they go through the proxy
-* **metaRobots**: Injects a ROBOTS: NOINDEX, NOFOLLOW meta tag to prevent search engines from crawling the entire web through your proxy.
+* **redirects**: Rewrites urls in 3xx redirects to ensure they go through the proxy
+* **decompress**: Decompresses `Content-Encoding: gzip` responses and also tweaks request headers to ask for either gzip-only or no compression at all. (It will attempt to decompress `deflate` content, but there are some issues, so it does not advertise support for `deflate`.)
+* **charsets**: Converts the charset of responses to UTF-8 for safe string processing in node.js. Determines charset from headers or meta tags and rewrites all headers and meta tags in outgoing response.
+* **urlPrefixer**: Rewrites URLS of links/images/css/etc. to ensure they go through the proxy
+* **metaRobots**: Injects a ROBOTS: NOINDEX, NOFOLLOW meta tag to prevent search engines from crawling the entire web through the proxy.
 * **contentLength**: Deletes the content-length header on responses if the body was modified.
 
 Setting the `standardMiddleware` configuration option is set to `false` disables all built-in middleware, allowing you to selectively enable, configure, and re-order the built-in middleware. 
