@@ -171,7 +171,7 @@ See `examples/nodeunblocker.com/app.js` for another example of adding a bit of m
 Most of the internal functionality of the proxy is also implemented as middleware:
 
 * **host**: Corrects the `host` header in outgoing responses
-* **referer**: Corrects the `referer` header in outgoing responses
+* **referer**: Corrects the `referer` header in outgoing requests
 * **cookies**: 
     Fixes the `Path` attribute of set-cookie headers to limit cookies to their "path" on the proxy (e.g. `Path=/proxy/http://example.com/`). 
     Also injects redirects to copy cookies from between protocoles and subdomains on a given domain.
