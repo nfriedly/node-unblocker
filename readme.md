@@ -54,7 +54,7 @@ Unblocker exports an [express](http://expressjs.com/)-compatible API, so using i
     var app = express();
     
     // this must be one of the first app.use() calls and must not be on a subdirectory to work properly
-    app.use(new Unblocker({prefix: '/proxy/'}); 
+    app.use(new Unblocker({prefix: '/proxy/'})); 
     
     app.get('/', function(req, res) {
         //...
