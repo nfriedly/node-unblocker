@@ -177,6 +177,7 @@ Most of the internal functionality of the proxy is also implemented as middlewar
     Also injects redirects to copy cookies from between protocoles and subdomains on a given domain.
 * **hsts**: Removes [Strict-Transport-Security](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security) headers because they can leak to other sites and can break the proxy.
 * **hpkp**: Removes [Public-Key-Pinning](https://en.wikipedia.org/wiki/HTTP_Public_Key_Pinning) headers because they can leak to other sites and can break the proxy.
+* **csp**: Removes [Content-Security-Policy](https://en.wikipedia.org/wiki/Content_Security_Policy) headers because they can leak to other sites and can break the proxy.
 * **redirects**: Rewrites urls in 3xx redirects to ensure they go through the proxy
 * **decompress**: Decompresses `Content-Encoding: gzip` responses and also tweaks request headers to ask for either gzip-only or no compression at all. (It will attempt to decompress `deflate` content, but there are some issues, so it does not advertise support for `deflate`.)
 * **charsets**: Converts the charset of responses to UTF-8 for safe string processing in node.js. Determines charset from headers or meta tags and rewrites all headers and meta tags in outgoing response.
@@ -210,6 +211,7 @@ var referer = Unblocker.referer(config);
 var cookies = Unblocker.cookies(config);
 var hsts = Unblocker.hsts(config);
 var hpkp = Unblocker.hpkp(config);
+var csp = Unblocker.csp(config);
 var redirects = Unblocker.redirects(config);
 var decompress = Unblocker.decompress(config);
 var charsets = Unblocker.charsets(config);
@@ -228,6 +230,7 @@ config.requestMiddleware = [
 config.responseMiddleware = [
     hsts,
     hpkp,
+    csp,
     redirects,
     decompress.handleResponse,
     charsets,
