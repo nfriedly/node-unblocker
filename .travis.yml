@@ -3,6 +3,7 @@ node_js:
 - '0.12'
 - 4.2
 - stable
+sudo: false # opt-in to faster testing
 deploy:
   provider: npm
   email: nathan@nfriedly.com
