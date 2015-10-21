@@ -54,6 +54,7 @@ test('should rewrite set-cookie paths', function(t) {
 
 
 test("should copy any missing cookies to a 3xx redirect", function(t) {
+    t.plan(1);
     var instance = cookies({
         prefix: '/proxy/',
         processContentTypes: ['text/html']
@@ -79,7 +80,7 @@ test("should copy any missing cookies to a 3xx redirect", function(t) {
 });
 
 test('should rewrite urls that change subdomain or protocol (but not domain)', function(t) {
-    t.plan(1);
+    t.plan(2);
     var instance = cookies({
         prefix: '/proxy/',
         processContentTypes: ['text/html']
