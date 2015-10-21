@@ -49,3 +49,19 @@ test("should properly decode and update charsets when charset is in body", funct
         });
     });
 });
+
+test("should still work when charset can be determined", function(t) {
+    t.plan(1);
+    var source = '<h1>test</h1>',
+        expected = '<h1>test</h1>';
+    getServers(source, function(err, servers) {
+        http.get(servers.proxiedUrl, function(res) {
+            res.pipe(concat(function(actual) {
+                servers.kill();
+                t.same(actual.toString(), expected);
+            }));
+        }).on('error', function(e) {
+            t.bailout(e);
+        });
+    });
+});
