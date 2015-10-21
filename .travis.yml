@@ -1,12 +1,13 @@
 language: node_js
 node_js:
 - '0.12'
-sudo: false
-before_install: npm rebuild
+- 4.2
+- stable
 deploy:
-  provider: heroku
+  provider: npm
+  email: nathan@nfriedly.com
   api_key:
-    secure: hUDfE1TPfQmKZ5ntE9j/BsJmswWFYHj7vkmXNhBwcxHzytRwtKm+/fsJL87uoEuLgyB3dt1nlr/qI9HaXX9aasyXK9oeziHTp7L0eiKG5pMLnbt7eqpuKf/VQYXpk3todUZGeC6JbZqTT4nS+d9RzM3/2FtW8fREvtqeidAs6L4=
-  app: node-unblocker
+    secure: wVp9uLxpSlV4QKLTBmotiqDn/E18tR9LmT5r5wSRFKg6Ed/TvmWDBgZTl0wuyQme8ZZf5LBoRKUUTf8mGm9vIi/IZOesvSqChPlTRPGeHgaM1jIE4sTvn/bCNNvx86YcLuFWOIpO19It3m1wjqEXnslhuTsZEjEEqbhO3qCpDi4=
   on:
+    tags: true
     repo: nfriedly/node-unblocker
