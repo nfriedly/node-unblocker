@@ -70,8 +70,8 @@ Unblocker supports the following configuration options, defaults are shown:
 {
     prefix: '/proxy/',  // Path that the proxied URLs begin with. '/' is not recommended due to a few edge cases.
     host: null, // Host used in redirects (e.g `example.com` or `localhost:8080`). Default behavior is to determine this from the request headers.
-    requestMiddleware: [], // Array functions that perform extra processing on client requests before they are sent to the remote server. API is detailed below.
-    responseMiddleware: [], // Array functions that perform extra processing on remote responses before they are sent back to the client. API is detailed below.
+    requestMiddleware: [], // Array of functions that perform extra processing on client requests before they are sent to the remote server. API is detailed below.
+    responseMiddleware: [], // Array of functions that perform extra processing on remote responses before they are sent back to the client. API is detailed below.
     standardMiddleware: true, // Allows you to disable all built-in middleware if you need to perform advanced customization of requests or responses.
     processContentTypes: [ // All  built-in middleware that modifies the content of responses limits itself to these content-types.
         'text/html',
@@ -174,7 +174,7 @@ Most of the internal functionality of the proxy is also implemented as middlewar
 * **referer**: Corrects the `referer` header in outgoing requests
 * **cookies**: 
     Fixes the `Path` attribute of set-cookie headers to limit cookies to their "path" on the proxy (e.g. `Path=/proxy/http://example.com/`). 
-    Also injects redirects to copy cookies from between protocoles and subdomains on a given domain.
+    Also injects redirects to copy cookies from between protocols and subdomains on a given domain.
 * **hsts**: Removes [Strict-Transport-Security](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security) headers because they can leak to other sites and can break the proxy.
 * **hpkp**: Removes [Public-Key-Pinning](https://en.wikipedia.org/wiki/HTTP_Public_Key_Pinning) headers because they can leak to other sites and can break the proxy.
 * **csp**: Removes [Content-Security-Policy](https://en.wikipedia.org/wiki/Content_Security_Policy) headers because they can leak to other sites and can break the proxy.
