@@ -25,7 +25,7 @@
     "js-beautify": "^1.5.10",
     "jshint": "^2.8.0",
     "math-helpers": "~0.1.0",
-    "tap": "^2.1.1"
+    "tap": "^4.0.0"
   },
   "jshintConfig": {
     "undef": true,
