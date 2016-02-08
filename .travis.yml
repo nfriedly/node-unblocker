@@ -3,5 +3,12 @@ node_js:
 - '0.12'
 - 4.2
 - stable
-sudo: false # opt-in to faster testing
-# todo: figure out what's up with api keys and then add automatic deployment
+sudo: false
+deploy:
+  provider: npm
+  email: nathan@nfriedly.com
+  api_key:
+    secure: 5q7zRdsZF2iXnHnKiv91XJSfUpVzGOduJBbx8igvDwmNmvaTUjoDjT4mMDRdvDJvIVUaxUxemQzJlYYFp1Kp20kaLpBGJqa6WvLxg5Fnc+sEfT4br8tXx5sql2UpzTCUtkuznVRp9C14LzJRFeSq8gjA3Z6fFdjACzXyA3vTCnA=
+  on:
+    tags: true
+    repo: nfriedly/node-unblocker
