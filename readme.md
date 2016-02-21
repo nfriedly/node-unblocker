@@ -261,6 +261,13 @@ function to report on changes. It's included with the default DEBUG activation a
 
     DEBUG=*,-unblocker:middleware node mycoolapp.js
 
+## Troubleshooting
+
+If you're using Nginx as a reverse proxy, you probably need to disable `merge_slashes` to avoid endless redirects and/or other issues:
+
+    merge_slashes off;
+
+
 ## Todo
 
 * Consider adding compress middleware to compress text-like responses
