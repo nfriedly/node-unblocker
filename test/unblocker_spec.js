@@ -88,3 +88,20 @@ test("should should redirect root-relative urls when the correct target can be d
         });
     });
 });
+
+
+test("should should redirect urls that have had the slashes merged (http:/ instead of http://", function(t) {
+    getServers(source, function(err, servers) {
+        function cleanup() {
+            servers.kill(function() {
+                t.end();
+            });
+        }
+        hyperquest(servers.proxiedUrl.replace('/proxy/http://','/proxy/http:/'), function(err, res) {
+            t.notOk(err);
+            t.equal(res.statusCode, 307, 'http status code');
+            t.equal(res.headers.location, servers.proxiedUrl, 'redirect location');
+            cleanup();
+        });
+    });
+});
