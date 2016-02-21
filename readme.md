@@ -84,7 +84,13 @@ Unblocker supports the following configuration options, defaults are shown:
 
 #### Custom Middleware
 
+Unblocker "middleware" are small functions that allow you to inspect and modify requests and responses. The majority of Unblocker's internal logic is implimented as middleware, and it's possible to write custom middleware to augment or replace the built-in middleware.
+
 Custom middleware should be a function that accepts a single `data` argument and runs synchronously. 
+
+To process request and response data, create a [Transform Stream](https://nodejs.org/api/stream.html#stream_class_stream_transform) to perform the processing in chunks and pipe through this stream. (Example below.)
+
+To respond directly to a request, add a function to `config.requestMiddleware` that handles the `clientResponse` (a standard [http.ServerResponse](https://nodejs.org/api/http.html#http_class_http_serverresponse) when used directly, or a [Express Response](http://expressjs.com/en/4x/api.html#res) when used with Express. Once a response is sent, no further middleware will be executed for that request. (Example below.)
 
 ##### requestMiddleware
 
