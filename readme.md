@@ -97,13 +97,13 @@ To respond directly to a request, add a function to `config.requestMiddleware` t
 Data example:
 ```js
 {
-    url: 'http://example.com',
+    url: 'http://example.com/',
     clientRequest: {request},
     clientResponse: {response},
     headers: {
         //...
     },
-    stream: {stream of data for PUT/POST requests, empty stream for other types}
+    stream: {ReadableStream of data for PUT/POST requests, empty stream for other types}
 }
 ```
 
@@ -134,7 +134,7 @@ responseMiddleware receives the same `data` object as the requestMiddleware, but
 Data example:
 ```js
 {
-    url: 'http://example.com',
+    url: 'http://example.com/',
     clientRequest: {request},
     clientResponse: {response},
     remoteRequest {request},
@@ -143,7 +143,7 @@ Data example:
     headers: {
         //...
     },
-    stream: {stream of response data}
+    stream: {ReadableStream of response data}
 }
 ```
 
