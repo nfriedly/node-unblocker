@@ -112,6 +112,7 @@ test('should rewrite urls that change subdomain or protocol (but not domain)', f
         '<img src="/proxy/http://example.com/img.jpg?__proxy_cookies_to=https%3A%2F%2Fexample.com%2Fimg.jpg" alt="new proto">'
     ].join('\n');
 
+    data.stream.setEncoding('utf8');
     data.stream.pipe(concat(function(actual) {
         t.equal(actual, expected);
         t.end();

@@ -49,6 +49,8 @@ modification - just copy the `examples/nodeunblocker.com/` folder to a new git r
 
 ## Using unblocker as a library in your software
 
+    npm install --save unblocker
+
 Unblocker exports an [express](http://expressjs.com/)-compatible API, so using in an express application is trivial:
 
     var express = require('express')
@@ -152,12 +154,18 @@ Data example:
 For modifying content, create a new stream and then pipe `data.stream` to it and replace `data.stream` with it:
 
 ```js
-var through = require('through');
+var Transform = require('stream').Transform;
 
 function injectScript(data) {
     if (data.contentType == 'text/html') {
-        var myStream = through(function(chunk) {
-            this.queue(chunk.replace('</body>', '<script src="/my/script.js"></script></body>'));
+    
+        // https://nodejs.org/api/stream.html#stream_transform
+        var myStream = new Transform({
+            decodeStrings: false, 
+            function(chunk, encoding, next) {
+                chunk = chunk.toString.replace('</body>', '<script src="/my/script.js"></script></body>');
+                this.push(chunk);
+                next();
         });
         
         data.stream = data.stream.pipe(myStream);

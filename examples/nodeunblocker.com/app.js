@@ -13,7 +13,7 @@ var url = require('url');
 var querystring = require('querystring');
 var express = require('express');
 var unblocker = require('unblocker');
-var through = require('through');
+var Transform = require('stream').Transform;
 
 var app = express();
 
@@ -40,8 +40,14 @@ function addGa(html) {
 
 function googleAnalyticsMiddleware(data) {
     if (data.contentType == 'text/html') {
-        data.stream = data.stream.pipe(through(function(data) {
-            this.queue(addGa(data));
+
+        // https://nodejs.org/api/stream.html#stream_transform
+        data.stream = data.stream.pipe(new Transform({
+            decodeStrings: false,
+            transform: function(chunk, encoding, next) {
+                this.push(addGa(chunk.toString()));
+                next();
+            }
         }));
     }
 }

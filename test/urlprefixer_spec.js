@@ -124,6 +124,7 @@ test("should correctly handle packets split at different locations", function(t)
         // (node) warning: Recursive process.nextTick detected. This will break in the next version of node. Please use setImmediate for recursive deferral.
         //t.test("Should handle breaks between '" + start.substr(-20) + "' and '" + end.substr(0,20) + "' correctly", function(t) {
         var stream = urlPrefix.createStream(testUri);
+        stream.setEncoding('utf8');
         stream.pipe(concat(function(actual) {
             t.equal(actual, expected, "Should handle chunk breaks between '" + start.substr(-20) + "' and '" + end.substr(0, 20) + "' correctly");
             if (actual != expected) throw "stopping early";

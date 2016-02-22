@@ -7,13 +7,13 @@
   "homepage": "http://nodeunblocker.com/",
   "dependencies": {
     "express": "^4.13.0",
-    "gatling": "~1.1.1",
+    "gatling": "~1.2.0",
     "newrelic": "^1.20.2",
     "through": "^2.3.8",
     "unblocker": "*"
   },
   "engines": {
-    "node": "0.12.x",
+    "node": ">=0.12.x",
     "npm": ">=2.7.0"
   },
   "scripts": {
