@@ -2,6 +2,29 @@
 
 ## Changelog
 
+### v1.0.11 - 2016-02-22
+* Fixed bugs with urls that get rewritten twice (due to string concatenation in proxied JS) - #74
+
+### v1.0.10 - 2016-02-21
+* Fixed bugs with urls that get slashes merged - #66
+* Updated dependencies
+
+### v1.0.9 - 2016-02-08
+* Updated dependencies
+* Automated npm publishing via Travis CI.
+* No functional changes
+
+### v1.0.8 - 2015-10-21
+* Updated dependencies
+* CI improvements
+
+### v1.0.7 - 2015-10-21
+* Strip Content Security Policy (CSP) headers
+* Strip HTTP Public-Key-Pinning (HPKP) headers
+* Fixed bug with html snippets that lack a charset - #54
+* Fixed bug with protocol-relative redirects (//) - #52, #49
+* Bumped minimum node.js version to v0.12 - #45
+
 ### v1.0.6 - 2015-07-22
 * Documentation improvements
 
