@@ -25,6 +25,7 @@
     "js-beautify": "^1.6.2",
     "jshint": "^2.9.1",
     "math-helpers": "~0.1.0",
+    "nodemon": "^1.9.0",
     "tap": "^5.4.2"
   },
   "jshintConfig": {
@@ -40,6 +41,7 @@
     "camelcase": true
   },
   "scripts": {
+    "watch": "nodemon --watch ./ --ignore ./examples --ext js,html,xhtml,json --exec npm run test",
     "test": "npm run jshint && npm run test-spec",
     "pre-commit": "npm run beautify && npm test",
     "beautify": "js-beautify --end-with-newline --replace ./lib/*.js ./test/*.js",
