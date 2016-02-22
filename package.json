@@ -46,7 +46,7 @@
     "pre-commit": "npm run beautify && npm test",
     "beautify": "js-beautify --end-with-newline --replace ./lib/*.js ./test/*.js",
     "jshint": "jshint ./lib ./test",
-    "test-spec": "tap test/*_spec.js",
+    "test-spec": "tap test/*spec.js",
     "test-perf": "node test/performance.js"
   },
   "license": "AGPL-3.0",
