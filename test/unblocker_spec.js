@@ -47,7 +47,7 @@ test("should return control to parent when route doesn't match and no referer is
     });
 });
 
-test("should should redirect root-relative urls when the correct target can be determined from the referer header", function(t) {
+test("should redirect root-relative urls when the correct target can be determined from the referer header", function(t) {
 
     getServers(source, function(err, servers) {
         function cleanup() {
@@ -69,7 +69,7 @@ test("should should redirect root-relative urls when the correct target can be d
 });
 
 
-test("should should redirect root-relative urls when the correct target can be determined from the referer header including for urls that the site is already serving content on", function(t) {
+test("should redirect root-relative urls when the correct target can be determined from the referer header including for urls that the site is already serving content on", function(t) {
     getServers(source, function(err, servers) {
         function cleanup() {
             servers.kill(function() {
@@ -90,7 +90,7 @@ test("should should redirect root-relative urls when the correct target can be d
 });
 
 
-test("should should redirect http urls that have had the slashes merged (http:/ instead of http://", function(t) {
+test("should redirect http urls that have had the slashes merged (http:/ instead of http://", function(t) {
     getServers(source, function(err, servers) {
         function cleanup() {
             servers.kill(function() {
@@ -106,7 +106,7 @@ test("should should redirect http urls that have had the slashes merged (http:/ 
     });
 });
 
-test("should should redirect http urls that have had the have two occurrences of /prefix/http://", function(t) {
+test("should redirect http urls that have had the have two occurrences of /prefix/http://", function(t) {
     getServers(source, function(err, servers) {
         function cleanup() {
             servers.kill(function() {
