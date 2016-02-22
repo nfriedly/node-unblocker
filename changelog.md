@@ -2,8 +2,12 @@
 
 ## Changelog
 
+### v1.1.0 - 2016-02-22
+* Removed `through` dependency in favor of Node's built in `Transform` stream - should be slightly faster / lower memory usage
+* Removed support for Node.js < 4.3
+
 ### v1.0.12 - 2016-02-22
-* Dropped `through` package in favor of Node's built in `Transform` stream - should be slightly faster / lower memory usage
+* unpublished due to issues with node.js v0.12
 
 ### v1.0.11 - 2016-02-22
 * Fixed bugs with urls that get rewritten twice (due to string concatenation in proxied JS) - #74
