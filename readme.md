@@ -10,13 +10,6 @@ fastest web proxies available.
 [![Dependency Status](https://david-dm.org/nfriedly/node-unblocker.svg)](https://david-dm.org/nfriedly/node-unblocker)
 [![npm-version](https://img.shields.io/npm/v/unblocker.svg)](https://www.npmjs.com/package/unblocker)
 
----
-**nodeunblocker.com domain avaliable**
-
-I am no longer in a good position to keep the nodeunblocker.com website running, so I'm making it avaliable for free/cheep. Email me for more details: nathan@nfriedly.com
-
----
-
 ### The magic part
 
 The script uses "pretty" urls which, besides looking pretty, allow links with relative paths 
