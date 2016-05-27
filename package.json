@@ -10,7 +10,7 @@
   "dependencies": {
     "async": "^1.5.2",
     "content-type": "^1.0.1",
-    "cookie": "^0.2.3",
+    "cookie": "^0.3.0",
     "debug": "^2.2.0",
     "iconv-lite": "^0.4.13",
     "lodash": "^4.4.0",
