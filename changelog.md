@@ -2,6 +2,19 @@
 
 ## Changelog
 
+### v1.1.3 - 2016-07-21
+* Fixed bug in short html responses
+* Fixed bug with %-encoded cookies
+* More tests
+* dependency bumps
+
+### v1.1.2
+* removing nodeumblocker.com notice
+
+### v1.1.1
+* dependency bumps
+* notice about nodeunblocker.com
+
 ### v1.1.0 - 2016-02-22
 * Removed `through` dependency in favor of Node's built in `Transform` stream - should be slightly faster / lower memory usage
 * Removed support for Node.js < 4.3
