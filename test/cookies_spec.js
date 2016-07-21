@@ -51,7 +51,21 @@ test('should rewrite set-cookie paths', function(t) {
     t.end();
 });
 
-
+test('should rewrite the cookie that is percent-encoded correctly', function(t) {
+    var instance = cookies({
+        prefix: '/proxy/',
+        processContentTypes: []
+    });
+    var data = getData();
+    data.headers['set-cookie'] = ['asdf=asdf%3Basdf%3Dtrue%3Basdf%3Dasdf%3Basdf%3Dtrue%40asdf'];
+    instance.handleResponse(data);
+    var expected = [
+        'asdf=asdf%3Basdf%3Dtrue%3Basdf%3Dasdf%3Basdf%3Dtrue%40asdf; Path=/proxy/http://example.com/'
+    ];
+    var actual = data.headers['set-cookie'];
+    t.same(actual, expected);
+    t.end();
+});
 
 test("should copy any missing cookies to a 3xx redirect", function(t) {
     t.plan(1);
