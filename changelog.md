@@ -2,9 +2,11 @@
 
 ## Changelog
 
+### v1.1.4 - 2016-07-22
+* Fixed bug with %-encoded cookies
+
 ### v1.1.3 - 2016-07-21
 * Fixed bug in short html responses
-* Fixed bug with %-encoded cookies
 * More tests
 * dependency bumps
 
