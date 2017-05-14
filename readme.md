@@ -1,9 +1,9 @@
 # unblocker
 
-Unblocker was originally a web proxy for evading internet censorship, similar to CGIproxy / PHProxy / Glype but 
+Unblocker was originally a web proxy for evading internet censorship, similar to CGIproxy / PHProxy / Glype but
 written in node.js. It's since morphed into a general-purpose library for proxying and rewriting remote webpages.
- 
-All data is processed and relayed to the client on the fly without unnecessary buffering, making unblocker one of the 
+
+All data is processed and relayed to the client on the fly without unnecessary buffering, making unblocker one of the
 fastest web proxies available.
 
 [![Build Status](https://travis-ci.org/nfriedly/node-unblocker.png?branch=master)](https://travis-ci.org/nfriedly/node-unblocker)
@@ -12,39 +12,39 @@ fastest web proxies available.
 
 ### The magic part
 
-The script uses "pretty" urls which, besides looking pretty, allow links with relative paths 
-to just work without modification. (E.g. `<a href="path/to/file2.html"></a>`) 
+The script uses "pretty" urls which, besides looking pretty, allow links with relative paths
+to just work without modification. (E.g. `<a href="path/to/file2.html"></a>`)
 
-In addition to this, links that are relative to the root (E.g. `<a href="/path/to/file2.html"></a>`) 
-can be handled without modification by checking the referrer and 307 redirecting them to the proper 
+In addition to this, links that are relative to the root (E.g. `<a href="/path/to/file2.html"></a>`)
+can be handled without modification by checking the referrer and 307 redirecting them to the proper
 location in the referring site. (Although the proxy does attempt to rewrite these links to avoid the redirect.)
 
-Cookies are proxied by adjusting their path to include the proxy's URL, and a bit of extra work is done to ensure they 
+Cookies are proxied by adjusting their path to include the proxy's URL, and a bit of extra work is done to ensure they
 remain intact when switching protocols or subdomains.
 
 ### Limitations
 
-Although the proxy works well for standard login forms and even most AJAX content, OAuth login forms and anything that uses 
-[postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) (Google, Facebook, etc.) are not 
-likely to work out of the box. This is not an insurmountable issue, but it's not one that I expect to have fixed in the 
-near term. Patches are welcome, including both a general-purpose fix to go into the main library, and site-specific 
+Although the proxy works well for standard login forms and even most AJAX content, OAuth login forms and anything that uses
+[postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) (Google, Facebook, etc.) are not
+likely to work out of the box. This is not an insurmountable issue, but it's not one that I expect to have fixed in the
+near term. Patches are welcome, including both a general-purpose fix to go into the main library, and site-specific
 fixes to go in the examples folder.
 
 ## Running the website on your computer
 
 Requires [node.js](http://nodejs.org/) >=4.3
-Then [download node-unblocker](https://github.com/nfriedly/node-unblocker/archive/master.zip), 
-`cd` into the `examples/nodeunblocker.com/` directory, 
-and run `npm install` to set things up. 
-Then run `npm start` to start the server. It should spawn a new instance for each CPU 
-core you have. 
+Then [download node-unblocker](https://github.com/nfriedly/node-unblocker/archive/master.zip),
+`cd` into the `examples/nodeunblocker.com/` directory,
+and run `npm install` to set things up.
+Then run `npm start` to start the server. It should spawn a new instance for each CPU
+core you have.
 
-(Note: running `node app.js` *will not work*. The server code is in the [Gatling](https://npmjs.org/package/gatling) 
+(Note: running `node app.js` *will not work*. The server code is in the [Gatling](https://npmjs.org/package/gatling)
 package, which the `npm start` command calls automatically.)
 
 ## Running the website on heroku/bluemix/modulous/etc
 
-This project should be runnable on a free [Heroku](http://www.heroku.com/) instance without 
+This project should be runnable on a free [Heroku](http://www.heroku.com/) instance without
 modification - just copy the `examples/nodeunblocker.com/` folder to a new git repo and push it.
 
 ## Using unblocker as a library in your software
@@ -56,14 +56,14 @@ Unblocker exports an [express](http://expressjs.com/)-compatible API, so using i
     var express = require('express')
     var Unblocker = require('unblocker');
     var app = express();
-    
+
     // this must be one of the first app.use() calls and must not be on a subdirectory to work properly
-    app.use(new Unblocker({prefix: '/proxy/'})); 
-    
+    app.use(new Unblocker({prefix: '/proxy/'}));
+
     app.get('/', function(req, res) {
         //...
     });
-    
+
 Usage without express is similarly easy, see [examples/simple/server.js](examples/simple/server.js) for an example.
 
 ### Configuration
@@ -82,7 +82,9 @@ Unblocker supports the following configuration options, defaults are shown:
         'application/xml+xhtml',
         'application/xhtml+xml',
         'text/css'
-    ]
+    ],
+    httpAgent: null, //override agent used to request http response from server. see https://nodejs.org/api/http.html#http_class_http_agent
+    httpsAgent: null //override agent used to request https response from server. see https://nodejs.org/api/https.html#https_class_https_agent
 }
 ```
 
@@ -90,7 +92,7 @@ Unblocker supports the following configuration options, defaults are shown:
 
 Unblocker "middleware" are small functions that allow you to inspect and modify requests and responses. The majority of Unblocker's internal logic is implimented as middleware, and it's possible to write custom middleware to augment or replace the built-in middleware.
 
-Custom middleware should be a function that accepts a single `data` argument and runs synchronously. 
+Custom middleware should be a function that accepts a single `data` argument and runs synchronously.
 
 To process request and response data, create a [Transform Stream](https://nodejs.org/api/stream.html#stream_class_stream_transform) to perform the processing in chunks and pipe through this stream. (Example below.)
 
@@ -158,16 +160,16 @@ var Transform = require('stream').Transform;
 
 function injectScript(data) {
     if (data.contentType == 'text/html') {
-    
+
         // https://nodejs.org/api/stream.html#stream_transform
         var myStream = new Transform({
-            decodeStrings: false, 
+            decodeStrings: false,
             function(chunk, encoding, next) {
                 chunk = chunk.toString.replace('</body>', '<script src="/my/script.js"></script></body>');
                 this.push(chunk);
                 next();
         });
-        
+
         data.stream = data.stream.pipe(myStream);
     }
 }
@@ -188,8 +190,8 @@ Most of the internal functionality of the proxy is also implemented as middlewar
 
 * **host**: Corrects the `host` header in outgoing responses
 * **referer**: Corrects the `referer` header in outgoing requests
-* **cookies**: 
-    Fixes the `Path` attribute of set-cookie headers to limit cookies to their "path" on the proxy (e.g. `Path=/proxy/http://example.com/`). 
+* **cookies**:
+    Fixes the `Path` attribute of set-cookie headers to limit cookies to their "path" on the proxy (e.g. `Path=/proxy/http://example.com/`).
     Also injects redirects to copy cookies from between protocols and subdomains on a given domain.
 * **hsts**: Removes [Strict-Transport-Security](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security) headers because they can leak to other sites and can break the proxy.
 * **hpkp**: Removes [Public-Key-Pinning](https://en.wikipedia.org/wiki/HTTP_Public_Key_Pinning) headers because they can leak to other sites and can break the proxy.
@@ -201,7 +203,7 @@ Most of the internal functionality of the proxy is also implemented as middlewar
 * **metaRobots**: Injects a ROBOTS: NOINDEX, NOFOLLOW meta tag to prevent search engines from crawling the entire web through the proxy.
 * **contentLength**: Deletes the content-length header on responses if the body was modified.
 
-Setting the `standardMiddleware` configuration option to `false` disables all built-in middleware, allowing you to selectively enable, configure, and re-order the built-in middleware. 
+Setting the `standardMiddleware` configuration option to `false` disables all built-in middleware, allowing you to selectively enable, configure, and re-order the built-in middleware.
 
 This configuration would mimic the defaults:
 
@@ -262,17 +264,17 @@ app.use(new Unblocker(config));
 
 ## Debugging
 
-Unblocker is fully instrumented with [debug](https://www.npmjs.com/package/debug). 
+Unblocker is fully instrumented with [debug](https://www.npmjs.com/package/debug).
 Enable debugging via environment variables:
 
     DEBUG=unblocker:* node mycoolapp.js
-    
-There is also a middleware debugger that adds extra debugging middleware before and after each existing middleware 
+
+There is also a middleware debugger that adds extra debugging middleware before and after each existing middleware
 function to report on changes. It's included with the default DEBUG activation and may also be selectively enabled:
 
 
     DEBUG=unblocker:middleware node mycoolapp.js
-    
+
 ... or disabled:
 
     DEBUG=*,-unblocker:middleware node mycoolapp.js
@@ -293,14 +295,13 @@ If you're using Nginx as a reverse proxy, you probably need to disable `merge_sl
 * Even more tests
 
 ## AGPL-3.0 License
-This project is released under the terms of the [GNU Affero General Public License version 3](https://www.gnu.org/licenses/agpl-3.0.html). 
+This project is released under the terms of the [GNU Affero General Public License version 3](https://www.gnu.org/licenses/agpl-3.0.html).
 All source code is copyright Nathan Friedly.
- 
+
 Commercial licensing and support are also available, contact Nathan Friedly (nathan@nfriedly.com) for details.
 
-## Contributors 
+## Contributors
 * [Nathan Friedly](http://nfriedly.com)
 * [Arturo Filastò](https://github.com/hellais)
 * [tfMen](https://github.com/tfMen)
 * [Emil Hemdal](https://github.com/emilhem)
-
