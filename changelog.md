@@ -2,6 +2,9 @@
 
 ## Changelog
 
+### v1.2.0 - 2017-05-15
+* Added support for specifying the HTTP/HTTPS Agent (#102)
+
 ### v1.1.4 - 2016-07-22
 * Fixed bug with %-encoded cookies
 
