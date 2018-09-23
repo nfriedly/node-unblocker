@@ -67,6 +67,22 @@ test('should rewrite the cookie that is percent-encoded correctly', function(t) 
     t.end();
 });
 
+test('should rewrite the cookie that is weird but correct correctly', function(t) {
+    var instance = cookies({
+        prefix: '/proxy/',
+        processContentTypes: []
+    });
+    var data = getData();
+    data.headers['set-cookie'] = ['myCookie=is=called&john=doe&for=a&reason=#WeDontParseCookieValues&only=its&parameters=!; Path=/myAwesomePath; HttpOnly'];
+    instance.handleResponse(data);
+    var expected = [
+        'myCookie=is=called&john=doe&for=a&reason=#WeDontParseCookieValues&only=its&parameters=!; Path=/proxy/http://example.com/myAwesomePath; HttpOnly'
+    ];
+    var actual = data.headers['set-cookie'];
+    t.same(actual, expected);
+    t.end();
+});
+
 test("should copy any missing cookies to a 3xx redirect", function(t) {
     t.plan(1);
     var instance = cookies({
