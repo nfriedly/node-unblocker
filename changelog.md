@@ -2,6 +2,11 @@
 
 ## Changelog
 
+# v2.0.0
+* BREAKING: bumped minimum node.js version from 4.3 to 6 due to dependency requirements
+* Fixed bug with attempting to decompress empty responses (#105)
+* Updated dependencies
+
 ### v1.2.0 - 2017-05-15
 * Added support for specifying the HTTP/HTTPS Agent (#102)
 
