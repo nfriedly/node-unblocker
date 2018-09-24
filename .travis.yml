@@ -3,11 +3,22 @@ node_js:
 - 6
 - 8
 - stable
-deploy:
-  provider: npm
-  email: nathan@nfriedly.com
-  api_key:
-    secure: 5q7zRdsZF2iXnHnKiv91XJSfUpVzGOduJBbx8igvDwmNmvaTUjoDjT4mMDRdvDJvIVUaxUxemQzJlYYFp1Kp20kaLpBGJqa6WvLxg5Fnc+sEfT4br8tXx5sql2UpzTCUtkuznVRp9C14LzJRFeSq8gjA3Z6fFdjACzXyA3vTCnA=
-  on:
-    tags: true
-    repo: nfriedly/node-unblocker
+
+# wait until after all node.js versions pass before deploying
+# https://docs.travis-ci.com/user/build-stages/deploy-npm/
+
+stages:
+  - test
+  - name: deploy
+    if: tag IS present AND repo = 'nfriedly/node-unblocker'
+
+jobs:
+  include:
+    - stage: deploy
+      node_js: stable
+      script: skip
+      deploy:
+        provider: npm
+        email: nathan@nfriedly.com
+        api_key:
+          secure: 5q7zRdsZF2iXnHnKiv91XJSfUpVzGOduJBbx8igvDwmNmvaTUjoDjT4mMDRdvDJvIVUaxUxemQzJlYYFp1Kp20kaLpBGJqa6WvLxg5Fnc+sEfT4br8tXx5sql2UpzTCUtkuznVRp9C14LzJRFeSq8gjA3Z6fFdjACzXyA3vTCnA=
