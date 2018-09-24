@@ -1,3 +1,5 @@
+'use strict';
+
 var test = require('tap').test;
 var fs = require('fs');
 var crypto = require('crypto');

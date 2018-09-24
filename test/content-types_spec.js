@@ -1,3 +1,5 @@
+'use strict';
+
 var test = require('tap').test;
 var contentTypes = require('../lib/content-types.js');
 
