@@ -32,7 +32,7 @@ fixes to go in the examples folder.
 
 ## Running the website on your computer
 
-Requires [node.js](http://nodejs.org/) >=4.3
+Requires [node.js](http://nodejs.org/) >= 6
 Then [download node-unblocker](https://github.com/nfriedly/node-unblocker/archive/master.zip),
 `cd` into the `examples/nodeunblocker.com/` directory,
 and run `npm install` to set things up.
