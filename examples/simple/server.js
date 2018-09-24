@@ -11,7 +11,7 @@ http.createServer(function(req, res) {
         var headers = {'content-type': 'text/plain'};
         if (err) {
             res.writeHead(500, headers);
-            return res.end(err.stack || err.message);
+            return res.end(err.stack || err);
         }
         if (req.url == '/') {
             res.writeHead(200, headers);
@@ -22,3 +22,5 @@ http.createServer(function(req, res) {
         }
     });
 }).listen(8080);
+
+console.log('proxy server live at http://localhost:8080/')
