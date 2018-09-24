@@ -3,7 +3,7 @@
   "description": "Web proxy for evading internet censorship",
   "author": "Nathan Friedly - http://nfriedly.com",
   "version": "1.0.0",
-  "private": "true",
+  "private": true,
   "homepage": "http://nodeunblocker.com/",
   "dependencies": {
     "express": "^4.13.0",
