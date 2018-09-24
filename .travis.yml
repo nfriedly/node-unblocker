@@ -22,3 +22,5 @@ jobs:
         email: nathan@nfriedly.com
         api_key:
           secure: 5q7zRdsZF2iXnHnKiv91XJSfUpVzGOduJBbx8igvDwmNmvaTUjoDjT4mMDRdvDJvIVUaxUxemQzJlYYFp1Kp20kaLpBGJqa6WvLxg5Fnc+sEfT4br8tXx5sql2UpzTCUtkuznVRp9C14LzJRFeSq8gjA3Z6fFdjACzXyA3vTCnA=
+        on:
+          tags: true
