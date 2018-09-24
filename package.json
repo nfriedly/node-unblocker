@@ -2,7 +2,7 @@
   "name": "unblocker",
   "description": "Web proxy for evading internet censorship & general-purpose library for rewriting remote websites.",
   "author": "Nathan Friedly - http://nfriedly.com",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "repository": "git://github.com/nfriedly/node-unblocker.git",
   "engines": {
     "node": ">=6"
