@@ -197,7 +197,7 @@ Most of the internal functionality of the proxy is also implemented as middlewar
 * **hpkp**: Removes [Public-Key-Pinning](https://en.wikipedia.org/wiki/HTTP_Public_Key_Pinning) headers because they can leak to other sites and can break the proxy.
 * **csp**: Removes [Content-Security-Policy](https://en.wikipedia.org/wiki/Content_Security_Policy) headers because they can leak to other sites and can break the proxy.
 * **redirects**: Rewrites urls in 3xx redirects to ensure they go through the proxy
-* **decompress**: Decompresses `Content-Encoding: gzip` responses and also tweaks request headers to ask for either gzip-only or no compression at all. (It will attempt to decompress `deflate` content, but there are some issues, so it does not advertise support for `deflate`.)
+* **decompress**: Decompresses `Content-Encoding: gzip|deflate` responses and also tweaks request headers to ask for either gzip-only or no compression at all. (It will attempt to decompress `deflate` content, but there are some issues, so it does not advertise support for `deflate`.)
 * **charsets**: Converts the charset of responses to UTF-8 for safe string processing in node.js. Determines charset from headers or meta tags and rewrites all headers and meta tags in outgoing response.
 * **urlPrefixer**: Rewrites URLS of links/images/css/etc. to ensure they go through the proxy
 * **metaRobots**: Injects a ROBOTS: NOINDEX, NOFOLLOW meta tag to prevent search engines from crawling the entire web through the proxy.
