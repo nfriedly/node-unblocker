@@ -27,7 +27,11 @@ remain intact when switching protocols or subdomains.
 Although the proxy works well for standard login forms and even most AJAX content, OAuth login forms and anything that uses
 [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) (Google, Facebook, etc.) are not
 likely to work out of the box. This is not an insurmountable issue, but it's not one that I expect to have fixed in the
-near term. Patches are welcome, including both a general-purpose fix to go into the main library, and site-specific
+near term.
+
+Additionally, websockets are not currently supported. However, some websocket libraries, such as socket.io and engine.io will start with or fall back to long-poling automatically, which _is_ supported.
+
+Patches are welcome, including both general-purpose improvements to go into the main library, and site-specific
 fixes to go in the examples folder.
 
 ## Running the website on your computer
