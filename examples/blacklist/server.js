@@ -2,14 +2,14 @@ const http = require('http');
 const express = require('express');
 const unblocker = require('unblocker');
 
-const whitelist = require('./whitelist.js');
+const blacklist = require('./blacklist.js');
 
 const app = express();
 
 app.use(unblocker({
   requestMiddleware: [
-     whitelist({
-      allowedDomains: ['wikipedia.org'],
+    blacklist({
+      blockedDomains: ['example.com'],
       message: 'The requested url is not permitted.',
     }),
   ]

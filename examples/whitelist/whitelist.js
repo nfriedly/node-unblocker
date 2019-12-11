@@ -2,7 +2,7 @@
 
 const URL = require('url');
 
-module.exports = function(allowedDomains) {
+module.exports = function({ allowedDomains, message }) {
 
   function isRequestAllowed(data) {
     const { hostname } = URL.parse(data.url);
@@ -11,7 +11,7 @@ module.exports = function(allowedDomains) {
 
   function checkWhitelist(data) {
     if (!isRequestAllowed(data)) {
-      data.clientResponse.status(400).send('The requested url is not permitted.')
+      data.clientResponse.status(400).send(message)
     }
   }
 
