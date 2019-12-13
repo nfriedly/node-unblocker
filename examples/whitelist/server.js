@@ -12,7 +12,7 @@ app.use(unblocker({
       allowedDomains: ['wikipedia.org'],
       message: 'The requested url is not permitted.',
     }),
-  ]
+  ],
 }));
 
 app.get('/', (req, res) => res.redirect('/proxy/https://en.wikipedia.org/wiki/Main_Page'));
