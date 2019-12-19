@@ -134,3 +134,17 @@ test('should rewrite urls that change subdomain or protocol (but not domain)', f
 
     sourceStream.end(source);
 });
+
+test('should work with SameSite attributes', function(t) {
+    var instance = cookies({
+        prefix: '/proxy/',
+        processContentTypes: []
+    });
+    var data = getData();
+    data.headers['set-cookie'] = ['1P_JAR=2019-12-19-00; expires=Sat, 18-Jan-2020 00:42:02 GMT; path=/; domain=.google.com; SameSite=none'];
+    instance.handleResponse(data);
+    var actual = data.headers['set-cookie'][0];
+    console.log(actual);
+    t.assert(actual.toLowerCase().indexOf('samesite=none') > -1);
+    t.end();
+});
