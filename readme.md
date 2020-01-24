@@ -297,3 +297,4 @@ Commercial licensing and support are also available, contact Nathan Friedly (nat
 * [Arturo Filastò](https://github.com/hellais)
 * [tfMen](https://github.com/tfMen)
 * [Emil Hemdal](https://github.com/emilhem)
+[![Run on Repl.it](https://repl.it/badge/github/nfriedly/node-unblocker)](https://repl.it/github/nfriedly/node-unblocker)
