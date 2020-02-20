@@ -1,7 +1,7 @@
 language: node_js
 node_js:
-  - 6
   - 8
+  - lts/*
   - stable
 
 # wait until after all node.js versions pass before deploying
