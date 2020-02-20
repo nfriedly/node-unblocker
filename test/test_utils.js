@@ -1,7 +1,7 @@
 var http = require('http'),
     async = require('async'),
-    PassThrough = require('stream').PassThrough,
-    Unblocker = require('../lib/unblocker.js');
+        PassThrough = require('stream').PassThrough,
+        Unblocker = require('../lib/unblocker.js');
 
 
 var unblocker = new Unblocker({});

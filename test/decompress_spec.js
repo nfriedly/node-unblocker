@@ -27,7 +27,7 @@ test('should decompress data compressed with gzip', function(t) {
     t.notOk(data.headers['content-encoding'], "it should remove the encoding header when decompressing");
 
     data.stream.pipe(concat(function(data) {
-       var actual = data.toString();
+        var actual = data.toString();
         t.same(actual, expected);
         t.end();
     }));

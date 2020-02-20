@@ -1,7 +1,9 @@
 var it = require('tap').test,
     getRealUrl = require('../lib/get-real-url.js');
 
-var config = {prefix: '/proxy/'};
+var config = {
+    prefix: '/proxy/'
+};
 
 var instance = getRealUrl(config);
 

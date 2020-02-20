@@ -4,7 +4,7 @@ var fs = require('fs'),
     hyperquest = require('hyperquest'),
     math = require('math-helpers')(),
     async = require('async'),
-    getServers = require('./test_utils.js').getServers;
+        getServers = require('./test_utils.js').getServers;
 
 var source = fs.readFileSync(__dirname + '/source/index.html');
 
