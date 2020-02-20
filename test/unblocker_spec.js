@@ -76,33 +76,38 @@ test("should redirect root-relative urls when the correct target can be determin
                 t.end();
             });
         }
-        hyperquest(servers.homeUrl, {
-            headers: {
-                'referer': servers.proxiedUrl
+        hyperquest(
+            servers.homeUrl, {
+                headers: {
+                    referer: servers.proxiedUrl
+                }
+            },
+            function(err, res) {
+                t.notOk(err);
+                t.equal(res.statusCode, 307, "http status code");
+                t.equal(res.headers.location, servers.proxiedUrl, "redirect location");
+                cleanup();
             }
-        }, function(err, res) {
-            t.notOk(err);
-            t.equal(res.statusCode, 307, 'http status code');
-            t.equal(res.headers.location, servers.proxiedUrl, 'redirect location');
-            cleanup();
-        });
+        );
     });
 });
 
-
-test("should redirect http urls that have had the slashes merged (http:/ instead of http://", function(t) {
+test("should NOT redirect http urls that have had the slashes merged (http:/ instead of http:// (#130)", function(t) {
     getServers(source, function(err, servers) {
         function cleanup() {
             servers.kill(function() {
                 t.end();
             });
         }
-        hyperquest(servers.proxiedUrl.replace('/proxy/http://','/proxy/http:/'), function(err, res) {
-            t.notOk(err);
-            t.equal(res.statusCode, 307, 'http status code');
-            t.equal(res.headers.location, servers.proxiedUrl, 'redirect location');
-            cleanup();
-        });
+        hyperquest(
+            servers.proxiedUrl.replace("/proxy/http://", "/proxy/http:/"),
+            function(err, res) {
+                t.notOk(err);
+                t.equal(res.statusCode, 200, "http status code");
+                t.notOk(res.headers.location, "no location header");
+                cleanup();
+            }
+        );
     });
 });
 
