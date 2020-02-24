@@ -2,19 +2,11 @@
 
 const express = require("express");
 const unblocker = require("unblocker");
-
-const blacklist = require("./blacklist.js");
-
 const app = express();
 
 app.use(
   unblocker({
-    requestMiddleware: [
-      blacklist({
-        blockedDomains: ["example.com"],
-        message: "The requested url is not permitted."
-      })
-    ]
+    // config options here...
   })
 );
 

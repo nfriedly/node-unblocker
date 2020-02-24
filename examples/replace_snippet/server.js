@@ -3,16 +3,17 @@
 const express = require("express");
 const unblocker = require("unblocker");
 
-const blacklist = require("./blacklist.js");
+const replaceSnippet = require("./replace_snippet.js");
 
 const app = express();
 
 app.use(
   unblocker({
-    requestMiddleware: [
-      blacklist({
-        blockedDomains: ["example.com"],
-        message: "The requested url is not permitted."
+    responseMiddleware: [
+      replaceSnippet({
+        processContentTypes: ["text/html"],
+        searchFor: /<script type="text\/javascript">\s*BrowserCheck.testForCookies\(\);\s*<\/script>/i,
+        replaceWith: ""
       })
     ]
   })
