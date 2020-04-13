@@ -25,7 +25,7 @@
     "jshint": "^2.10.3",
     "math-helpers": "~0.1.0",
     "nodemon": "^2.0.2",
-    "tap": "^14.10.5"
+    "tap": "^14.10.7"
   },
   "jshintConfig": {
     "undef": true,
