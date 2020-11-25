@@ -112,3 +112,29 @@ test('should skip requests with no content, even if it can\'t tell ahead of time
     data.stream.resume(); // put the stream into flowing mode so that 'end' fires
     source.end();
 });
+
+test('should request only gzip if the client supports multiple encodings (#151)', function(t) {
+    var data = {
+        headers: {
+            'accept-encoding': 'deflate, gzip',
+        },
+    };
+
+    decompress(defaultConfig).handleRequest(data);
+
+    t.equal(data.headers['accept-encoding'], 'gzip', "it should change the header to gzip only");
+    t.end();
+});
+
+test('should remove the accept-encoding header if the client does not support gzip', function(t) {
+    var data = {
+        headers: {
+            'accept-encoding': 'deflate',
+        },
+    };
+
+    decompress(defaultConfig).handleRequest(data);
+
+    t.notOk(data.headers['accept-encoding'], "it should remove unsupported encodings");
+    t.end();
+});
