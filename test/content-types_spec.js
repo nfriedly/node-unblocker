@@ -3,7 +3,7 @@
 var test = require('tap').test;
 var contentTypes = require('../lib/content-types.js');
 
-test("should should handle content types with a charset", function(t) {
+test("should handle content types with a charset", function(t) {
     var config = {
         processContentTypes: ['text/html']
     };
