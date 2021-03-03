@@ -30,6 +30,8 @@ near term.
 
 Additionally, websockets are not currently supported. However, some websocket libraries, such as socket.io and engine.io will start with or fall back to long-poling automatically, which _is_ supported.
 
+More advanced websites, such as Roblox, Discord, Youtube, Instagram, etc. do not currently work. At the moment, there is no timeframe for when these might be supported.
+
 Patches are welcome, including both general-purpose improvements to go into the main library, and site-specific
 fixes to go in the examples folder.
 
