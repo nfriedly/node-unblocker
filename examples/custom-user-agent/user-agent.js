@@ -1,9 +1,8 @@
-'use strict';
+"use strict";
 
-module.exports = function( userAgent ) {
-
+module.exports = function (userAgent) {
   function setUserAgent(data) {
-    data.headers['user-agent'] = userAgent;
+    data.headers["user-agent"] = userAgent;
   }
 
   return setUserAgent;

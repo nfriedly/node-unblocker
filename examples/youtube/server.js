@@ -2,16 +2,16 @@
 
 var http = require("http");
 var Unblocker = require("unblocker");
-var youtube = require('./youtube.js');
+var youtube = require("./youtube.js");
 
 var unblocker = Unblocker({
   requestMiddleware: [youtube.processRequest],
 });
 
 http
-  .createServer(function(req, res) {
+  .createServer(function (req, res) {
     // first let unblocker try to handle the requests
-    unblocker(req, res, function(err) {
+    unblocker(req, res, function (err) {
       // this callback will be fired for any request that unblocker does not serve
       var headers = { "content-type": "text/html" };
       if (err) {

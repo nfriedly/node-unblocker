@@ -13,9 +13,9 @@ app.use(
       replaceSnippet({
         processContentTypes: ["text/html"],
         searchFor: /<script type="text\/javascript">\s*BrowserCheck.testForCookies\(\);\s*<\/script>/i,
-        replaceWith: ""
-      })
-    ]
+        replaceWith: "",
+      }),
+    ],
   })
 );
 

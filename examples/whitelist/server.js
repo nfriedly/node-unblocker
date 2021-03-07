@@ -12,9 +12,9 @@ app.use(
     requestMiddleware: [
       whitelist({
         allowedDomains: ["wikipedia.org"],
-        message: "The requested url is not permitted."
-      })
-    ]
+        message: "The requested url is not permitted.",
+      }),
+    ],
   })
 );
 

@@ -9,7 +9,7 @@ const app = express();
 
 app.use(
   unblocker({
-    requestMiddleware: [userAgent("my-cool-user-agent/1.0")]
+    requestMiddleware: [userAgent("my-cool-user-agent/1.0")],
   })
 );
 

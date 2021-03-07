@@ -12,9 +12,9 @@ app.use(
     requestMiddleware: [
       blacklist({
         blockedDomains: ["example.com"],
-        message: "The requested url is not permitted."
-      })
-    ]
+        message: "The requested url is not permitted.",
+      }),
+    ],
   })
 );
 

@@ -6,9 +6,9 @@ var Unblocker = require("unblocker");
 var unblocker = Unblocker({});
 
 http
-  .createServer(function(req, res) {
+  .createServer(function (req, res) {
     // first let unblocker try to handle the requests
-    unblocker(req, res, function(err) {
+    unblocker(req, res, function (err) {
       // this callback will be fired for any request that unblocker does not serve
       var headers = { "content-type": "text/plain" };
       if (err) {

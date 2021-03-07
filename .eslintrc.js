@@ -12,9 +12,9 @@ module.exports = {
     //"prefer-const": "error",
     strict: "error",
   },
-//   overrides: [
-//     {
-//       files: ["test/*.js"],
-//     },
-//   ],
+  //   overrides: [
+  //     {
+  //       files: ["test/*.js"],
+  //     },
+  //   ],
 };
