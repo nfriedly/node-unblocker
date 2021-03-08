@@ -5,28 +5,31 @@ var http = require("http"),
   PassThrough = require("stream").PassThrough,
   Unblocker = require("../lib/unblocker.js");
 
-var unblocker = new Unblocker({});
+var getApp = (exports.getApp = function getApp(unblocker) {
+  unblocker = unblocker || new Unblocker({});
+  function app(req, res) {
+    // first let unblocker try to handle the requests
+    unblocker(req, res, function (err) {
+      // this callback will be fired for any request that unblocker does not serve
+      var headers = {
+        "content-type": "text/plain",
+      };
+      if (err) {
+        res.writeHead(500, headers);
+        return res.end(err.stack || err.message);
+      }
+      if (req.url == "/") {
+        res.writeHead(200, headers);
+        return res.end("this is the home page");
+      } else {
+        res.writeHead(404, headers);
+        return res.end("Error 404: file not found.");
+      }
+    });
+  }
 
-function app(req, res) {
-  // first let unblocker try to handle the requests
-  unblocker(req, res, function (err) {
-    // this callback will be fired for any request that unblocker does not serve
-    var headers = {
-      "content-type": "text/plain",
-    };
-    if (err) {
-      res.writeHead(500, headers);
-      return res.end(err.stack || err.message);
-    }
-    if (req.url == "/") {
-      res.writeHead(200, headers);
-      return res.end("this is the home page");
-    } else {
-      res.writeHead(404, headers);
-      return res.end("Error 404: file not found.");
-    }
-  });
-}
+  return app;
+});
 
 /**
  * Creates two servers, a proxy instance and a remote server that serves up sourceContent
@@ -52,6 +55,8 @@ exports.getServers = function (options, next) {
   }
 
   options.remoteFn = options.remoteFn || sendContent;
+
+  var app = options.app || getApp(options.unblocker);
 
   var proxyServer = http.createServer(app),
     remoteServer = http.createServer(options.remoteFn);
