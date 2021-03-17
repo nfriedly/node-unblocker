@@ -70,3 +70,23 @@ test("it should pass binary messages over a websocket connection", function (t) 
     });
   });
 });
+
+test("it should forward the path in a websocket requests", function (t) {
+  t.plan(2);
+  getServers({ sourceContent }, function (err, servers) {
+    t.error(err);
+
+    const wss = new WebSocket.Server({ server: servers.remoteServer });
+    wss.on("connection", function connection(ws, req) {
+      t.equal(req.url, "/websocket-path");
+      ws.close();
+      servers.kill(function () {
+        t.end();
+      });
+    });
+
+    const wsurl = new URL(servers.proxiedUrl + "websocket-path");
+    wsurl.protocol = "ws:";
+    new WebSocket(wsurl.href);
+  });
+});
