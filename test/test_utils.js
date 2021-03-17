@@ -5,8 +5,14 @@ var http = require("http"),
   PassThrough = require("stream").PassThrough,
   Unblocker = require("../lib/unblocker.js");
 
-var getApp = (exports.getApp = function getApp(unblocker) {
-  unblocker = unblocker || new Unblocker({});
+function getUnblocker(options) {
+  if (options.unblocker) {
+    return options.unblocker;
+  }
+  return new Unblocker({});
+}
+
+function getApp(unblocker) {
   function app(req, res) {
     // first let unblocker try to handle the requests
     unblocker(req, res, function (err) {
@@ -29,7 +35,7 @@ var getApp = (exports.getApp = function getApp(unblocker) {
   }
 
   return app;
-});
+}
 
 /**
  * Creates two servers, a proxy instance and a remote server that serves up sourceContent
@@ -56,13 +62,17 @@ exports.getServers = function (options, next) {
 
   options.remoteFn = options.remoteFn || sendContent;
 
-  var app = options.app || getApp(options.unblocker);
+  var unblocker = getUnblocker(options);
+
+  var app = options.app || getApp(unblocker);
 
   var proxyServer = http.createServer(app),
     remoteServer = http.createServer(options.remoteFn);
 
   proxyServer.setTimeout(5000);
   remoteServer.setTimeout(5000);
+
+  proxyServer.on("upgrade", unblocker.onUpgrade);
 
   async.parallel(
     [

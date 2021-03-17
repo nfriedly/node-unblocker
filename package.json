@@ -28,7 +28,8 @@
     "math-helpers": "~0.1.0",
     "nodemon": "^2.0.2",
     "prettier": "2.2.1",
-    "tap": "^14.10.7"
+    "tap": "^14.10.7",
+    "ws": "^7.4.4"
   },
   "scripts": {
     "watch": "nodemon --watch ./ --ignore ./examples --ext js,html,xhtml,json --exec npm run test",
