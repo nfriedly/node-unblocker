@@ -99,8 +99,8 @@ exports.getServers = function (options, next) {
         },
       };
       ret.homeUrl = "http://localhost:" + ret.proxyPort + "/";
-      ret.proxiedUrl =
-        ret.homeUrl + "proxy/http://localhost:" + ret.remotePort + "/";
+      ret.remoteUrl = "http://localhost:" + ret.remotePort + "/";
+      ret.proxiedUrl = ret.homeUrl + "proxy/" + ret.remoteUrl;
       next(null, ret);
     }
   );

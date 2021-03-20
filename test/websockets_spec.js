@@ -89,4 +89,44 @@ test("it should forward the path in a websocket requests", function (t) {
     wsurl.protocol = "ws:";
     new WebSocket(wsurl.href);
   });
+
+  test("it should forward the path in a websocket requests when the prefix is missing but a referer header is avaliable", function (t) {
+    t.plan(2);
+    getServers({ sourceContent }, function (err, servers) {
+      t.error(err);
+
+      const wss = new WebSocket.Server({ server: servers.remoteServer });
+      wss.on("connection", function connection(ws, req) {
+        t.equal(req.url, "/websocket-path");
+        ws.close();
+        servers.kill(function () {
+          t.end();
+        });
+      });
+
+      const wsurl = new URL(servers.homeUrl + "websocket-path");
+      wsurl.protocol = "ws:";
+      new WebSocket(wsurl.href, { headers: { referer: servers.proxiedUrl } });
+    });
+  });
+
+  test("it should close the connection when unable to determine the target url", function (t) {
+    t.plan(2);
+    getServers({ sourceContent }, function (err, servers) {
+      t.error(err);
+
+      const wsurl = new URL(servers.homeUrl + "websocket-path");
+      wsurl.protocol = "ws:";
+      const ws = new WebSocket(wsurl.href);
+      ws.on("unexpected-response", (req, res) => {
+        t.equal(res.statusCode, 400);
+        servers.kill(function () {
+          t.end();
+        });
+      });
+    });
+  });
+
+  // todo: close cleanly from client, ensure server connection is closed cleanly and vice versa
+  // todo: exit abruptly from client, ensure server connection is closed cleanly and vice versa
 });
