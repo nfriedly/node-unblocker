@@ -25,6 +25,16 @@ module.exports = {
       files: ["examples/*/*.js"],
       rules: {
         "node/no-missing-require": "off",
+      }
+    }, {
+      files: ["lib/client/*.mjs"],
+      parserOptions: {
+        sourceType: "module",
+      },
+      env: {
+        node: false,
+        browser: true,
+        es6: true,
       },
     },
   ],
