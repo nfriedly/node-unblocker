@@ -34,7 +34,12 @@ module.exports = {
       env: {
         node: false,
         browser: true,
-        es6: true,
+      },
+    },
+    {
+      files: ["test/client/*.mjs"],
+      parserOptions: {
+        sourceType: "module",
       },
     },
   ],
