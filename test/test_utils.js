@@ -21,6 +21,7 @@ function getApp(unblocker) {
         "content-type": "text/plain",
       };
       if (err) {
+        console.error(err);
         res.writeHead(500, headers);
         return res.end(err.stack || err.message);
       }

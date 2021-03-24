@@ -16,7 +16,6 @@
     "iconv-lite": "^0.6.2",
     "lodash": "^4.17.15",
     "mime": "^2.4.4",
-    "serve-static": "^1.14.1",
     "set-cookie-parser": "^2.4.1",
     "tld": "0.0.2"
   },
@@ -43,5 +42,7 @@
   },
   "license": "AGPL-3.0",
   "main": "lib/unblocker.js",
-  "files": ["lib/"]
+  "files": [
+    "lib/"
+  ]
 }

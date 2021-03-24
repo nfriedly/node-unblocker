@@ -27,19 +27,10 @@ module.exports = {
         "node/no-missing-require": "off",
       }
     }, {
-      files: ["lib/client/*.mjs"],
-      parserOptions: {
-        sourceType: "module",
-      },
+      files: ["lib/client/*.js"],
       env: {
         node: false,
         browser: true,
-      },
-    },
-    {
-      files: ["test/client/*.mjs"],
-      parserOptions: {
-        sourceType: "module",
       },
     },
   ],

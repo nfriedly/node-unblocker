@@ -1,6 +1,6 @@
-import tap from "tap";
-import { fixUrl } from "../../lib/client/fix-url.mjs";
-const { test } = tap;
+"use strict";
+const { test } = require("tap");
+const { fixUrl } = require("../../lib/client/unblocker.template.js");
 const proxy = "http://localhost";
 const prefix = "/proxy/";
 const target = "http://example.com/page.html?query#hash";
