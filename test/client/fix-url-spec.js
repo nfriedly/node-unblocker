@@ -1,6 +1,6 @@
 "use strict";
 const { test } = require("tap");
-const { fixUrl } = require("../../lib/client/unblocker.template.js");
+const { fixUrl } = require("../../lib/client/unblocker-client.js");
 const proxy = "http://localhost";
 const prefix = "/proxy/";
 const target = "http://example.com/page.html?query#hash";
