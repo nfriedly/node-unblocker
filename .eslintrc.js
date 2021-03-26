@@ -25,12 +25,12 @@ module.exports = {
       files: ["examples/*/*.js"],
       rules: {
         "node/no-missing-require": "off",
-      }
-    }, {
-      files: ["lib/client/*.js"],
-      env: {
-        node: false,
-        browser: true,
+      },
+    },
+    {
+      files: ["test/**"],
+      rules: {
+        "node/no-unsupported-features/node-builtins": "off",
       },
     },
   ],
