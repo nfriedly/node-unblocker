@@ -127,6 +127,56 @@ test("it should forward the path in a websocket requests", function (t) {
     });
   });
 
+  test("it should forward the close reason from the client to the remote server", function (t) {
+    t.plan(5);
+    getServers({ sourceContent }, function (err, servers) {
+      t.error(err);
+
+      const wss = new WebSocket.Server({ server: servers.remoteServer });
+      wss.on("connection", function connection(ws /*, req*/) {
+        t.ok(ws, 'server connection event');
+        ws.on("close", function (code, reason) {
+          t.equal(code, 1008);
+          t.equal(reason, "Policy Violation (sent from client)");
+          servers.kill(function () {
+            t.end();
+          });
+        });
+      });
+
+      const wsurl = new URL(servers.proxiedUrl + "websocket-path");
+      wsurl.protocol = "ws:";
+      const wsc = new WebSocket(wsurl.href);
+      wsc.on("open", function () {
+        t.ok(true, 'client open event')
+        wsc.close(1008, "Policy Violation (sent from client)");
+      });
+    });
+  });
+
+  test("it should forward the close reason from the remote server to the client", function (t) {
+    t.plan(4);
+    getServers({ sourceContent }, function (err, servers) {
+      t.error(err);
+
+      const wss = new WebSocket.Server({ server: servers.remoteServer });
+      wss.on("connection", function connection(ws /*, req*/) {
+        t.ok(ws, 'server connection event');
+        ws.close(1008, "Policy Violation (sent from server)");
+      });
+
+      const wsurl = new URL(servers.proxiedUrl + "websocket-path");
+      wsurl.protocol = "ws:";
+      const wsc = new WebSocket(wsurl.href);
+      wsc.on("close", function (code, reason) {
+        t.equal(code, 1008);
+        t.equal(reason, "Policy Violation (sent from server)");
+        servers.kill(function () {
+          t.end();
+        });
+      });
+    });
+  });
   // todo: close cleanly from client, ensure server connection is closed cleanly and vice versa
   // todo: exit abruptly from client, ensure server connection is closed cleanly and vice versa
 });
