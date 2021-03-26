@@ -6,6 +6,9 @@
     "unblocker": "*",
     "ytdl-core": "^4.5.0"
   },
+  "engines": {
+    "node": ">=10"
+  },
   "scripts": {
     "start": "node server.js"
   }
