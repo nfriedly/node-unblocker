@@ -4,7 +4,10 @@
   "version": "0.0.0",
   "dependencies": {
     "express": "^4.16.4",
-    "unblocker": "*"
+    "unblocker": "file:..\\.."
+  }, 
+  "engines": {
+    "node": ">=6"
   },
   "scripts": {
     "start": "node server.js"

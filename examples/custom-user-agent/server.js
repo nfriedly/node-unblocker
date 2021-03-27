@@ -1,17 +1,17 @@
 "use strict";
 
 const express = require("express");
-const unblocker = require("unblocker");
+const Unblocker = require("unblocker");
 
 const userAgent = require("./user-agent.js");
 
 const app = express();
 
-app.use(
-  unblocker({
-    requestMiddleware: [userAgent("my-cool-user-agent/1.0")],
-  })
-);
+const unblocker = Unblocker({
+  requestMiddleware: [userAgent("my-cool-user-agent/1.0")],
+});
+
+app.use(unblocker);
 
 app.get("/", (req, res) =>
   res.end(
@@ -19,7 +19,7 @@ app.get("/", (req, res) =>
   )
 );
 
-app.listen(8080);
+app.listen(8080).on("upgrade", unblocker.onUpgrade);
 
 console.log(
   "app listening on port 8080. Test at http://localhost:8080/proxy/https://duckduckgo.com/?q=what%27s+my+user+agent&atb=v130-1ei&ia=answer"
