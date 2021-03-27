@@ -134,7 +134,7 @@ test("it should forward the path in a websocket requests", function (t) {
 
       const wss = new WebSocket.Server({ server: servers.remoteServer });
       wss.on("connection", function connection(ws /*, req*/) {
-        t.ok(ws, 'server connection event');
+        t.ok(ws, "server connection event");
         ws.on("close", function (code, reason) {
           t.equal(code, 1008);
           t.equal(reason, "Policy Violation (sent from client)");
@@ -148,7 +148,7 @@ test("it should forward the path in a websocket requests", function (t) {
       wsurl.protocol = "ws:";
       const wsc = new WebSocket(wsurl.href);
       wsc.on("open", function () {
-        t.ok(true, 'client open event')
+        t.ok(true, "client open event");
         wsc.close(1008, "Policy Violation (sent from client)");
       });
     });
@@ -161,7 +161,7 @@ test("it should forward the path in a websocket requests", function (t) {
 
       const wss = new WebSocket.Server({ server: servers.remoteServer });
       wss.on("connection", function connection(ws /*, req*/) {
-        t.ok(ws, 'server connection event');
+        t.ok(ws, "server connection event");
         ws.close(1008, "Policy Violation (sent from server)");
       });
 

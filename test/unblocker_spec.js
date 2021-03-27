@@ -5,7 +5,7 @@ var fs = require("fs"),
   test = require("tap").test,
   hyperquest = require("hyperquest"),
   getServers = require("./test_utils.js").getServers;
-const express = require('express');
+const express = require("express");
 const Unblocker = require("../lib/unblocker.js");
 
 var sourceContent = fs.readFileSync(__dirname + "/source/index.html");
@@ -218,29 +218,26 @@ test("should redirect http urls that end in a TLD without a / when req.protocol 
   const app = express();
   const unblocker = new Unblocker({});
   app.use(unblocker);
-  getServers(
-    { app, unblocker, sourceContent },
-    function (err, servers) {
-      t.ifErr(err);
-      function cleanup() {
-        servers.kill(function () {
-          t.end();
-        });
-      }
-      hyperquest(
-        // strip the trailing /
-        servers.proxiedUrl.substr(0, servers.proxiedUrl.length - 1),
-        function (err, res) {
-          t.notOk(err);
-          t.equal(res.statusCode, 307, "http status code");
-          t.equal(
-            res.headers.location,
-            servers.proxiedUrl, // correct URL with the trailing /
-            "redirect location"
-          );
-          cleanup();
-        }
-      );
+  getServers({ app, unblocker, sourceContent }, function (err, servers) {
+    t.ifErr(err);
+    function cleanup() {
+      servers.kill(function () {
+        t.end();
+      });
     }
-  );
+    hyperquest(
+      // strip the trailing /
+      servers.proxiedUrl.substr(0, servers.proxiedUrl.length - 1),
+      function (err, res) {
+        t.notOk(err);
+        t.equal(res.statusCode, 307, "http status code");
+        t.equal(
+          res.headers.location,
+          servers.proxiedUrl, // correct URL with the trailing /
+          "redirect location"
+        );
+        cleanup();
+      }
+    );
+  });
 });
