@@ -12,6 +12,7 @@
     "content-type": "^1.0.4",
     "cookie": "^0.4.0",
     "debug": "^4.1.1",
+    "express": "^4.17.1",
     "iconv-lite": "^0.6.2",
     "lodash": "^4.17.15",
     "mime": "^2.4.4",
@@ -42,6 +43,7 @@
   "license": "AGPL-3.0",
   "main": "lib/unblocker.js",
   "files": [
-    "lib/"
+    "lib/",
+    "examples/"
   ]
 }
