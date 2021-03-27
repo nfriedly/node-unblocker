@@ -12,9 +12,11 @@
     "content-type": "^1.0.4",
     "cookie": "^0.4.0",
     "debug": "^4.1.1",
+    "express": "^4.17.1",
     "iconv-lite": "^0.6.2",
     "lodash": "^4.17.15",
     "mime": "^2.4.4",
+    "send": "^0.17.1",
     "set-cookie-parser": "^2.4.1",
     "tld": "0.0.2"
   },
@@ -28,7 +30,8 @@
     "math-helpers": "~0.1.0",
     "nodemon": "^2.0.2",
     "prettier": "2.2.1",
-    "tap": "^14.10.7"
+    "tap": "^14.10.7",
+    "ws": "^7.4.4"
   },
   "scripts": {
     "watch": "nodemon --watch ./ --ignore ./examples --ext js,html,xhtml,json --exec npm run test",
@@ -40,5 +43,8 @@
   },
   "license": "AGPL-3.0",
   "main": "lib/unblocker.js",
-  "files": ["lib/"]
+  "files": [
+    "lib/",
+    "examples/"
+  ]
 }

@@ -28,8 +28,6 @@ Although the proxy works well for standard login forms and even most AJAX conten
 likely to work out of the box. This is not an insurmountable issue, but it's not one that I expect to have fixed in the
 near term.
 
-Additionally, websockets are not currently supported. However, some websocket libraries, such as socket.io and engine.io will start with or fall back to long-poling automatically, which _is_ supported.
-
 More advanced websites, such as Roblox, Discord, YouTube*, Instagram, etc. do not currently work. At the moment, there is no timeframe for when these might be supported.
 
 * There is an example that detects YouTube video pages and [replaces them with a custom page that just streams the video](examples/youtube/).
@@ -50,13 +48,19 @@ Unblocker exports an [express](http://expressjs.com/)-compatible API, so using i
     var express = require('express')
     var Unblocker = require('unblocker');
     var app = express();
+    var unblocker = new Unblocker({prefix: '/proxy/'});
 
     // this must be one of the first app.use() calls and must not be on a subdirectory to work properly
-    app.use(new Unblocker({prefix: '/proxy/'}));
+    app.use(unblocker);
 
     app.get('/', function(req, res) {
         //...
     });
+
+    // the upgrade handler allows unblocker to proxy websockets
+    app.listen(process.env.PORT || 8080).on('upgrade', unblocker.onUpgrade);
+
+See [examples/simple/server.js](examples/express/server.js) for a complete example.
 
 Usage without express is similarly easy, see [examples/simple/server.js](examples/simple/server.js) for an example.
 
@@ -71,6 +75,7 @@ Unblocker supports the following configuration options, defaults are shown:
     requestMiddleware: [], // Array of functions that perform extra processing on client requests before they are sent to the remote server. API is detailed below.
     responseMiddleware: [], // Array of functions that perform extra processing on remote responses before they are sent back to the client. API is detailed below.
     standardMiddleware: true, // Allows you to disable all built-in middleware if you need to perform advanced customization of requests or responses.
+    clientScripts: true, // Injects JavaScript to force things like WebSockets and XMLHttpRequest to go through the proxy.
     processContentTypes: [ // All  built-in middleware that modifies the content of responses limits itself to these content-types.
         'text/html',
         'application/xml+xhtml',
@@ -81,6 +86,8 @@ Unblocker supports the following configuration options, defaults are shown:
     httpsAgent: null //override agent used to request https response from server. see https://nodejs.org/api/https.html#https_class_https_agent
 }
 ```
+
+Setting `process.env.NODE_ENV='production'` will enable more aggressive caching on the client scripts and potentially other optimizations in the future.
 
 #### Custom Middleware
 
@@ -254,7 +261,13 @@ config.responseMiddleware = [
     contentLength
 ];
 
-app.use(new Unblocker(config));
+var unblocker = new Unblocker(config);
+app.use(unblocker);
+
+// ...
+
+// the upgrade handler allows unblocker to proxy websockets
+app.listen(process.env.PORT || 8080).on('upgrade', unblocker.onUpgrade);
 ```
 
 ## Debugging

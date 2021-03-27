@@ -5,6 +5,9 @@
   "dependencies": {
     "express": "^4.16.4",
     "unblocker": "*"
+  },  
+  "engines": {
+    "node": ">=10"
   },
   "scripts": {
     "start": "node server.js"

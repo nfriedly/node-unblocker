@@ -5,27 +5,37 @@ var http = require("http"),
   PassThrough = require("stream").PassThrough,
   Unblocker = require("../lib/unblocker.js");
 
-var unblocker = new Unblocker({});
+function getUnblocker(options) {
+  if (options.unblocker) {
+    return options.unblocker;
+  }
+  return new Unblocker({});
+}
 
-function app(req, res) {
-  // first let unblocker try to handle the requests
-  unblocker(req, res, function (err) {
-    // this callback will be fired for any request that unblocker does not serve
-    var headers = {
-      "content-type": "text/plain",
-    };
-    if (err) {
-      res.writeHead(500, headers);
-      return res.end(err.stack || err.message);
-    }
-    if (req.url == "/") {
-      res.writeHead(200, headers);
-      return res.end("this is the home page");
-    } else {
-      res.writeHead(404, headers);
-      return res.end("Error 404: file not found.");
-    }
-  });
+function getApp(unblocker) {
+  function app(req, res) {
+    // first let unblocker try to handle the requests
+    unblocker(req, res, function (err) {
+      // this callback will be fired for any request that unblocker does not serve
+      var headers = {
+        "content-type": "text/plain",
+      };
+      if (err) {
+        console.error(err);
+        res.writeHead(500, headers);
+        return res.end(err.stack || err.message);
+      }
+      if (req.url == "/") {
+        res.writeHead(200, headers);
+        return res.end("this is the home page");
+      } else {
+        res.writeHead(404, headers);
+        return res.end("Error 404: file not found.");
+      }
+    });
+  }
+
+  return app;
 }
 
 /**
@@ -53,11 +63,17 @@ exports.getServers = function (options, next) {
 
   options.remoteFn = options.remoteFn || sendContent;
 
+  var unblocker = getUnblocker(options);
+
+  var app = options.app || getApp(unblocker);
+
   var proxyServer = http.createServer(app),
     remoteServer = http.createServer(options.remoteFn);
 
   proxyServer.setTimeout(5000);
   remoteServer.setTimeout(5000);
+
+  proxyServer.on("upgrade", unblocker.onUpgrade);
 
   async.parallel(
     [
@@ -84,8 +100,8 @@ exports.getServers = function (options, next) {
         },
       };
       ret.homeUrl = "http://localhost:" + ret.proxyPort + "/";
-      ret.proxiedUrl =
-        ret.homeUrl + "proxy/http://localhost:" + ret.remotePort + "/";
+      ret.remoteUrl = "http://localhost:" + ret.remotePort + "/";
+      ret.proxiedUrl = ret.homeUrl + "proxy/" + ret.remoteUrl;
       next(null, ret);
     }
   );

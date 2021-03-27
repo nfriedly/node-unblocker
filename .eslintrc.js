@@ -27,5 +27,11 @@ module.exports = {
         "node/no-missing-require": "off",
       },
     },
+    {
+      files: ["test/**"],
+      rules: {
+        "node/no-unsupported-features/node-builtins": "off",
+      },
+    },
   ],
 };
