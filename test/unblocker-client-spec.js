@@ -1,10 +1,12 @@
 "use strict";
 const { test } = require("tap");
-const { fixUrl } = require("../../lib/client/unblocker-client.js");
-const proxy = "http://localhost";
 const prefix = "/proxy/";
+const proxy = "http://localhost";
 const target = "http://example.com/page.html?query#hash";
 const location = new URL(proxy + prefix + target);
+
+const config = (global.unblocker = { prefix, url: target });
+const { fixUrl } = require("../lib/client/unblocker-client.js");
 
 // 1x1 transparent gif
 const pixel =
@@ -36,16 +38,28 @@ const testCases = [
   { url: "http://localhost/path", expected: "/proxy/http://example.com/path" },
   // don't break data: urls
   { url: pixel, expected: pixel },
+  // don't break protocol-relative urls
+  { url: "//example.com/foo", expected: "/proxy/http://example.com/foo" },
+  // don't break about:blank urls
+  { url: "about:blank", expected: "about:blank" },
+  // don't break already proxied URLs
+  {
+    url: proxy + prefix + "http://example.com/foo",
+    expected: proxy + prefix + "http://example.com/foo",
+  },
+  {
+    url: prefix + "http://example.com/foo",
+    expected: prefix + "http://example.com/foo",
+  },
   // todo: port numbers
   // todo: more https tests
   // todo: websockets(?)
-  // todo: already proxied input url
 ];
 
 testCases.forEach((tc) => {
   test(JSON.stringify(tc), (t) => {
     // todo: replace || with ??
-    const actual = fixUrl(tc.url, tc.prefix || prefix, tc.location || location);
+    const actual = fixUrl(tc.url, tc.config || config, tc.location || location);
     t.equal(actual, tc.expected);
     t.end();
   });

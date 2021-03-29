@@ -14,7 +14,7 @@ app.get("/", (req, res) =>
 );
 
 // start the server and allow unblocker to proxy websockets:
-app.listen(8080).on("upgrade", unblocker.onUpgrade);
+app.listen(process.env.PORT || 8080).on("upgrade", unblocker.onUpgrade);
 // or
 // const http = require("http");
 // const server = http.createServer(app);
