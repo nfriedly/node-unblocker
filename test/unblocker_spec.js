@@ -79,10 +79,10 @@ test("should redirect root-relative urls when the correct target can be determin
         });
       }
       hyperquest(
-        servers.homeUrl + "bar",
+        servers.homeUrl + "bar?query_param=new",
         {
           headers: {
-            referer: servers.proxiedUrl + "foo",
+            referer: servers.proxiedUrl + "foo?query_param=old",
           },
         },
         function (err, res) {
@@ -90,7 +90,7 @@ test("should redirect root-relative urls when the correct target can be determin
           t.equal(res.statusCode, 307, "http status code");
           t.equal(
             res.headers.location,
-            servers.proxiedUrl + "bar",
+            servers.proxiedUrl + "bar?query_param=new",
             "redirect location"
           );
           cleanup();
