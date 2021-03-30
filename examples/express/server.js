@@ -14,11 +14,12 @@ app.get("/", (req, res) =>
 );
 
 // start the server and allow unblocker to proxy websockets:
-app.listen(process.env.PORT || 8080).on("upgrade", unblocker.onUpgrade);
+const port = process.env.PORT || 8080;
+app.listen(port).on("upgrade", unblocker.onUpgrade);
 // or
 // const http = require("http");
 // const server = http.createServer(app);
-// server.listen(8080);
+// server.listen(port);
 // server.on("upgrade", unblocker.onUpgrade);
 
-console.log("app listening on port 8080. Test at http://localhost:8080/");
+console.log(`unblocker app live at http://localhost:${port}/`);
