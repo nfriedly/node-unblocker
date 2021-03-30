@@ -35,8 +35,9 @@
   },
   "scripts": {
     "watch": "nodemon --watch ./ --ignore ./examples --ext js,html,xhtml,json --exec npm run test",
-    "test": "eslint . && npm run test-spec",
+    "test": "npm run lint && npm run test-spec",
     "pre-commit": "npm run autofix && npm test",
+    "lint": "eslint .",
     "autofix": "eslint . --fix",
     "test-spec": "tap test/*spec.js",
     "test-perf": "node test/performance.js"
