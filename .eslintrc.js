@@ -1,10 +1,12 @@
 "use strict";
 
 module.exports = {
+  plugins: ["clean-regex"],
   extends: [
     "eslint:recommended",
     "plugin:prettier/recommended",
     "plugin:node/recommended",
+    "plugin:clean-regex/recommended",
   ],
   env: {
     node: true,

@@ -24,6 +24,7 @@
     "concat-stream": "^2.0.0",
     "eslint": "^7.21.0",
     "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-clean-regex": "^0.5.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.3.1",
     "hyperquest": "^2.1.3",

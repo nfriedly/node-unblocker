@@ -37,7 +37,7 @@ ${formats
   )
   .join("\n")}
 </video>
-<p>${info.videoDetails.description.replace(/[\n]/g, "\n<br>")}</p>
+<p>${info.videoDetails.description.replace(/\n/g, "\n<br>")}</p>
 </body>
 </html>
 `
