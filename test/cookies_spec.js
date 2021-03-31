@@ -117,8 +117,11 @@ test("should rewrite urls that change subdomain or protocol (but not domain)", f
     '<a href="/proxy/http://example.com/">no change</a>',
     '<a href="/proxy/https://example.com/">new proto</a>',
     '<a href="/proxy/http://sub.example.com/">new subdomain</a>',
+    '<a href="/proxy/http://sub.example.com/path">new subdomain, with path</a>',
+    '<a href="/proxy/http://sub.example.com/?foo=bar">new subdomain, with querystring</a>',
     '<a href="/proxy/http://othersite.com/">other site, same proto</a>',
     '<a href="/proxy/https://othersite.com/">other site, dif proto</a>',
+    '<a href="/proxy/http://cdnexample.com/">other site, same ending in domain</a>',
     '<a href="javascript:void(0)" onclick="window.open(\'/proxy/http://sub.example.com/\')">new subdomain using inline JS</a>',
     '<img src="/proxy/http://example.com/img.jpg" alt="no change" />',
     '<img src="/proxy/https://example.com/img.jpg" alt="new proto">',
@@ -128,11 +131,14 @@ test("should rewrite urls that change subdomain or protocol (but not domain)", f
     '<a href="/proxy/http://example.com/">no change</a>',
     '<a href="/proxy/http://example.com/?__proxy_cookies_to=https%3A%2F%2Fexample.com%2F">new proto</a>',
     '<a href="/proxy/http://example.com/?__proxy_cookies_to=http%3A%2F%2Fsub.example.com%2F">new subdomain</a>',
+    '<a href="/proxy/http://example.com/?__proxy_cookies_to=http%3A%2F%2Fsub.example.com%2Fpath">new subdomain, with path</a>',
+    '<a href="/proxy/http://example.com/?__proxy_cookies_to=http%3A%2F%2Fsub.example.com%2F%3Ffoo%3Dbar">new subdomain, with querystring</a>',
     '<a href="/proxy/http://othersite.com/">other site, same proto</a>',
     '<a href="/proxy/https://othersite.com/">other site, dif proto</a>',
+    '<a href="/proxy/http://cdnexample.com/">other site, same ending in domain</a>',
     '<a href="javascript:void(0)" onclick="window.open(\'/proxy/http://example.com/?__proxy_cookies_to=http%3A%2F%2Fsub.example.com%2F\')">new subdomain using inline JS</a>',
     '<img src="/proxy/http://example.com/img.jpg" alt="no change" />',
-    '<img src="/proxy/http://example.com/img.jpg?__proxy_cookies_to=https%3A%2F%2Fexample.com%2Fimg.jpg" alt="new proto">',
+    '<img src="/proxy/http://example.com/?__proxy_cookies_to=https%3A%2F%2Fexample.com%2Fimg.jpg" alt="new proto">',
   ].join("\n");
 
   data.stream.setEncoding("utf8");
