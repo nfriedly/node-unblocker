@@ -12,6 +12,7 @@ const { fixUrl } = require("../lib/client/unblocker-client.js");
 const pixel =
   " data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
 
+// test cases for fixUrl
 const testCases = [
   { url: "http://foo.com/", expected: "/proxy/http://foo.com/" },
   { url: "/bar", expected: "/proxy/http://example.com/bar" },
@@ -57,7 +58,7 @@ const testCases = [
 ];
 
 testCases.forEach((tc) => {
-  test(JSON.stringify(tc), (t) => {
+  test('fixUrl - JSON.stringify(tc), (t) => {
     // todo: replace || with ??
     const actual = fixUrl(tc.url, tc.config || config, tc.location || location);
     t.equal(actual, tc.expected);
