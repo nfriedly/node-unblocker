@@ -58,7 +58,7 @@ const testCases = [
 ];
 
 testCases.forEach((tc) => {
-  test('fixUrl - JSON.stringify(tc), (t) => {
+  test("fixUrl - " + JSON.stringify(tc), (t) => {
     // todo: replace || with ??
     const actual = fixUrl(tc.url, tc.config || config, tc.location || location);
     t.equal(actual, tc.expected);
