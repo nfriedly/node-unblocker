@@ -20,8 +20,11 @@ test("url_rewriting should support short html documents", function (t) {
       .pipe(
         concat(function (data) {
           t.equal(
-            data.toString(),
-            expected.toString().replace(/<remotePort>/g, servers.remotePort)
+            data.toString().toLowerCase(),
+            expected
+              .toString()
+              .toLowerCase()
+              .replace(/<remotePort>/g, servers.remotePort)
           );
           cleanup();
         })
