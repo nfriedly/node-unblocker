@@ -58,3 +58,15 @@ test("it rewrites location property writes", function (t) {
   t.equal(actual, expected);
   t.end();
 });
+
+test("it rewrites location writes", function (t) {
+  const source = "location = 'http://example.com/';";
+  const expected = `if (location === window.location) {
+  unblocker.window.location = 'http://example.com/';
+} else {
+  location = 'http://example.com/';
+}`;
+  const actual = cs.proxyScriptSync(source);
+  t.equal(actual.replace(/\r/g, ""), expected);
+  t.end();
+});
