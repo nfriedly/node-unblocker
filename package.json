@@ -17,6 +17,7 @@
     "lodash": "^4.17.15",
     "mime": "^2.4.4",
     "parse5-html-rewriting-stream": "^6.0.1",
+    "recast": "^0.20.4",
     "send": "^0.17.1",
     "set-cookie-parser": "^2.4.1",
     "tld": "0.0.2"
