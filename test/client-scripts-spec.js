@@ -25,6 +25,16 @@ test("it rewrites window.location reads", function (t) {
   t.end();
 });
 
+test("it rewrites ES6", function (t) {
+  const source =
+    "var loc = window.location, func = (a, b, ...rest) => ({a, b, ...rest});";
+  const expected =
+    "var loc = unblocker.maybeGetProxy(window).location, func = (a, b, ...rest) => ({a, b, ...rest});";
+  const actual = cs.proxyScriptSync(source);
+  t.equal(actual, expected);
+  t.end();
+});
+
 test("it rewrites window.location reads in an object", function (t) {
   const source = "var obj = { loc: window.location };";
   const expected =
