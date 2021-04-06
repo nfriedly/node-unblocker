@@ -36,4 +36,5 @@ module.exports = {
       },
     },
   ],
+  ignorePatterns: ["test/source/", "test/expected/"],
 };
