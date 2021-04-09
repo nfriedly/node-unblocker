@@ -1,19 +1,19 @@
 "use strict";
 
-var http = require("http");
-var Unblocker = require("unblocker");
-var youtube = require("./youtube.js");
+const http = require("http");
+const Unblocker = require("unblocker");
+const youtube = require("./youtube.js");
 
-var unblocker = Unblocker({
+const unblocker = Unblocker({
   requestMiddleware: [youtube.processRequest],
 });
 
-var server = http
+const server = http
   .createServer(function (req, res) {
     // first let unblocker try to handle the requests
     unblocker(req, res, function (err) {
       // this callback will be fired for any request that unblocker does not serve
-      var headers = { "content-type": "text/html" };
+      const headers = { "content-type": "text/html" };
       if (err) {
         res.writeHead(500, headers);
         return res.end(err.stack || err);

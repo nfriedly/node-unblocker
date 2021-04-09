@@ -1,13 +1,13 @@
 "use strict";
 
-var fs = require("fs"),
-  concat = require("concat-stream"),
-  test = require("tap").test,
-  hyperquest = require("hyperquest"),
-  getServers = require("./test_utils.js").getServers;
+const fs = require("fs");
+const concat = require("concat-stream");
+const { test } = require("tap");
+const hyperquest = require("hyperquest");
+const { getServers } = require("./test_utils.js");
 
-var source = fs.readFileSync(__dirname + "/source/short.html");
-var expected = fs.readFileSync(__dirname + "/expected/short.html");
+const source = fs.readFileSync(__dirname + "/source/short.html");
+const expected = fs.readFileSync(__dirname + "/expected/short.html");
 
 test("url_rewriting should support short html documents", function (t) {
   getServers(source, function (err, servers) {

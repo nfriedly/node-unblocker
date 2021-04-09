@@ -1,9 +1,9 @@
 "use strict";
 
-var http = require("http"),
-  async = require("async"),
-  PassThrough = require("stream").PassThrough,
-  Unblocker = require("../lib/unblocker.js");
+const http = require("http");
+const async = require("async");
+const { PassThrough } = require("stream");
+const Unblocker = require("../lib/unblocker.js");
 
 function getUnblocker(options) {
   if (options.unblocker) {
@@ -17,7 +17,7 @@ function getApp(unblocker) {
     // first let unblocker try to handle the requests
     unblocker(req, res, function (err) {
       // this callback will be fired for any request that unblocker does not serve
-      var headers = {
+      const headers = {
         "content-type": "text/plain",
       };
       if (err) {
@@ -63,12 +63,12 @@ exports.getServers = function (options, next) {
 
   options.remoteFn = options.remoteFn || sendContent;
 
-  var unblocker = getUnblocker(options);
+  const unblocker = getUnblocker(options);
 
-  var app = options.app || getApp(unblocker);
+  const app = options.app || getApp(unblocker);
 
-  var proxyServer = http.createServer(app),
-    remoteServer = http.createServer(options.remoteFn);
+  const proxyServer = http.createServer(app);
+  const remoteServer = http.createServer(options.remoteFn);
 
   proxyServer.setTimeout(5000);
   remoteServer.setTimeout(5000);
@@ -84,7 +84,7 @@ exports.getServers = function (options, next) {
       if (err) {
         return next(err);
       }
-      var ret = {
+      const ret = {
         proxyServer: proxyServer,
         proxyPort: proxyServer.address().port,
         remoteServer: remoteServer,

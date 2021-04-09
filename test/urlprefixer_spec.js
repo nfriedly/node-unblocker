@@ -1,15 +1,15 @@
 "use strict";
 
 const { PassThrough } = require("stream");
-var test = require("tap").test,
-  _ = require("lodash"),
-  concat = require("concat-stream");
+const { test } = require("tap");
+const _ = require("lodash");
+const concat = require("concat-stream");
 
-var urlPrefix = require("../lib/url-prefixer.js")({
+const urlPrefix = require("../lib/url-prefixer.js")({
   prefix: "/proxy/",
 });
 
-var htmlTestLines = {
+const htmlTestLines = {
   // source => expected result
 
   // xmlns items first two should NOT get rewritten
@@ -116,8 +116,8 @@ var htmlTestLines = {
   '<button formaction="mytarget.php">': '<button formaction="mytarget.php">',
 };
 
-var testUri = new URL("http://localhost:8081/");
-var testPrefix = "/proxy/";
+const testUri = new URL("http://localhost:8081/");
+const testPrefix = "/proxy/";
 
 _.each(htmlTestLines, function (expected, source) {
   test(`should rewrite ${source} to ${expected}`, function (t) {
@@ -141,7 +141,7 @@ _.each(htmlTestLines, function (expected, source) {
   });
 });
 
-var cssTestLines = {
+const cssTestLines = {
   ".bg1 { background: url(http://example.com/img.jpg); }":
     ".bg1 { background: url(/proxy/http://example.com/img.jpg); }",
   ".bg2 { background: url(https://example.com/img.jpg); }":
@@ -209,7 +209,7 @@ var cssTestLines = {
 
 test("should rewrite (or not rewrite) various CSS strings correctly", function (t) {
   _.each(cssTestLines, function (expected, source) {
-    var actual = urlPrefix.rewriteUrls(source, testUri, testPrefix);
+    const actual = urlPrefix.rewriteUrls(source, testUri, testPrefix);
     t.equal(
       actual,
       expected,
@@ -282,12 +282,12 @@ test("should correctly handle packets split at different locations", function (t
 
   t.plan(fullSource.length);
   for (
-    var splitLocation = 0, l = fullSource.length;
+    let splitLocation = 0, l = fullSource.length;
     splitLocation < l;
     splitLocation++
   ) {
-    var start = fullSource.substr(0, splitLocation);
-    var end = fullSource.substr(splitLocation);
+    const start = fullSource.substr(0, splitLocation);
+    const end = fullSource.substr(splitLocation);
     createSubTest(start, end);
   }
 });

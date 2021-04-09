@@ -1,14 +1,14 @@
 "use strict";
 
-var fs = require("fs"),
-  format = require("util").format,
-  concat = require("concat-stream"),
-  hyperquest = require("hyperquest"),
-  math = require("math-helpers")(),
-  async = require("async"),
-  getServers = require("./test_utils.js").getServers;
+const fs = require("fs");
+const { format } = require("util");
+const concat = require("concat-stream");
+const hyperquest = require("hyperquest");
+const math = require("math-helpers")();
+const async = require("async");
+const { getServers } = require("./test_utils.js");
 
-var source = fs.readFileSync(__dirname + "/source/index.html");
+const source = fs.readFileSync(__dirname + "/source/index.html");
 
 // fire up the server and actually run the tests
 getServers(source, function (err, servers) {
@@ -16,10 +16,11 @@ getServers(source, function (err, servers) {
   //process.on('SIGINT', servers.kill);
   //process.on('SIGTERM', servers.kill);
 
-  var iterations = 1000;
-  var concurrency = 30;
+  const iterations = 1000;
+  const concurrency = 30;
 
-  var baseline, proxy;
+  let baseline;
+  let proxy;
 
   new async.series(
     [
@@ -58,18 +59,18 @@ getServers(source, function (err, servers) {
 });
 
 function runTest(url, iterations, concurrency, cb) {
-  var start = Date.now(),
-    times = [],
-    failures = [],
-    tasks = [];
+  const start = Date.now();
+  const times = [];
+  const failures = [];
+  const tasks = [];
 
   function addTask() {
     tasks.push(function (step) {
-      var start = Date.now();
+      const start = Date.now();
       hyperquest(url)
         .pipe(
           concat(function (/*data*/) {
-            var time = Date.now() - start;
+            const time = Date.now() - start;
             times.push(time);
             process.stdout.write(".");
             step();
@@ -84,19 +85,19 @@ function runTest(url, iterations, concurrency, cb) {
     });
   }
 
-  for (var i = 0; i < iterations; i++) {
+  for (let i = 0; i < iterations; i++) {
     addTask();
   }
 
   async.parallelLimit(tasks, concurrency, function (err) {
     if (err) failures.push(err);
-    var totalTime = Date.now() - start;
+    const totalTime = Date.now() - start;
     cb(failures, times, totalTime);
   });
 }
 
 function getStats(iterations, failures, successes, time) {
-  var sorted = successes.sort();
+  const sorted = successes.sort();
   return {
     iterations: iterations,
     failures: failures.length,
@@ -113,7 +114,7 @@ function getStats(iterations, failures, successes, time) {
 
 function printDifference(stat, proxy, baseline) {
   if (!baseline) return "";
-  var percentageDiff = (proxy[stat] * 100) / baseline[stat] - 100;
+  const percentageDiff = (proxy[stat] * 100) / baseline[stat] - 100;
   return format(
     "(%s% %s than the baseline)",
     Math.round(Math.abs(percentageDiff)),

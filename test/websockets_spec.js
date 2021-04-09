@@ -1,11 +1,11 @@
 "use strict";
 
-var fs = require("fs"),
-  test = require("tap").test,
-  getServers = require("./test_utils.js").getServers;
+const fs = require("fs");
+const { test } = require("tap");
+const { getServers } = require("./test_utils.js");
 const WebSocket = require("ws");
 
-var sourceContent = fs.readFileSync(__dirname + "/source/index.html");
+const sourceContent = fs.readFileSync(__dirname + "/source/index.html");
 
 test("it should pass text messages over a websocket connection", function (t) {
   t.plan(3);

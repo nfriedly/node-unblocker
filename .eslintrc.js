@@ -17,8 +17,10 @@ module.exports = {
   },
   rules: {
     // todo: enable these
-    //"no-var": "error",
-    //"prefer-const": "error",
+    "no-var": "error",
+    "one-var": ["error", "never"],
+    "prefer-const": "error",
+    "prefer-destructuring": "error",
     strict: "error",
     "no-unsafe-optional-chaining": "error",
   },

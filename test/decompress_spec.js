@@ -1,15 +1,15 @@
 "use strict";
 
-var PassThrough = require("stream").PassThrough;
-var zlib = require("zlib");
-var test = require("tap").test;
-var concat = require("concat-stream");
-var decompress = require("../lib/decompress.js");
-var defaultConfig = require("../lib/unblocker.js").defaultConfig;
+const { PassThrough } = require("stream");
+const zlib = require("zlib");
+const { test } = require("tap");
+const concat = require("concat-stream");
+const decompress = require("../lib/decompress.js");
+const { defaultConfig } = require("../lib/unblocker.js");
 
 test("should decompress data compressed with gzip", function (t) {
-  var source = zlib.createGzip();
-  var data = {
+  const source = zlib.createGzip();
+  const data = {
     remoteResponse: {
       statusCode: 200,
     },
@@ -19,8 +19,8 @@ test("should decompress data compressed with gzip", function (t) {
     contentType: "text/html",
     stream: source,
   };
-  var content = "this is some content to compress and decompress";
-  var expected = content;
+  const content = "this is some content to compress and decompress";
+  const expected = content;
 
   decompress(defaultConfig).handleResponse(data);
 
@@ -37,7 +37,7 @@ test("should decompress data compressed with gzip", function (t) {
 
   data.stream.pipe(
     concat(function (data) {
-      var actual = data.toString();
+      const actual = data.toString();
       t.same(actual, expected);
       t.end();
     })
@@ -47,8 +47,8 @@ test("should decompress data compressed with gzip", function (t) {
 });
 
 test("should decompress data compressed with deflate", function (t) {
-  var source = zlib.createDeflate();
-  var data = {
+  const source = zlib.createDeflate();
+  const data = {
     remoteResponse: {
       statusCode: 200,
     },
@@ -58,8 +58,8 @@ test("should decompress data compressed with deflate", function (t) {
     contentType: "text/html",
     stream: source,
   };
-  var content = "this is some content to compress and decompress";
-  var expected = content;
+  const content = "this is some content to compress and decompress";
+  const expected = content;
 
   decompress(defaultConfig).handleResponse(data);
 
@@ -76,7 +76,7 @@ test("should decompress data compressed with deflate", function (t) {
 
   data.stream.pipe(
     concat(function (data) {
-      var actual = data.toString();
+      const actual = data.toString();
       t.same(actual, expected);
       t.end();
     })
@@ -86,8 +86,8 @@ test("should decompress data compressed with deflate", function (t) {
 });
 
 test("should skip requests with no content (#105)", function (t) {
-  var source = new PassThrough();
-  var data = {
+  const source = new PassThrough();
+  const data = {
     remoteResponse: {
       statusCode: 304,
     },
@@ -115,8 +115,8 @@ test("should skip requests with no content (#105)", function (t) {
 });
 
 test("should skip requests with no content, even if it can't tell ahead of time", function (t) {
-  var source = new PassThrough();
-  var data = {
+  const source = new PassThrough();
+  const data = {
     remoteResponse: {
       statusCode: 200,
     },
@@ -144,7 +144,7 @@ test("should skip requests with no content, even if it can't tell ahead of time"
 });
 
 test("should request only gzip if the client supports multiple encodings (#151)", function (t) {
-  var data = {
+  const data = {
     headers: {
       "accept-encoding": "deflate, gzip",
     },
@@ -161,7 +161,7 @@ test("should request only gzip if the client supports multiple encodings (#151)"
 });
 
 test("should remove the accept-encoding header if the client does not support gzip", function (t) {
-  var data = {
+  const data = {
     headers: {
       "accept-encoding": "deflate",
     },

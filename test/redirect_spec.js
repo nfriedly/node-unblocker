@@ -1,11 +1,11 @@
 "use strict";
 
-var redirect = require("../lib/redirects.js");
-var test = require("tap").test;
+const redirect = require("../lib/redirects.js");
+const { test } = require("tap");
 
 test("should correctly redirect with http://", function (t) {
-  var expected = "http://foobar.com/proxy/http://example.com/not-a-test/";
-  var data = {
+  const expected = "http://foobar.com/proxy/http://example.com/not-a-test/";
+  const data = {
     url: "http://example.com/test/",
     headers: {
       location: "http://example.com/not-a-test/",
@@ -22,8 +22,8 @@ test("should correctly redirect with http://", function (t) {
 });
 
 test("should correctly redirect with //", function (t) {
-  var expected = "http://foobar.com/proxy/http://example.com/not-a-test/";
-  var data = {
+  const expected = "http://foobar.com/proxy/http://example.com/not-a-test/";
+  const data = {
     url: "http://example.com/test/",
     headers: {
       location: "//example.com/not-a-test/",
@@ -40,8 +40,8 @@ test("should correctly redirect with //", function (t) {
 });
 
 test("should correctly redirect with // and https", function (t) {
-  var expected = "http://foobar.com/proxy/https://example.com/not-a-test/";
-  var data = {
+  const expected = "http://foobar.com/proxy/https://example.com/not-a-test/";
+  const data = {
     url: "https://example.com/test/",
     headers: {
       location: "//example.com/not-a-test/",
