@@ -14,7 +14,7 @@ test("should copy cookies and redirect in response to a __proxy_cookies_to query
     processContentTypes: [],
   });
   var data = getData();
-  data.url += "?__proxy_cookies_to=https%3A%2F%2Fexample.com%2F";
+  data.url.search = "?__proxy_cookies_to=https%3A%2F%2Fexample.com%2F";
   data.headers.cookie = "one=1; two=2; three=3";
   data.clientResponse = {
     redirectTo: function (path, headers) {
@@ -85,7 +85,7 @@ test("should copy any missing cookies to a 3xx redirect", function (t) {
   data.headers = {
     "set-cookie": "one=1; Path=/; HttpOnly",
   };
-  data.redirectUrl = "https://example.com/"; // this is normally set by the redirects middleware before it changes the location header
+  data.redirectHref = "https://example.com/"; // this is normally set by the redirects middleware before it changes the location header
   instance.handleResponse(data);
   var expected = {
     "set-cookie": [

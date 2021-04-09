@@ -1,10 +1,8 @@
 "use strict";
 
-const URL = require("url");
-
 module.exports = function ({ allowedDomains, message }) {
   function isRequestAllowed(data) {
-    const { hostname } = URL.parse(data.url);
+    const { hostname } = data.url;
     return allowedDomains.some(
       (allowedDomain) =>
         hostname === allowedDomain || hostname.endsWith(`.${allowedDomain}`)
