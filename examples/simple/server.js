@@ -1,16 +1,16 @@
 "use strict";
 
-var http = require("http");
-var Unblocker = require("unblocker");
+const http = require("http");
+const Unblocker = require("unblocker");
 
-var unblocker = Unblocker({});
+const unblocker = Unblocker({});
 
-var server = http
+const server = http
   .createServer(function (req, res) {
     // first let unblocker try to handle the requests
     unblocker(req, res, function (err) {
       // this callback will be fired for any request that unblocker does not serve
-      var headers = { "content-type": "text/plain" };
+      const headers = { "content-type": "text/plain" };
       if (err) {
         res.writeHead(500, headers);
         return res.end(err.stack || err);

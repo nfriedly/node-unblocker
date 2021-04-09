@@ -37,7 +37,8 @@ getServers({ remoteApp }, function (err, servers) {
   const iterations_js = 100;
   const concurrency_js = 4; // note: this entire test (client and server) runs on a single thread
 
-  var baseline, proxy;
+  let baseline;
+  let proxy;
 
   new async.series(
     [
@@ -131,7 +132,7 @@ function runTest(name, url, iterations, concurrency, cb) {
 
   function addTask() {
     tasks.push(function (step) {
-      var start = Date.now();
+      const start = Date.now();
       hyperquest(url)
         .pipe(
           concat(function (data) {
@@ -153,19 +154,19 @@ function runTest(name, url, iterations, concurrency, cb) {
     });
   }
 
-  for (var i = 0; i < iterations; i++) {
+  for (let i = 0; i < iterations; i++) {
     addTask();
   }
 
   async.parallelLimit(tasks, concurrency, function (err) {
     if (err) failures.push(err);
-    var totalTime = Date.now() - start;
+    const totalTime = Date.now() - start;
     cb(failures, times, totalTime);
   });
 }
 
 function getStats(iterations, failures, successes, time) {
-  var sorted = successes.sort();
+  const sorted = successes.sort();
   return {
     iterations: iterations,
     failures: failures.length,
@@ -182,7 +183,7 @@ function getStats(iterations, failures, successes, time) {
 
 function printDifference(stat, proxy, baseline) {
   if (!baseline) return "";
-  var percentageDiff = (proxy[stat] * 100) / baseline[stat] - 100;
+  const percentageDiff = (proxy[stat] * 100) / baseline[stat] - 100;
   return format(
     "(%s% %s than the baseline)",
     Math.round(Math.abs(percentageDiff)),

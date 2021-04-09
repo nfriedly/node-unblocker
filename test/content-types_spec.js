@@ -1,13 +1,13 @@
 "use strict";
 
-var test = require("tap").test;
-var contentTypes = require("../lib/content-types.js");
+const { test } = require("tap");
+const contentTypes = require("../lib/content-types.js");
 
 test("should handle content types with a charset", function (t) {
-  var config = {
+  const config = {
     processContentTypes: ["text/html"],
   };
-  var data = {
+  const data = {
     headers: {
       "content-type": "text/html; charset=utf-8",
     },

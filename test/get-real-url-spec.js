@@ -1,13 +1,13 @@
 "use strict";
 
-var it = require("tap").test,
-  getRealUrl = require("../lib/get-real-url.js");
+const it = require("tap").test;
+const getRealUrl = require("../lib/get-real-url.js");
 
-var config = {
+const config = {
   prefix: "/proxy/",
 };
 
-var instance = getRealUrl(config);
+const instance = getRealUrl(config);
 
 it("should extract the url", function (t) {
   t.equal(instance("/proxy/http://example.com/"), "http://example.com/");

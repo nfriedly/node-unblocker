@@ -1,20 +1,20 @@
 "use strict";
 
-var test = require("tap").test,
-  concat = require("concat-stream"),
-  utils = require("./test_utils.js"),
-  getData = utils.getData,
-  defaultConfig = require("../lib/unblocker").defaultConfig;
+const { test } = require("tap");
+const concat = require("concat-stream");
+const utils = require("./test_utils.js");
+const { getData } = utils;
+const { defaultConfig } = require("../lib/unblocker");
 
-var metaRobots = require("../lib/meta-robots.js");
+const metaRobots = require("../lib/meta-robots.js");
 
-var head = "<html><head><title>test</title></head>";
-var body = "<body><p>asdf</p></body></html>";
+const head = "<html><head><title>test</title></head>";
+const body = "<body><p>asdf</p></body></html>";
 
 test("should add a meta tag to the head", function (t) {
-  var expected =
+  const expected =
     '<html><head><title>test</title><meta name="ROBOTS" content="NOINDEX, NOFOLLOW"/>\n</head>';
-  var stream = metaRobots().createStream();
+  const stream = metaRobots().createStream();
   stream.setEncoding("utf8");
   stream.pipe(
     concat(function (actual) {
@@ -26,8 +26,8 @@ test("should add a meta tag to the head", function (t) {
 });
 
 test("should do nothing to the body", function (t) {
-  var expected = body;
-  var stream = metaRobots().createStream();
+  const expected = body;
+  const stream = metaRobots().createStream();
   stream.setEncoding("utf8");
   stream.pipe(
     concat(function (actual) {
@@ -39,20 +39,20 @@ test("should do nothing to the body", function (t) {
 });
 
 test("should not modify javascript", function (t) {
-  var config = Object.assign({}, defaultConfig);
-  var instance = metaRobots(config);
-  var data = getData();
+  const config = Object.assign({}, defaultConfig);
+  const instance = metaRobots(config);
+  const data = getData();
   data.contentType = "text/javascript";
-  var streamStart = data.stream;
+  const streamStart = data.stream;
   streamStart.setEncoding("utf8");
   instance(data); // this will replace data.stream when modifying the contents
-  var streamEnd = data.stream;
+  const streamEnd = data.stream;
 
   // commented out so that we can test the results rather than the implimentation details
   //t.equal(streamStart, streamEnd);
 
-  var js = `document.write('${head}')`;
-  var expected = js;
+  const js = `document.write('${head}')`;
+  const expected = js;
 
   streamEnd.setEncoding("utf8");
   streamEnd.pipe(

@@ -1,6 +1,6 @@
 "use strict";
 
-const Transform = require("stream").Transform;
+const { Transform } = require("stream");
 
 // this isn't 100% reliable, but it will handle most cases
 // see lib/url-prefixer.js for a version that handles things split across multiple chunks
