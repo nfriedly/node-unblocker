@@ -10,7 +10,6 @@ module.exports = {
   ],
   env: {
     node: true,
-    es6: true,
   },
   parserOptions: {
     ecmaVersion: 2020,
@@ -29,12 +28,6 @@ module.exports = {
       files: ["examples/*/*.js"],
       rules: {
         "node/no-missing-require": "off",
-      },
-    },
-    {
-      files: ["test/**"],
-      rules: {
-        "node/no-unsupported-features/node-builtins": "off",
       },
     },
   ],
