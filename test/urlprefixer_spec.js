@@ -1,8 +1,7 @@
 "use strict";
 
 const { PassThrough } = require("stream");
-var URL = require("url"),
-  test = require("tap").test,
+var test = require("tap").test,
   _ = require("lodash"),
   concat = require("concat-stream");
 
@@ -117,7 +116,7 @@ var htmlTestLines = {
   '<button formaction="mytarget.php">': '<button formaction="mytarget.php">',
 };
 
-var testUri = URL.parse("http://localhost:8081/");
+var testUri = new URL("http://localhost:8081/");
 var testPrefix = "/proxy/";
 
 _.each(htmlTestLines, function (expected, source) {
