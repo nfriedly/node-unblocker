@@ -39,7 +39,8 @@
     "pre-commit": "npm run autofix && npm test",
     "autofix": "eslint . --fix",
     "test-spec": "tap test/*spec.js",
-    "test-perf": "node test/performance.js"
+    "test-perf": "node test/performance.js",
+    "start": "npm install && npm start",
   },
   "license": "AGPL-3.0",
   "main": "lib/unblocker.js",
