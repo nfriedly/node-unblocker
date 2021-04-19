@@ -108,7 +108,7 @@ test("should rewrite urls that change subdomain or protocol (but not domain)", f
   });
   data.stream = sourceStream;
   instance.handleResponse(data);
-  t.notEqual(
+  t.not(
     data.stream,
     sourceStream,
     "cookies.handleResponse should create a new stream to process content"
@@ -163,7 +163,6 @@ test("should work with SameSite attributes", function (t) {
   ];
   instance.handleResponse(data);
   const [actual] = data.headers["set-cookie"];
-  console.log(actual);
-  t.assert(actual.toLowerCase().indexOf("samesite=none") > -1);
+  t.ok(actual.toLowerCase().indexOf("samesite=none") > -1);
   t.end();
 });

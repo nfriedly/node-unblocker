@@ -22,7 +22,7 @@ test("should proxy requests", function (t) {
     res.end(expectedResponse);
   }
   getServers({ remoteApp }, function (err, servers) {
-    t.ifErr(err);
+    t.error(err);
     function cleanup() {
       servers.kill(function () {
         t.end();
@@ -46,7 +46,7 @@ test("url_rewriting should support support all kinds of links", function (t) {
   getServers(
     { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
     function (err, servers) {
-      t.ifErr(err);
+      t.error(err);
       function cleanup() {
         servers.kill(function () {
           t.end();
@@ -74,7 +74,7 @@ test("should return control to parent when route doesn't match and no referer is
   getServers(
     { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
     function (err, servers) {
-      t.ifErr(err);
+      t.error(err);
       function cleanup() {
         servers.kill(function () {
           t.end();
@@ -103,7 +103,7 @@ test("should redirect root-relative urls when the correct target can be determin
   getServers(
     { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
     function (err, servers) {
-      t.ifErr(err);
+      t.error(err);
       function cleanup() {
         servers.kill(function () {
           t.end();
@@ -135,7 +135,7 @@ test("should redirect root-relative urls when the correct target can be determin
   getServers(
     { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
     function (err, servers) {
-      t.ifErr(err);
+      t.error(err);
       function cleanup() {
         servers.kill(function () {
           t.end();
@@ -167,7 +167,7 @@ test("should NOT redirect http urls that have had the slashes merged (http:/ ins
   getServers(
     { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
     function (err, servers) {
-      t.ifErr(err);
+      t.error(err);
       function cleanup() {
         servers.kill(function () {
           t.end();
@@ -190,7 +190,7 @@ test("should redirect http urls that have had the have two occurrences of /prefi
   getServers(
     { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
     function (err, servers) {
-      t.ifErr(err);
+      t.error(err);
       function cleanup() {
         servers.kill(function () {
           t.end();
@@ -220,7 +220,7 @@ test("should redirect http urls that end in a TLD without a /", function (t) {
   getServers(
     { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
     function (err, servers) {
-      t.ifErr(err);
+      t.error(err);
       function cleanup() {
         servers.kill(function () {
           t.end();
@@ -250,7 +250,7 @@ test("should redirect http urls that end in a TLD without a / when req.protocol 
   const unblocker = new Unblocker({});
   app.use(unblocker);
   getServers({ app, unblocker, sourceContent }, function (err, servers) {
-    t.ifErr(err);
+    t.error(err);
     function cleanup() {
       servers.kill(function () {
         t.end();
