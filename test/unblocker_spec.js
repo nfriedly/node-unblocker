@@ -11,6 +11,37 @@ const Unblocker = require("../lib/unblocker.js");
 const sourceContent = fs.readFileSync(__dirname + "/source/index.html");
 const expected = fs.readFileSync(__dirname + "/expected/index.html");
 
+test("should proxy requests", function (t) {
+  t.plan(3);
+  const pathExtra = "foo/bar.html?query1=param1&query2=param2";
+  const expectedPath = "/" + pathExtra;
+  const expectedResponse = "remote response";
+  function remoteApp(req, res) {
+    t.equal(req.url, expectedPath);
+    res.writeHead(200);
+    res.end(expectedResponse);
+  }
+  getServers({ remoteApp }, function (err, servers) {
+    t.ifErr(err);
+    function cleanup() {
+      servers.kill(function () {
+        t.end();
+      });
+    }
+    hyperquest(servers.proxiedUrl + pathExtra)
+      .pipe(
+        concat(function (data) {
+          t.equal(data.toString(), expectedResponse);
+          cleanup();
+        })
+      )
+      .on("error", function (err) {
+        console.error("error retrieving data from proxy", err);
+        cleanup();
+      });
+  });
+});
+
 test("url_rewriting should support support all kinds of links", function (t) {
   getServers(
     { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
