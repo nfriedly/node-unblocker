@@ -1,6 +1,7 @@
 "use strict";
 const { test } = require("tap");
-const { rewriteJsSync } = require("../lib/rewrite-js.js");
+const concat = require("concat-stream");
+const { rewriteJsSync, RewriteJsStream } = require("../lib/rewrite-js.js");
 
 const cs = { proxyScriptSync: rewriteJsSync };
 
@@ -124,4 +125,21 @@ test("it includes parens when they are part of an object", function (t) {
   const actual = cs.proxyScriptSync(source);
   t.equal(actual.replace(/\r/g, ""), expected);
   t.end();
+});
+
+test("it works on streams when there is a split in the object", function (t) {
+  const source = ["new Sg(g", ".A.location.href,g.A,!1)"];
+  const expected = "new Sg(unblocker.maybeGetProxy(g.A).location.href,g.A,!1)";
+
+  const stream = new RewriteJsStream();
+  stream.setEncoding("utf8");
+  stream.pipe(
+    concat((actual) => {
+      t.equal(actual, expected);
+      t.end();
+    })
+  );
+
+  source.forEach((c) => stream.write(c));
+  stream.end();
 });
