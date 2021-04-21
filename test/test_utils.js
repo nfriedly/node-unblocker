@@ -127,10 +127,13 @@ exports.getContext = function getContext(context = {}) {
     },
     context
   );
-  context.urlWrapper = new UrlWrapper(
-    context._proxyUrl || new URL("http://proxy-host.invalid/proxy/"),
-    context.url
-  );
+  if (typeof context.url === "string") {
+    context.url = new URL(context.url);
+  }
+  context.urlWrapper = new UrlWrapper({
+    proxyUrl: context._proxyUrl || new URL("http://proxy-host.invalid/proxy/"),
+    remoteUrl: context.url,
+  });
 
   return context;
 };

@@ -4,22 +4,17 @@
 const { test } = require("tap");
 const _ = require("lodash");
 const concat = require("concat-stream");
-const UrlWrapper = require("../lib/prefix-url-wrapper.js");
 const RewriteCss = require("../lib/rewrite-css.js");
 const prefix = "/proxy/";
 const config = {
   prefix,
 };
 const { fixCSS } = RewriteCss(config);
+const { getContext } = require("./test_utils");
 
 const testUri = new URL("http://localhost:8081/");
 
-const context = {
-  urlWrapper: new UrlWrapper(
-    new URL("http://proxy-host.invalid" + prefix),
-    testUri
-  ),
-};
+const context = getContext({ url: testUri });
 
 const cssTestLines = {
   ".bg1 { background: url(http://example.com/img.jpg); }":

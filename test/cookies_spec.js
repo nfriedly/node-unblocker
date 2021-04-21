@@ -84,14 +84,15 @@ test("should copy any missing cookies to a 3xx redirect", function (t) {
   };
   data.headers = {
     "set-cookie": "one=1; Path=/; HttpOnly",
+    location: "https://example.com/",
   };
-  data.redirectHref = "https://example.com/"; // this is normally set by the redirects middleware before it changes the location header
   instance.handleResponse(data);
   const expected = {
     "set-cookie": [
       "one=1; Path=/proxy/https://example.com/; HttpOnly",
       "two=2; Path=/proxy/https://example.com/",
     ],
+    location: "https://example.com/",
   };
   t.same(data.headers, expected);
 });
