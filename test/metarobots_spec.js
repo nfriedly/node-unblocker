@@ -3,7 +3,7 @@
 const { test } = require("tap");
 const concat = require("concat-stream");
 const utils = require("./test_utils.js");
-const { getData } = utils;
+const { getContext } = utils;
 const { defaultConfig } = require("../lib/unblocker");
 
 const metaRobots = require("../lib/meta-robots.js");
@@ -41,7 +41,7 @@ test("should do nothing to the body", function (t) {
 test("should not modify javascript", function (t) {
   const config = Object.assign({}, defaultConfig);
   const instance = metaRobots(config);
-  const data = getData();
+  const data = getContext();
   data.contentType = "text/javascript";
   const streamStart = data.stream;
   streamStart.setEncoding("utf8");

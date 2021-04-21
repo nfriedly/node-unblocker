@@ -4,6 +4,7 @@ const http = require("http");
 const async = require("async");
 const { PassThrough } = require("stream");
 const Unblocker = require("../lib/unblocker.js");
+const UrlWrapper = require("../lib/prefix-url-wrapper");
 
 function getUnblocker(options) {
   if (options.unblocker) {
@@ -107,17 +108,29 @@ exports.getServers = function (options, next) {
   );
 };
 
-exports.getData = function () {
-  return {
-    url: "http://example.com/",
-    contentType: "text/html",
-    headers: {},
-    stream: new PassThrough(),
-    clientRequest: {},
-    clientResponse: {},
-    remoteRequest: {},
-    remoteResponse: {
-      statusCode: 200,
+exports.getContext = function getContext(context = {}) {
+  context = Object.assign(
+    {
+      url: new URL("http://example.com/"),
+      rawUrl: "/proxy/http://example.com/",
+      contentType: "text/html",
+      headers: {},
+      stream: new PassThrough(),
+      clientRequest: {},
+      clientResponse: {},
+      isWebsocket: false,
+      clientSocket: undefined,
+      remoteRequest: {},
+      remoteResponse: {
+        statusCode: 200,
+      },
     },
-  };
+    context
+  );
+  context.urlWrapper = new UrlWrapper(
+    context._proxyUrl || new URL("http://proxy-host.invalid/proxy/"),
+    context.url
+  );
+
+  return context;
 };

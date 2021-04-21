@@ -1,21 +1,16 @@
 "use strict";
 
-const { PassThrough } = require("stream");
 const { test } = require("tap");
 const _ = require("lodash");
 const concat = require("concat-stream");
+const { getContext } = require("./test_utils");
 const HtmlParser = require("../lib/html-parser.js");
-const UrlWrapper = require("../lib/prefix-url-wrapper");
 const RewriteHtml = require("../lib/rewrite-html.js");
 const htmlRewriter = RewriteHtml({
   prefix: "/proxy/",
 });
-
 const testUri = new URL("http://localhost:8081/");
-const urlWrapper = new UrlWrapper(
-  new URL("http://proxy-host.invalid/proxy/"),
-  testUri
-);
+
 const htmlParser = HtmlParser();
 
 const htmlTestLines = {
@@ -130,18 +125,16 @@ const htmlTestLines = {
 _.each(htmlTestLines, function (expected, source) {
   test(`should rewrite ${source} to ${expected}`, function (t) {
     t.plan(1);
-    const sourceStream = new PassThrough();
-    sourceStream.setEncoding("utf8");
-    const data = {
-      url: testUri.href,
-      stream: sourceStream,
+    const context = getContext({
+      url: testUri,
       contentType: "text/html",
-      urlWrapper,
-    };
-    htmlParser(data);
-    htmlRewriter(data);
-    data.stream.setEncoding("utf8");
-    data.stream.pipe(
+    });
+    const sourceStream = context.stream;
+    sourceStream.setEncoding("utf8");
+    htmlParser(context);
+    htmlRewriter(context);
+    context.stream.setEncoding("utf8");
+    context.stream.pipe(
       concat((actual) => {
         t.equal(actual, expected);
         t.end();

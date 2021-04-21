@@ -2,7 +2,7 @@
 
 const { test } = require("tap");
 const utils = require("./test_utils.js");
-const { getData } = utils;
+const { getContext } = utils;
 const cookies = require("../lib/cookies.js");
 const { PassThrough } = require("stream");
 const concat = require("concat-stream");
@@ -13,7 +13,7 @@ test("should copy cookies and redirect in response to a __proxy_cookies_to query
     prefix: "/proxy/",
     processContentTypes: [],
   });
-  const data = getData();
+  const data = getContext();
   data.url.search = "?__proxy_cookies_to=https%3A%2F%2Fexample.com%2F";
   data.headers.cookie = "one=1; two=2; three=3";
   data.clientResponse = {
@@ -39,7 +39,7 @@ test("should rewrite set-cookie paths", function (t) {
     prefix: "/proxy/",
     processContentTypes: [],
   });
-  const data = getData();
+  const data = getContext();
   data.headers["set-cookie"] = ["one=1", "two=2; path=/", "three=3; path=/foo"];
   instance.handleResponse(data);
   const expected = [
@@ -57,7 +57,7 @@ test("should rewrite the cookie that is percent-encoded correctly", function (t)
     prefix: "/proxy/",
     processContentTypes: [],
   });
-  const data = getData();
+  const data = getContext();
   data.headers["set-cookie"] = [
     "asdf=asdf%3Basdf%3Dtrue%3Basdf%3Dasdf%3Basdf%3Dtrue%40asdf",
   ];
@@ -76,7 +76,7 @@ test("should copy any missing cookies to a 3xx redirect", function (t) {
     prefix: "/proxy/",
     processContentTypes: ["text/html"],
   });
-  const data = getData();
+  const data = getContext();
   data.clientRequest = {
     headers: {
       cookie: "one=oldvalue; two=2",
@@ -102,7 +102,7 @@ test("should rewrite urls that change subdomain or protocol (but not domain)", f
     prefix: "/proxy/",
     processContentTypes: ["text/html"],
   });
-  const data = getData();
+  const data = getContext();
   const sourceStream = new PassThrough({
     encoding: "utf8",
   });
@@ -157,7 +157,7 @@ test("should work with SameSite attributes", function (t) {
     prefix: "/proxy/",
     processContentTypes: [],
   });
-  const data = getData();
+  const data = getContext();
   data.headers["set-cookie"] = [
     "1P_JAR=2019-12-19-00; expires=Sat, 18-Jan-2020 00:42:02 GMT; path=/; domain=.google.com; SameSite=none",
   ];
