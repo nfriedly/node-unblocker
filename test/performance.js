@@ -1,49 +1,113 @@
 "use strict";
+const path = require("path");
+const { format } = require("util");
+const send = require("send");
+const concat = require("concat-stream");
+const hyperquest = require("hyperquest");
+const math = require("math-helpers")();
+const async = require("async");
+const { getServers } = require("./test_utils.js");
 
-var fs = require("fs"),
-  format = require("util").format,
-  concat = require("concat-stream"),
-  hyperquest = require("hyperquest"),
-  math = require("math-helpers")(),
-  async = require("async"),
-  getServers = require("./test_utils.js").getServers;
+const html_path = path.join(__dirname, "source/index.html");
+const js_path = path.join(
+  __dirname,
+  "source/desktop_polymer_inlined_html_polymer_flags.js"
+);
 
-var source = fs.readFileSync(__dirname + "/source/index.html");
+function remoteApp(req, res) {
+  if (req.url === "/js") {
+    send(req, js_path).pipe(res);
+  } else {
+    send(req, html_path).pipe(res);
+  }
+}
 
 // fire up the server and actually run the tests
-getServers(source, function (err, servers) {
+getServers({ remoteApp }, function (err, servers) {
   // set up the cleanup work first
   //process.on('SIGINT', servers.kill);
   //process.on('SIGTERM', servers.kill);
+  if (err) {
+    throw err;
+  }
 
-  var iterations = 1000;
-  var concurrency = 30;
+  const iterations_html = 1000;
+  const concurrency_html = 30;
+
+  const iterations_js = 100;
+  const concurrency_js = 4; // note: this entire test (client and server) runs on a single thread
 
   var baseline, proxy;
 
   new async.series(
     [
       function (next) {
-        console.log("\n\n=========\nBaseline\n=========");
         runTest(
-          servers.proxyHome,
-          iterations,
-          concurrency,
+          "Baseline HTML",
+          servers.remoteUrl,
+          iterations_html,
+          concurrency_html,
           function (baseFailures, baseSuccesses, time) {
-            baseline = getStats(iterations, baseFailures, baseSuccesses, time);
+            baseline = getStats(
+              iterations_html,
+              baseFailures,
+              baseSuccesses,
+              time
+            );
             printStats(baseline);
             next();
           }
         );
       },
       function (next) {
-        console.log("\n\n=========\nProxy\n=========");
         runTest(
+          "Proxy HTML",
           servers.proxiedUrl,
-          iterations,
-          concurrency,
+          iterations_html,
+          concurrency_html,
           function (proxyFailures, proxySuccesses, time) {
-            proxy = getStats(iterations, proxyFailures, proxySuccesses, time);
+            proxy = getStats(
+              iterations_html,
+              proxyFailures,
+              proxySuccesses,
+              time
+            );
+            printStats(proxy, baseline);
+            next();
+          }
+        );
+      },
+      function (next) {
+        runTest(
+          "Baseline JS",
+          servers.remoteUrl + "js",
+          iterations_js,
+          concurrency_js,
+          function (baseFailures, baseSuccesses, time) {
+            baseline = getStats(
+              iterations_js,
+              baseFailures,
+              baseSuccesses,
+              time
+            );
+            printStats(baseline);
+            next();
+          }
+        );
+      },
+      function (next) {
+        runTest(
+          "Proxy JS",
+          servers.proxiedUrl + "js",
+          iterations_js,
+          concurrency_js,
+          function (proxyFailures, proxySuccesses, time) {
+            proxy = getStats(
+              iterations_js,
+              proxyFailures,
+              proxySuccesses,
+              time
+            );
             printStats(proxy, baseline);
             next();
           }
@@ -57,19 +121,24 @@ getServers(source, function (err, servers) {
   );
 });
 
-function runTest(url, iterations, concurrency, cb) {
-  var start = Date.now(),
-    times = [],
-    failures = [],
-    tasks = [];
+function runTest(name, url, iterations, concurrency, cb) {
+  console.log("\n\n=========\n" + name + "\n=========");
+
+  const start = Date.now();
+  const times = [];
+  const failures = [];
+  const tasks = [];
 
   function addTask() {
     tasks.push(function (step) {
       var start = Date.now();
       hyperquest(url)
         .pipe(
-          concat(function (/*data*/) {
-            var time = Date.now() - start;
+          concat(function (data) {
+            if (!data || !data.length) {
+              throw new Error("No data: " + data);
+            }
+            const time = Date.now() - start;
             times.push(time);
             process.stdout.write(".");
             step();
