@@ -4,6 +4,7 @@
 const { test } = require("tap");
 const _ = require("lodash");
 const concat = require("concat-stream");
+const UrlWrapper = require("../lib/prefix-url-wrapper.js");
 const RewriteCss = require("../lib/rewrite-css.js");
 const prefix = "/proxy/";
 const config = {
@@ -12,6 +13,14 @@ const config = {
 const { fixCSS } = RewriteCss(config);
 
 const testUri = new URL("http://localhost:8081/");
+
+const context = {
+  urlWrapper: new UrlWrapper(
+    new URL("http://proxy-host.invalid" + prefix),
+    testUri
+  ),
+};
+
 const cssTestLines = {
   ".bg1 { background: url(http://example.com/img.jpg); }":
     ".bg1 { background: url(/proxy/http://example.com/img.jpg); }",
@@ -80,7 +89,7 @@ const cssTestLines = {
 
 test("should rewrite (or not rewrite) various CSS strings correctly", function (t) {
   _.each(cssTestLines, function (expected, source) {
-    const actual = fixCSS(source, testUri, config);
+    const actual = fixCSS(source, context);
     t.equal(
       actual,
       expected,
