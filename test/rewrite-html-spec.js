@@ -4,10 +4,19 @@ const { PassThrough } = require("stream");
 const { test } = require("tap");
 const _ = require("lodash");
 const concat = require("concat-stream");
+const HtmlParser = require("../lib/html-parser.js");
+const UrlWrapper = require("../lib/prefix-url-wrapper");
 const RewriteHtml = require("../lib/rewrite-html.js");
 const htmlRewriter = RewriteHtml({
   prefix: "/proxy/",
 });
+
+const testUri = new URL("http://localhost:8081/");
+const urlWrapper = new UrlWrapper(
+  new URL("http://proxy-host.invalid/proxy/"),
+  testUri
+);
+const htmlParser = HtmlParser();
 
 const htmlTestLines = {
   // source => expected result
@@ -116,7 +125,6 @@ const htmlTestLines = {
   '<button formaction="mytarget.php">': '<button formaction="mytarget.php">',
 };
 
-const testUri = new URL("http://localhost:8081/");
 //const testPrefix = "/proxy/";
 
 _.each(htmlTestLines, function (expected, source) {
@@ -128,7 +136,9 @@ _.each(htmlTestLines, function (expected, source) {
       url: testUri.href,
       stream: sourceStream,
       contentType: "text/html",
+      urlWrapper,
     };
+    htmlParser(data);
     htmlRewriter(data);
     data.stream.setEncoding("utf8");
     data.stream.pipe(
