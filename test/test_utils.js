@@ -109,7 +109,7 @@ exports.getServers = function (options, next) {
 
 exports.getData = function () {
   return {
-    url: new URL("http://example.com/"),
+    url: "http://example.com/",
     contentType: "text/html",
     headers: {},
     stream: new PassThrough(),
