@@ -4,38 +4,56 @@ const { test } = require("tap");
 const concat = require("concat-stream");
 const utils = require("./test_utils.js");
 const { getContext } = utils;
+const HtmlParser = require("../lib/html-parser");
 const { defaultConfig } = require("../lib/unblocker");
 
 const metaRobots = require("../lib/meta-robots.js");
 
-const head = "<html><head><title>test</title></head>";
+const headStart = "<html><head><title>test</title>";
+const headEnd = "</head>";
+const head = headStart + headEnd;
 const body = "<body><p>asdf</p></body></html>";
+const htmlParser = new HtmlParser();
 
 test("should add a meta tag to the head", function (t) {
   const expected =
-    '<html><head><title>test</title><meta name="ROBOTS" content="NOINDEX, NOFOLLOW"/>\n</head>';
-  const stream = metaRobots().createStream();
-  stream.setEncoding("utf8");
-  stream.pipe(
+    headStart +
+    '<meta name="ROBOTS" content="NOINDEX, NOFOLLOW"/>\n' +
+    headEnd +
+    body;
+  const context = getContext();
+  const inStream = context.stream;
+  inStream.setEncoding("utf8");
+  htmlParser(context);
+  metaRobots()(context);
+  const outStream = context.stream;
+  outStream.setEncoding("utf8");
+  outStream.pipe(
     concat(function (actual) {
       t.equal(actual, expected);
       t.end();
     })
   );
-  stream.end(head);
+  inStream.write(head);
+  inStream.end(body);
 });
 
 test("should do nothing to the body", function (t) {
   const expected = body;
-  const stream = metaRobots().createStream();
-  stream.setEncoding("utf8");
-  stream.pipe(
+  const context = getContext();
+  const inStream = context.stream;
+  inStream.setEncoding("utf8");
+  htmlParser(context);
+  metaRobots()(context);
+  const outStream = context.stream;
+  outStream.setEncoding("utf8");
+  outStream.pipe(
     concat(function (actual) {
       t.equal(actual, expected);
       t.end();
     })
   );
-  stream.end(body);
+  inStream.end(body);
 });
 
 test("should not modify javascript", function (t) {
