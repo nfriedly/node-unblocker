@@ -4,14 +4,10 @@ const { test } = require("tap");
 const _ = require("lodash");
 const concat = require("concat-stream");
 const { getContext } = require("./test_utils");
-const HtmlParser = require("../lib/html-parser.js");
-const RewriteHtml = require("../lib/rewrite-html.js");
-const htmlRewriter = RewriteHtml({
-  prefix: "/proxy/",
-});
-const testUri = new URL("http://localhost:8081/");
+const htmlParser = require("../lib/html-parser.js");
+const htmlRewriter = require("../lib/rewrite-html.js");
 
-const htmlParser = HtmlParser();
+const testUri = new URL("http://localhost:8081/");
 
 const htmlTestLines = {
   // source => expected result

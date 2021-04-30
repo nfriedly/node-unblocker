@@ -4,7 +4,7 @@ const { test } = require("tap");
 const concat = require("concat-stream");
 const utils = require("./test_utils.js");
 const { getContext } = utils;
-const HtmlParser = require("../lib/html-parser");
+const htmlParser = require("../lib/html-parser");
 const { defaultConfig } = require("../lib/unblocker");
 
 const metaRobots = require("../lib/meta-robots.js");
@@ -13,7 +13,6 @@ const headStart = "<html><head><title>test</title>";
 const headEnd = "</head>";
 const head = headStart + headEnd;
 const body = "<body><p>asdf</p></body></html>";
-const htmlParser = new HtmlParser();
 
 test("should add a meta tag to the head", function (t) {
   const expected =

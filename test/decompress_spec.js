@@ -5,7 +5,7 @@ const zlib = require("zlib");
 const { test } = require("tap");
 const concat = require("concat-stream");
 const decompress = require("../lib/decompress.js");
-const { defaultConfig } = require("../lib/unblocker.js");
+const config = { processContentTypes: ["text/html"] };
 
 test("should decompress data compressed with gzip", function (t) {
   const source = zlib.createGzip();
@@ -22,7 +22,7 @@ test("should decompress data compressed with gzip", function (t) {
   const content = "this is some content to compress and decompress";
   const expected = content;
 
-  decompress(defaultConfig).handleResponse(data);
+  decompress(config).handleResponse(data);
 
   t.not(source, data.stream, "it should create a new stream for decompression");
 
@@ -57,7 +57,7 @@ test("should decompress data compressed with deflate", function (t) {
   const content = "this is some content to compress and decompress";
   const expected = content;
 
-  decompress(defaultConfig).handleResponse(data);
+  decompress(config).handleResponse(data);
 
   t.not(source, data.stream, "it should create a new stream for decompression");
 
@@ -90,7 +90,7 @@ test("should skip requests with no content (#105)", function (t) {
     stream: source,
   };
 
-  decompress(defaultConfig).handleResponse(data);
+  decompress(config).handleResponse(data);
 
   t.equal(
     data.headers["content-encoding"],
@@ -119,7 +119,7 @@ test("should skip requests with no content, even if it can't tell ahead of time"
     stream: source,
   };
 
-  decompress(defaultConfig).handleResponse(data);
+  decompress(config).handleResponse(data);
 
   t.not(source, data.stream, "it should create a new stream for decompression");
 
@@ -138,7 +138,7 @@ test("should request only gzip if the client supports multiple encodings (#151)"
     },
   };
 
-  decompress(defaultConfig).handleRequest(data);
+  decompress(config).handleRequest(data);
 
   t.equal(
     data.headers["accept-encoding"],
@@ -155,7 +155,7 @@ test("should remove the accept-encoding header if the client does not support gz
     },
   };
 
-  decompress(defaultConfig).handleRequest(data);
+  decompress(config).handleRequest(data);
 
   t.notOk(
     data.headers["accept-encoding"],

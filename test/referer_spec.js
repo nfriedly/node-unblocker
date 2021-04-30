@@ -13,7 +13,7 @@ test("should correctly rewrite referers", function (t) {
     },
     _proxyUrl: new URL("http://localhost:8080/proxy/"),
   });
-  referer()(context);
+  referer(context);
   t.equal(context.headers.referer, expected);
   t.end();
 });
