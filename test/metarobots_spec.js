@@ -5,7 +5,6 @@ const concat = require("concat-stream");
 const utils = require("./test_utils.js");
 const { getContext } = utils;
 const htmlParser = require("../lib/html-parser");
-const { defaultConfig } = require("../lib/unblocker");
 
 const metaRobots = require("../lib/meta-robots.js");
 
@@ -24,7 +23,7 @@ test("should add a meta tag to the head", function (t) {
   const inStream = context.stream;
   inStream.setEncoding("utf8");
   htmlParser(context);
-  metaRobots()(context);
+  metaRobots(context);
   const outStream = context.stream;
   outStream.setEncoding("utf8");
   outStream.pipe(
@@ -43,7 +42,7 @@ test("should do nothing to the body", function (t) {
   const inStream = context.stream;
   inStream.setEncoding("utf8");
   htmlParser(context);
-  metaRobots()(context);
+  metaRobots(context);
   const outStream = context.stream;
   outStream.setEncoding("utf8");
   outStream.pipe(
@@ -56,13 +55,11 @@ test("should do nothing to the body", function (t) {
 });
 
 test("should not modify javascript", function (t) {
-  const config = Object.assign({}, defaultConfig);
-  const instance = metaRobots(config);
   const data = getContext();
   data.contentType = "text/javascript";
   const streamStart = data.stream;
   streamStart.setEncoding("utf8");
-  instance(data); // this will replace data.stream when modifying the contents
+  metaRobots(data); // this will replace data.stream when modifying the contents
   const streamEnd = data.stream;
 
   // commented out so that we can test the results rather than the implimentation details
