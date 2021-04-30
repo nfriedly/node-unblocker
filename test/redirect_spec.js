@@ -15,7 +15,7 @@ test("should correctly redirect with http://", function (t) {
     },
     _proxyUrl,
   });
-  redirect()(context);
+  redirect(context);
   t.equal(context.headers.location, expected);
   t.end();
 });
@@ -29,7 +29,7 @@ test("should correctly redirect with //", function (t) {
     },
     _proxyUrl,
   });
-  redirect()(context);
+  redirect(context);
   t.equal(context.headers.location, expected);
   t.end();
 });
@@ -44,7 +44,7 @@ test("should correctly redirect with // and https", function (t) {
     },
     _proxyUrl,
   });
-  redirect()(context);
+  redirect(context);
   t.equal(context.headers.location, expected);
   t.end();
 });
