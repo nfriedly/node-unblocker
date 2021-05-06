@@ -115,11 +115,12 @@ const htmlTestLines = {
     '<button formaction="/proxy/http://localhost:8081/mytarget">',
   '<button formaction="mytarget.php">': '<button formaction="mytarget.php">',
 
-  '<video poster="/poster.jpg">' : '<video poster="/proxy/http://localhost:8081/poster.jpg">',
+  '<video poster="/poster.jpg">':
+    '<video poster="/proxy/http://localhost:8081/poster.jpg">',
 
   '<img src="/files/16797/clock-demo-200px.png" alt="Clock" srcset="/files/16864/clock-demo-200px.png 1x, /clock-demo-400px.png 2x, big.jpg 2400w">':
     '<img src="/proxy/http://localhost:8081/files/16797/clock-demo-200px.png" alt="Clock" srcset="/proxy/http://localhost:8081/files/16864/clock-demo-200px.png 1x, /proxy/http://localhost:8081/clock-demo-400px.png 2x, big.jpg 2400w">',
-  
+
   '<img src="banner.jpg" srcset="non sense">':
     '<img src="banner.jpg" srcset="non sense">',
 };
