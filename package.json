@@ -19,6 +19,7 @@
     "parse5-html-rewriting-stream": "^6.0.1",
     "send": "^0.17.1",
     "set-cookie-parser": "^2.4.1",
+    "srcset": "^3.0.1",
     "tld": "0.0.2"
   },
   "devDependencies": {
