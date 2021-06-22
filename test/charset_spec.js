@@ -82,7 +82,7 @@ test("should still work when charset can be determined", function (t) {
   var sourceContent = "<h1>test</h1>",
     expected = "<h1>test</h1>";
   getServers(
-    { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
+    { unblocker: new Unblocker({ clientScripts: true }), sourceContent },
     function (err, servers) {
       http
         .get(servers.proxiedUrl, function (res) {
