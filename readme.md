@@ -6,7 +6,7 @@ written in node.js. It's since morphed into a general-purpose library for proxyi
 All data is processed and relayed to the client on the fly without unnecessary buffering, making unblocker one of the
 fastest web proxies available.
 
-[![Build Status](https://travis-ci.org/nfriedly/node-unblocker.svg?branch=master)](https://travis-ci.org/nfriedly/node-unblocker)
+[![Node.js CI](https://github.com/nfriedly/node-unblocker/actions/workflows/node.js.yml/badge.svg)](https://github.com/nfriedly/node-unblocker/actions/workflows/node.js.yml)
 [![npm-version](https://img.shields.io/npm/v/unblocker.svg)](https://www.npmjs.com/package/unblocker)
 
 ### The magic part
