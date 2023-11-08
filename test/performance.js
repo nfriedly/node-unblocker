@@ -11,7 +11,7 @@ const { getServers } = require("./test_utils.js");
 const html_path = path.join(__dirname, "source/index.html");
 const js_path = path.join(
   __dirname,
-  "source/desktop_polymer_inlined_html_polymer_flags.js"
+  "source/desktop_polymer_inlined_html_polymer_flags.js",
 );
 
 function remoteApp(req, res) {
@@ -52,11 +52,11 @@ getServers({ remoteApp }, function (err, servers) {
               iterations_html,
               baseFailures,
               baseSuccesses,
-              time
+              time,
             );
             printStats(baseline);
             next();
-          }
+          },
         );
       },
       function (next) {
@@ -70,11 +70,11 @@ getServers({ remoteApp }, function (err, servers) {
               iterations_html,
               proxyFailures,
               proxySuccesses,
-              time
+              time,
             );
             printStats(proxy, baseline);
             next();
-          }
+          },
         );
       },
       function (next) {
@@ -88,11 +88,11 @@ getServers({ remoteApp }, function (err, servers) {
               iterations_js,
               baseFailures,
               baseSuccesses,
-              time
+              time,
             );
             printStats(baseline);
             next();
-          }
+          },
         );
       },
       function (next) {
@@ -106,18 +106,18 @@ getServers({ remoteApp }, function (err, servers) {
               iterations_js,
               proxyFailures,
               proxySuccesses,
-              time
+              time,
             );
             printStats(proxy, baseline);
             next();
-          }
+          },
         );
       },
     ],
     function (err) {
       console.log(err || "");
       servers.kill();
-    }
+    },
   );
 });
 
@@ -142,7 +142,7 @@ function runTest(name, url, iterations, concurrency, cb) {
             times.push(time);
             process.stdout.write(".");
             step();
-          })
+          }),
         )
         .on("error", function (err) {
           err.time = Date.now() - start;
@@ -186,7 +186,7 @@ function printDifference(stat, proxy, baseline) {
   return format(
     "(%s% %s than the baseline)",
     Math.round(Math.abs(percentageDiff)),
-    percentageDiff > 0 ? "slower" : "faster"
+    percentageDiff > 0 ? "slower" : "faster",
   );
 }
 
@@ -200,26 +200,26 @@ function printStats(stats, baseline) {
       stats.successes,
       stats.iterations,
       stats.ms,
-      printDifference("ms", stats, baseline)
-    )
+      printDifference("ms", stats, baseline),
+    ),
   );
   console.log(
     "Average response time: " + stats.average + " miliseconds",
-    printDifference("average", stats, baseline)
+    printDifference("average", stats, baseline),
   );
   if (baseline) {
     console.log(
       format(
         "Proxy adds %s ms to each request on average",
-        stats.average - baseline.average
-      )
+        stats.average - baseline.average,
+      ),
     );
   }
   console.log(
     "Standard Deviation: " + stats.stdDev,
     printDifference("stdDev", stats, baseline)
       .replace("slower", "worse")
-      .replace("faster", "better")
+      .replace("faster", "better"),
   );
   console.log(
     format(
@@ -231,7 +231,7 @@ function printStats(stats, baseline) {
       stats._90,
       printDifference("_90", stats, baseline),
       stats._95,
-      printDifference("_95", stats, baseline)
-    )
+      printDifference("_95", stats, baseline),
+    ),
   );
 }

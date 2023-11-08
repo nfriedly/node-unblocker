@@ -22,7 +22,7 @@ it("should extract incpmplete urls", function (t) {
 it("should keep querystring data", function (t) {
   t.equal(
     instance("/proxy/http://example.com/?foo=bar"),
-    "http://example.com/?foo=bar"
+    "http://example.com/?foo=bar",
   );
   t.end();
 });
@@ -36,15 +36,15 @@ it("should should fix merged slashes (http:/ instead of http://", function (t) {
 it("should fix double-prefixed urls)", function (t) {
   t.equal(
     instance("/proxy/http://proxy/http://example.com/"),
-    "http://example.com/"
+    "http://example.com/",
   );
   t.equal(
     instance("/proxy/http:/proxy/http://example.com/"),
-    "http://example.com/"
+    "http://example.com/",
   );
   t.equal(
     instance("/proxy/https://proxy/https://example.com/"),
-    "https://example.com/"
+    "https://example.com/",
   );
   t.end();
 });

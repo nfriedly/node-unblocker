@@ -7,7 +7,7 @@
     "unblocker": "file:..\\.."
   }, 
   "engines": {
-    "node": ">=6"
+    "node": ">=8"
   },
   "scripts": {
     "start": "node server.js"

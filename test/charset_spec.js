@@ -10,10 +10,10 @@ const Unblocker = require("../lib/unblocker.js");
 
 // source is http://qa-dev.w3.org/wmvs/HEAD/dev/tests/xhtml-windows-1250.xhtml which is linked to from http://validator.w3.org/dev/tests/#encoding
 var sourceContent = fs.readFileSync(
-  __dirname + "/source/xhtml-windows-1250.xhtml"
+  __dirname + "/source/xhtml-windows-1250.xhtml",
 );
 var expected = fs.readFileSync(
-  __dirname + "/expected/xhtml-windows-1250-converted-to-utf-8.xhtml"
+  __dirname + "/expected/xhtml-windows-1250-converted-to-utf-8.xhtml",
 );
 
 // first validate that the IDE or whatever didn't change the file encoding
@@ -22,11 +22,11 @@ var EXPECTED_HASH = "4a04a0aa660da6f0eec9534c0e25212a7045ea7c";
 test("source and expected xhtml-windows-1250.xhtml files should not have changed", function (t) {
   t.equal(
     crypto.createHash("sha1").update(sourceContent).digest("hex"),
-    SOURCE_HASH
+    SOURCE_HASH,
   );
   t.equal(
     crypto.createHash("sha1").update(expected).digest("hex"),
-    EXPECTED_HASH
+    EXPECTED_HASH,
   );
   t.end();
 });
@@ -46,13 +46,13 @@ test("should properly decode and update non-native charsets when charset is in h
             concat(function (actual) {
               servers.kill();
               t.same(actual, expected);
-            })
+            }),
           );
         })
         .on("error", function (e) {
           t.bailout(e);
         });
-    }
+    },
   );
 });
 
@@ -67,13 +67,13 @@ test("should properly decode and update charsets when charset is in body", funct
             concat(function (actual) {
               servers.kill();
               t.same(actual, expected);
-            })
+            }),
           );
         })
         .on("error", function (e) {
           t.bailout(e);
         });
-    }
+    },
   );
 });
 
@@ -90,12 +90,12 @@ test("should still work when charset can be determined", function (t) {
             concat(function (actual) {
               servers.kill();
               t.same(actual.toString(), expected);
-            })
+            }),
           );
         })
         .on("error", function (e) {
           t.bailout(e);
         });
-    }
+    },
   );
 });

@@ -21,10 +21,10 @@ test("url_rewriting should support short html documents", function (t) {
         concat(function (data) {
           t.equal(
             data.toString(),
-            expected.toString().replace(/<remotePort>/g, servers.remotePort)
+            expected.toString().replace(/<remotePort>/g, servers.remotePort),
           );
           cleanup();
-        })
+        }),
       )
       .on("error", function (err) {
         console.error("error retrieving data from proxy", err);

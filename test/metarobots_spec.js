@@ -20,7 +20,7 @@ test("should add a meta tag to the head", function (t) {
     concat(function (actual) {
       t.equal(actual, expected);
       t.end();
-    })
+    }),
   );
   stream.end(head);
 });
@@ -33,7 +33,7 @@ test("should do nothing to the body", function (t) {
     concat(function (actual) {
       t.equal(actual, expected);
       t.end();
-    })
+    }),
   );
   stream.end(body);
 });
@@ -59,7 +59,7 @@ test("should not modify javascript", function (t) {
     concat(function (actual) {
       t.equal(actual, expected);
       t.end();
-    })
+    }),
   );
   streamStart.end(js);
 });

@@ -108,10 +108,10 @@ test("should rewrite urls that change subdomain or protocol (but not domain)", f
   });
   data.stream = sourceStream;
   instance.handleResponse(data);
-  t.notEqual(
+  t.not(
     data.stream,
     sourceStream,
-    "cookies.handleResponse should create a new stream to process content"
+    "cookies.handleResponse should create a new stream to process content",
   );
   var source = [
     '<a href="/proxy/http://example.com/">no change</a>',
@@ -140,7 +140,7 @@ test("should rewrite urls that change subdomain or protocol (but not domain)", f
     concat(function (actual) {
       t.equal(actual, expected);
       t.end();
-    })
+    }),
   );
 
   sourceStream.end(source);
@@ -158,6 +158,6 @@ test("should work with SameSite attributes", function (t) {
   instance.handleResponse(data);
   var actual = data.headers["set-cookie"][0];
   console.log(actual);
-  t.assert(actual.toLowerCase().indexOf("samesite=none") > -1);
+  t.ok(actual.toLowerCase().indexOf("samesite=none") > -1);
   t.end();
 });

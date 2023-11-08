@@ -183,7 +183,7 @@ test("should rewrite (or not rewrite) various strings correctly", function (t) {
     t.equal(
       actual,
       expected,
-      "Should rewrite '" + source + "' to '" + expected + '"'
+      "Should rewrite '" + source + "' to '" + expected + '"',
     );
   });
   t.end();
@@ -208,10 +208,10 @@ test("should correctly handle packets split at different locations", function (t
             start.substr(-20) +
             "' and '" +
             end.substr(0, 20) +
-            "' correctly"
+            "' correctly",
         );
         if (actual != expected) throw "stopping early";
-      })
+      }),
     );
     stream.write(start);
     stream.end(end);

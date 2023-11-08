@@ -21,7 +21,7 @@ var server = http
       if (req.url == "/") {
         res.writeHead(200, headers);
         return res.end(
-          'Visit a link such as <a href="/proxy/https://www.youtube.com/watch?v=dQw4w9WgXcQ"><script>document.write(window.location)</script>proxy/https://www.youtube.com/watch?v=dQw4w9WgXcQ</a> to see the magic.'
+          'Visit a link such as <a href="/proxy/https://www.youtube.com/watch?v=dQw4w9WgXcQ"><script>document.write(window.location)</script>proxy/https://www.youtube.com/watch?v=dQw4w9WgXcQ</a> to see the magic.',
         );
       } else {
         res.writeHead(404, headers);

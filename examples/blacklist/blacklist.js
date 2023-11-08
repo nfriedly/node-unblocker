@@ -7,7 +7,7 @@ module.exports = function ({ blockedDomains, message }) {
     const { hostname } = URL.parse(data.url);
     return blockedDomains.some(
       (blockedDomain) =>
-        hostname === blockedDomain || hostname.endsWith(`.${blockedDomain}`)
+        hostname === blockedDomain || hostname.endsWith(`.${blockedDomain}`),
     );
   }
 

@@ -18,7 +18,7 @@ module.exports = function (config) {
             this.push(updated, "utf8");
             next();
           },
-        })
+        }),
       );
     }
   }

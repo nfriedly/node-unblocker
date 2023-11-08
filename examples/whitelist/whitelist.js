@@ -7,7 +7,7 @@ module.exports = function ({ allowedDomains, message }) {
     const { hostname } = URL.parse(data.url);
     return allowedDomains.some(
       (allowedDomain) =>
-        hostname === allowedDomain || hostname.endsWith(`.${allowedDomain}`)
+        hostname === allowedDomain || hostname.endsWith(`.${allowedDomain}`),
     );
   }
 

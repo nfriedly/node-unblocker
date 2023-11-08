@@ -33,14 +33,14 @@ ${formats
     (format) =>
       `  <source type="${format.mimeType
         .split(";")
-        .shift()}" src="/proxy/${format.url.replace(/&/g, "&amp;")}">`
+        .shift()}" src="/proxy/${format.url.replace(/&/g, "&amp;")}">`,
   )
   .join("\n")}
 </video>
 <p>${info.videoDetails.description.replace(/[\n]/g, "\n<br>")}</p>
 </body>
 </html>
-`
+`,
         );
       })
       .catch((err) => {

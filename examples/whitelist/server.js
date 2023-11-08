@@ -18,7 +18,7 @@ const unblocker = Unblocker({
 app.use(unblocker);
 
 app.get("/", (req, res) =>
-  res.redirect("/proxy/https://en.wikipedia.org/wiki/Main_Page")
+  res.redirect("/proxy/https://en.wikipedia.org/wiki/Main_Page"),
 );
 
 app.listen(8080).on("upgrade", unblocker.onUpgrade);

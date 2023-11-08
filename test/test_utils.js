@@ -95,7 +95,7 @@ exports.getServers = function (options, next) {
               remoteServer.close.bind(remoteServer),
               proxyServer.close.bind(proxyServer),
             ],
-            next
+            next,
           );
         },
       };
@@ -103,7 +103,7 @@ exports.getServers = function (options, next) {
       ret.remoteUrl = "http://localhost:" + ret.remotePort + "/";
       ret.proxiedUrl = ret.homeUrl + "proxy/" + ret.remoteUrl;
       next(null, ret);
-    }
+    },
   );
 };
 
