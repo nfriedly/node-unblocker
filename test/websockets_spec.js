@@ -15,7 +15,7 @@ test("it should pass text messages over a websocket connection", function (t) {
     const wss = new WebSocket.Server({ server: servers.remoteServer });
     wss.on("connection", function connection(ws) {
       ws.on("message", function incoming(message) {
-        t.equal(message, "message from client");
+        t.equal(message.toString(), "message from client");
       });
 
       ws.send("message from server");
@@ -30,7 +30,7 @@ test("it should pass text messages over a websocket connection", function (t) {
     });
 
     ws.on("message", function incoming(message) {
-      t.equal(message, "message from server");
+      t.equal(message.toString(), "message from server");
       ws.close();
       servers.kill(function () {
         t.end();
@@ -137,7 +137,7 @@ test("it should forward the path in a websocket requests", function (t) {
         t.ok(ws, "server connection event");
         ws.on("close", function (code, reason) {
           t.equal(code, 1008);
-          t.equal(reason, "Policy Violation (sent from client)");
+          t.equal(reason.toString(), "Policy Violation (sent from client)");
           servers.kill(function () {
             t.end();
           });
@@ -170,7 +170,7 @@ test("it should forward the path in a websocket requests", function (t) {
       const wsc = new WebSocket(wsurl.href);
       wsc.on("close", function (code, reason) {
         t.equal(code, 1008);
-        t.equal(reason, "Policy Violation (sent from server)");
+        t.equal(reason.toString(), "Policy Violation (sent from server)");
         servers.kill(function () {
           t.end();
         });

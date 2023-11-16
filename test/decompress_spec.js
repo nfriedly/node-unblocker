@@ -24,11 +24,7 @@ test("should decompress data compressed with gzip", function (t) {
 
   decompress(defaultConfig).handleResponse(data);
 
-  t.notEqual(
-    source,
-    data.stream,
-    "it should create a new stream for decompression"
-  );
+  t.not(source, data.stream, "it should create a new stream for decompression");
 
   t.notOk(
     data.headers["content-encoding"],
@@ -63,11 +59,7 @@ test("should decompress data compressed with deflate", function (t) {
 
   decompress(defaultConfig).handleResponse(data);
 
-  t.notEqual(
-    source,
-    data.stream,
-    "it should create a new stream for decompression"
-  );
+  t.not(source, data.stream, "it should create a new stream for decompression");
 
   t.notOk(
     data.headers["content-encoding"],
@@ -129,11 +121,7 @@ test("should skip requests with no content, even if it can't tell ahead of time"
 
   decompress(defaultConfig).handleResponse(data);
 
-  t.notEqual(
-    source,
-    data.stream,
-    "it should create a new stream for decompression"
-  );
+  t.not(source, data.stream, "it should create a new stream for decompression");
 
   data.stream.on("end", function () {
     t.end();

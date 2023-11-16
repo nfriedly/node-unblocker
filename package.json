@@ -39,7 +39,7 @@
     "pre-commit": "npm run autofix && npm test",
     "lint": "eslint .",
     "autofix": "eslint . --fix",
-    "test-spec": "tap --no-coverage test/*spec.js",
+    "test-spec": "tap --allow-incomplete-coverage test/*spec.js",
     "test-perf": "node test/performance.js"
   },
   "license": "AGPL-3.0",
