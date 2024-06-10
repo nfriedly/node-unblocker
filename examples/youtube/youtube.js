@@ -1,11 +1,12 @@
 "use strict";
 
+// Important: to use this you must also install ytdl-core as a dependency
+
 const ytdl = require("ytdl-core");
 
 // handles youtube video pages and replaces them with a custom page that just streams the video
 function processRequest(data) {
-  const { hostname, pathname } = new URL(data.url);
-  if (hostname === "www.youtube.com" && pathname === "/watch") {
+  if (ytdl.validateURL(data.url)) {
     const res = data.clientResponse;
     // if we write headers, unblocker will detect that and stop trying to process this request
     res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
@@ -27,7 +28,7 @@ function processRequest(data) {
 </head>
 <body>
 <h1>${info.videoDetails.title}</h1>
-<video controls poster="${thumb.url}" style="width: 100%">
+<video controls poster="/proxy/${thumb.url}" style="width: 100%">
 ${formats
   .map(
     (format) =>
