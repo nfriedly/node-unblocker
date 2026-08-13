@@ -1,15 +1,15 @@
 "use strict";
 
-var URL = require("url"),
+const URL = require("url"),
   test = require("tap").test,
   _ = require("lodash"),
   concat = require("concat-stream");
 
-var urlPrefix = require("../lib/url-prefixer.js")({
+const urlPrefix = require("../lib/url-prefixer.js")({
   prefix: "/proxy/",
 });
 
-var testLines = {
+const testLines = {
   // source => expected result
 
   // xmlns items first two should NOT get rewritten
@@ -174,8 +174,8 @@ var testLines = {
   '<button formaction="mytarget.php">': '<button formaction="mytarget.php">',
 };
 
-var testUri = URL.parse("http://localhost:8081/");
-var testPrefix = "/proxy/";
+const testUri = URL.parse("http://localhost:8081/");
+const testPrefix = "/proxy/";
 
 test("should rewrite (or not rewrite) various strings correctly", function (t) {
   _.each(testLines, function (expected, source) {

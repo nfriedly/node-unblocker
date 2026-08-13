@@ -1,7 +1,7 @@
 "use strict";
 
-var referer = require("../lib/referer.js");
-var test = require("tap").test;
+const referer = require("../lib/referer.js");
+const test = require("tap").test;
 
 test("should correctly rewrite referers", function (t) {
   var expected = "http://foobar.com/proxy/a";

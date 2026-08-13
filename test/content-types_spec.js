@@ -1,7 +1,7 @@
 "use strict";
 
-var test = require("tap").test;
-var contentTypes = require("../lib/content-types.js");
+const test = require("tap").test;
+const contentTypes = require("../lib/content-types.js");
 
 test("should handle content types with a charset", function (t) {
   var config = {

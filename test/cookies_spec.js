@@ -1,6 +1,6 @@
 "use strict";
 
-var test = require("tap").test,
+const test = require("tap").test,
   utils = require("./test_utils.js"),
   getData = utils.getData,
   cookies = require("../lib/cookies.js"),

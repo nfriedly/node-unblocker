@@ -1,6 +1,6 @@
 "use strict";
 
-var fs = require("fs"),
+const fs = require("fs"),
   concat = require("concat-stream"),
   test = require("tap").test,
   hyperquest = require("hyperquest"),
@@ -8,8 +8,8 @@ var fs = require("fs"),
 const express = require("express");
 const Unblocker = require("../lib/unblocker.js");
 
-var sourceContent = fs.readFileSync(__dirname + "/source/index.html");
-var expected = fs.readFileSync(__dirname + "/expected/index.html");
+const sourceContent = fs.readFileSync(__dirname + "/source/index.html");
+const expected = fs.readFileSync(__dirname + "/expected/index.html");
 
 test("url_rewriting should support support all kinds of links", function (t) {
   getServers(

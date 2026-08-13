@@ -1,11 +1,11 @@
 "use strict";
 
-var PassThrough = require("stream").PassThrough;
-var zlib = require("zlib");
-var test = require("tap").test;
-var concat = require("concat-stream");
-var decompress = require("../lib/decompress.js");
-var defaultConfig = require("../lib/unblocker.js").defaultConfig;
+const PassThrough = require("stream").PassThrough;
+const zlib = require("zlib");
+const test = require("tap").test;
+const concat = require("concat-stream");
+const decompress = require("../lib/decompress.js");
+const defaultConfig = require("../lib/unblocker.js").defaultConfig;
 
 test("should decompress data compressed with gzip", function (t) {
   var source = zlib.createGzip();

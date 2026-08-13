@@ -1,15 +1,15 @@
 "use strict";
 
-var test = require("tap").test,
+const test = require("tap").test,
   concat = require("concat-stream"),
   utils = require("./test_utils.js"),
   getData = utils.getData,
   defaultConfig = require("../lib/unblocker").defaultConfig;
 
-var metaRobots = require("../lib/meta-robots.js");
+const metaRobots = require("../lib/meta-robots.js");
 
-var head = "<html><head><title>test</title></head>";
-var body = "<body><p>asdf</p></body></html>";
+const head = "<html><head><title>test</title></head>";
+const body = "<body><p>asdf</p></body></html>";
 
 test("should add a meta tag to the head", function (t) {
   var expected =

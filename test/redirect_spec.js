@@ -1,7 +1,7 @@
 "use strict";
 
-var redirect = require("../lib/redirects.js");
-var test = require("tap").test;
+const redirect = require("../lib/redirects.js");
+const test = require("tap").test;
 
 test("should correctly redirect with http://", function (t) {
   var expected = "http://foobar.com/proxy/http://example.com/not-a-test/";
