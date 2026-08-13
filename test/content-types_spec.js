@@ -1,18 +1,18 @@
 "use strict";
 
-const test = require("tap").test;
+const assert = require("node:assert/strict");
 const contentTypes = require("../lib/content-types.js");
+const { test } = require("node:test");
 
-test("should handle content types with a charset", function (t) {
-  var config = {
+test("should handle content types with a charset", () => {
+  const config = {
     processContentTypes: ["text/html"],
   };
-  var data = {
+  const data = {
     headers: {
       "content-type": "text/html; charset=utf-8",
     },
   };
   data.contentType = contentTypes.getType(data);
-  t.ok(contentTypes.shouldProcess(config, data));
-  t.end();
+  assert.ok(contentTypes.shouldProcess(config, data));
 });

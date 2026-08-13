@@ -1,83 +1,87 @@
 "use strict";
 
-const fs = require("fs"),
-  concat = require("concat-stream"),
-  test = require("tap").test,
-  hyperquest = require("hyperquest"),
-  getServers = require("./test_utils.js").getServers;
+const assert = require("node:assert/strict");
+const { test } = require("node:test");
+const fs = require("fs");
+const concat = require("concat-stream");
+const hyperquest = require("hyperquest");
+const getServers = require("./test_utils.js").getServers;
 const express = require("express");
 const Unblocker = require("../lib/unblocker.js");
 
 const sourceContent = fs.readFileSync(__dirname + "/source/index.html");
 const expected = fs.readFileSync(__dirname + "/expected/index.html");
 
-test("url_rewriting should support support all kinds of links", function (t) {
-  getServers(
-    { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
-    function (err, servers) {
-      t.error(err);
-      function cleanup() {
-        servers.kill(function () {
-          t.end();
-        });
+function getServersAsync(options) {
+  return new Promise((resolve, reject) => {
+    getServers(options, function (err, servers) {
+      if (err) {
+        return reject(err);
       }
-      hyperquest(servers.proxiedUrl)
-        .pipe(
-          concat(function (data) {
-            t.equal(
-              data.toString(),
-              expected.toString().replace(/<remotePort>/g, servers.remotePort)
-            );
-            cleanup();
-          })
-        )
-        .on("error", function (err) {
-          console.error("error retrieving data from proxy", err);
-          cleanup();
-        });
-    }
-  );
+      resolve(servers);
+    });
+  });
+}
+
+function killServersAsync(servers) {
+  return new Promise((resolve, reject) => {
+    servers.kill(function (err) {
+      return err ? reject(err) : resolve();
+    });
+  });
+}
+
+async function requestAndConcat(url) {
+  return new Promise((resolve, reject) => {
+    hyperquest(url)
+      .pipe(
+        concat(function (data) {
+          resolve(data.toString());
+        })
+      )
+      .on("error", reject);
+  });
+}
+
+test("url_rewriting should support support all kinds of links", async () => {
+  const servers = await getServersAsync({
+    unblocker: new Unblocker({ clientScripts: false }),
+    sourceContent,
+  });
+
+  try {
+    const actual = await requestAndConcat(servers.proxiedUrl);
+    assert.strictEqual(
+      actual,
+      expected.toString().replace(/<remotePort>/g, servers.remotePort)
+    );
+  } finally {
+    await killServersAsync(servers);
+  }
 });
 
-test("should return control to parent when route doesn't match and no referer is sent", function (t) {
-  getServers(
-    { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
-    function (err, servers) {
-      t.error(err);
-      function cleanup() {
-        servers.kill(function () {
-          t.end();
-        });
-      }
-      hyperquest(servers.homeUrl)
-        .pipe(
-          concat(function (data) {
-            t.equal(
-              data.toString(),
-              "this is the home page",
-              servers.remotePort
-            );
-            cleanup();
-          })
-        )
-        .on("error", function (err) {
-          console.error("error retrieving robots.txt from proxy", err);
-          cleanup();
-        });
-    }
-  );
+test("should return control to parent when route doesn't match and no referer is sent", async () => {
+  const servers = await getServersAsync({
+    unblocker: new Unblocker({ clientScripts: false }),
+    sourceContent,
+  });
+
+  try {
+    const actual = await requestAndConcat(servers.homeUrl);
+    assert.strictEqual(actual, "this is the home page");
+  } finally {
+    await killServersAsync(servers);
+  }
 });
 
-test("should redirect root-relative urls when the correct target can be determined from the referer header", function (t) {
-  getServers(
-    { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
-    function (err, servers) {
-      t.error(err);
-      function cleanup() {
-        servers.kill(function () {
-          t.end();
-        });
-      }
+test("should redirect root-relative urls when the correct target can be determined from the referer header", async () => {
+  const servers = await getServersAsync({
+    unblocker: new Unblocker({ clientScripts: false }),
+    sourceContent,
+  });
+
+  try {
+    await new Promise((resolve, reject) => {
       hyperquest(
         servers.homeUrl + "bar?query_param=new",
         {
@@ -86,30 +90,32 @@ test("should redirect root-relative urls when the correct target can be determin
           },
         },
         function (err, res) {
-          t.notOk(err);
-          t.equal(res.statusCode, 307, "http status code");
-          t.equal(
+          if (err) {
+            return reject(err);
+          }
+          assert.strictEqual(res.statusCode, 307, "http status code");
+          assert.strictEqual(
             res.headers.location,
             servers.proxiedUrl + "bar?query_param=new",
             "redirect location"
           );
-          cleanup();
+          resolve();
         }
-      );
-    }
-  );
+      ).on("error", reject);
+    });
+  } finally {
+    await killServersAsync(servers);
+  }
 });
 
-test("should redirect root-relative urls when the correct target can be determined from the referer header including for urls that the site is already serving content on", function (t) {
-  getServers(
-    { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
-    function (err, servers) {
-      t.error(err);
-      function cleanup() {
-        servers.kill(function () {
-          t.end();
-        });
-      }
+test("should redirect root-relative urls when the correct target can be determined from the referer header including for urls that the site is already serving content on", async () => {
+  const servers = await getServersAsync({
+    unblocker: new Unblocker({ clientScripts: false }),
+    sourceContent,
+  });
+
+  try {
+    await new Promise((resolve, reject) => {
       hyperquest(
         servers.homeUrl,
         {
@@ -118,126 +124,143 @@ test("should redirect root-relative urls when the correct target can be determin
           },
         },
         function (err, res) {
-          t.notOk(err);
-          t.equal(res.statusCode, 307, "http status code");
-          t.equal(
+          if (err) {
+            return reject(err);
+          }
+          assert.strictEqual(res.statusCode, 307, "http status code");
+          assert.strictEqual(
             res.headers.location,
             servers.proxiedUrl,
             "redirect location"
           );
-          cleanup();
+          resolve();
         }
-      );
-    }
-  );
+      ).on("error", reject);
+    });
+  } finally {
+    await killServersAsync(servers);
+  }
 });
 
-test("should NOT redirect http urls that have had the slashes merged (http:/ instead of http:// (#130)", function (t) {
-  getServers(
-    { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
-    function (err, servers) {
-      t.error(err);
-      function cleanup() {
-        servers.kill(function () {
-          t.end();
-        });
-      }
+test("should NOT redirect http urls that have had the slashes merged (http:/ instead of http:// (#130)", async () => {
+  const servers = await getServersAsync({
+    unblocker: new Unblocker({ clientScripts: false }),
+    sourceContent,
+  });
+
+  try {
+    await new Promise((resolve, reject) => {
       hyperquest(
         servers.proxiedUrl.replace("/proxy/http://", "/proxy/http:/"),
         function (err, res) {
-          t.notOk(err);
-          t.equal(res.statusCode, 200, "http status code");
-          t.notOk(res.headers.location, "no location header");
-          cleanup();
+          if (err) {
+            return reject(err);
+          }
+          assert.strictEqual(res.statusCode, 200, "http status code");
+          assert.strictEqual(
+            res.headers.location,
+            undefined,
+            "no location header"
+          );
+          resolve();
         }
-      );
-    }
-  );
+      ).on("error", reject);
+    });
+  } finally {
+    await killServersAsync(servers);
+  }
 });
 
-test("should redirect http urls that have had the have two occurrences of /prefix/http://", function (t) {
-  getServers(
-    { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
-    function (err, servers) {
-      t.error(err);
-      function cleanup() {
-        servers.kill(function () {
-          t.end();
-        });
-      }
+test("should redirect http urls that have had the have two occurrences of /prefix/http://", async () => {
+  const servers = await getServersAsync({
+    unblocker: new Unblocker({ clientScripts: false }),
+    sourceContent,
+  });
+
+  try {
+    await new Promise((resolve, reject) => {
       hyperquest(
         servers.proxiedUrl.replace(
           "/proxy/http://",
           "/proxy/http://proxy/http://"
         ),
         function (err, res) {
-          t.notOk(err);
-          t.equal(res.statusCode, 307, "http status code");
-          t.equal(
+          if (err) {
+            return reject(err);
+          }
+          assert.strictEqual(res.statusCode, 307, "http status code");
+          assert.strictEqual(
             res.headers.location,
             servers.proxiedUrl,
             "redirect location"
           );
-          cleanup();
+          resolve();
         }
-      );
-    }
-  );
+      ).on("error", reject);
+    });
+  } finally {
+    await killServersAsync(servers);
+  }
 });
 
-test("should redirect http urls that end in a TLD without a /", function (t) {
-  getServers(
-    { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
-    function (err, servers) {
-      t.error(err);
-      function cleanup() {
-        servers.kill(function () {
-          t.end();
-        });
-      }
+test("should redirect http urls that end in a TLD without a /", async () => {
+  const servers = await getServersAsync({
+    unblocker: new Unblocker({ clientScripts: false }),
+    sourceContent,
+  });
+
+  try {
+    await new Promise((resolve, reject) => {
       hyperquest(
-        // strip the trailing /
         servers.proxiedUrl.substr(0, servers.proxiedUrl.length - 1),
         function (err, res) {
-          t.notOk(err);
-          t.equal(res.statusCode, 307, "http status code");
-          t.equal(
+          if (err) {
+            return reject(err);
+          }
+          assert.strictEqual(res.statusCode, 307, "http status code");
+          assert.strictEqual(
             res.headers.location,
-            servers.proxiedUrl, // correct URL with the trailing /
+            servers.proxiedUrl,
             "redirect location"
           );
-          cleanup();
+          resolve();
         }
-      );
-    }
-  );
+      ).on("error", reject);
+    });
+  } finally {
+    await killServersAsync(servers);
+  }
 });
 
-test("should redirect http urls that end in a TLD without a / when req.protocol is set", function (t) {
-  // express sets req.protocol
+test("should redirect http urls that end in a TLD without a / when req.protocol is set", async () => {
   const app = express();
   const unblocker = new Unblocker({});
   app.use(unblocker);
-  getServers({ app, unblocker, sourceContent }, function (err, servers) {
-    t.error(err);
-    function cleanup() {
-      servers.kill(function () {
-        t.end();
-      });
-    }
-    hyperquest(
-      // strip the trailing /
-      servers.proxiedUrl.substr(0, servers.proxiedUrl.length - 1),
-      function (err, res) {
-        t.notOk(err);
-        t.equal(res.statusCode, 307, "http status code");
-        t.equal(
-          res.headers.location,
-          servers.proxiedUrl, // correct URL with the trailing /
-          "redirect location"
-        );
-        cleanup();
-      }
-    );
+  const servers = await getServersAsync({
+    app,
+    unblocker,
+    sourceContent,
   });
+
+  try {
+    await new Promise((resolve, reject) => {
+      hyperquest(
+        servers.proxiedUrl.substr(0, servers.proxiedUrl.length - 1),
+        function (err, res) {
+          if (err) {
+            return reject(err);
+          }
+          assert.strictEqual(res.statusCode, 307, "http status code");
+          assert.strictEqual(
+            res.headers.location,
+            servers.proxiedUrl,
+            "redirect location"
+          );
+          resolve();
+        }
+      ).on("error", reject);
+    });
+  } finally {
+    await killServersAsync(servers);
+  }
 });

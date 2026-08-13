@@ -1,5 +1,7 @@
 "use strict";
-const { test } = require("tap");
+
+const assert = require("node:assert/strict");
+const { test } = require("node:test");
 const prefix = "/proxy/";
 const proxy = "http://localhost";
 const target = "http://example.com/page.html?query#hash";
@@ -53,16 +55,12 @@ const testCases = [
   },
   // todo: port numbers
   // todo: more https tests
-  // todo: websockets(?)
+  // todo: websockets(? )
 ];
 
 testCases.forEach((tc) => {
-  test(JSON.stringify(tc), (t) => {
-    // todo: replace || with ??
+  test(JSON.stringify(tc), () => {
     const actual = fixUrl(tc.url, tc.config || config, tc.location || location);
-    t.equal(actual, tc.expected);
-    t.end();
+    assert.strictEqual(actual, tc.expected);
   });
 });
-
-// todo: something about cookies and subdomains

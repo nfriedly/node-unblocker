@@ -1,7 +1,8 @@
 "use strict";
 
-const it = require("tap").test,
-  getRealUrl = require("../lib/get-real-url.js");
+const assert = require("node:assert/strict");
+const { test } = require("node:test");
+const getRealUrl = require("../lib/get-real-url.js");
 
 const config = {
   prefix: "/proxy/",
@@ -9,42 +10,46 @@ const config = {
 
 const instance = getRealUrl(config);
 
-it("should extract the url", function (t) {
-  t.equal(instance("/proxy/http://example.com/"), "http://example.com/");
-  t.end();
+test("should extract the url", () => {
+  assert.strictEqual(
+    instance("/proxy/http://example.com/"),
+    "http://example.com/"
+  );
 });
 
-it("should extract incpmplete urls", function (t) {
-  t.equal(instance("/proxy/example.com/"), "example.com/");
-  t.end();
+test("should extract incpmplete urls", () => {
+  assert.strictEqual(instance("/proxy/example.com/"), "example.com/");
 });
 
-it("should keep querystring data", function (t) {
-  t.equal(
+test("should keep querystring data", () => {
+  assert.strictEqual(
     instance("/proxy/http://example.com/?foo=bar"),
     "http://example.com/?foo=bar"
   );
-  t.end();
 });
 
-it("should should fix merged slashes (http:/ instead of http://", function (t) {
-  t.equal(instance("/proxy/http:/example.com/"), "http://example.com/");
-  t.equal(instance("/proxy/https:/example.com/"), "https://example.com/");
-  t.end();
+test("should should fix merged slashes (http:/ instead of http://", () => {
+  assert.strictEqual(
+    instance("/proxy/http:/example.com/"),
+    "http://example.com/"
+  );
+  assert.strictEqual(
+    instance("/proxy/https:/example.com/"),
+    "https://example.com/"
+  );
 });
 
-it("should fix double-prefixed urls)", function (t) {
-  t.equal(
+test("should fix double-prefixed urls)", () => {
+  assert.strictEqual(
     instance("/proxy/http://proxy/http://example.com/"),
     "http://example.com/"
   );
-  t.equal(
+  assert.strictEqual(
     instance("/proxy/http:/proxy/http://example.com/"),
     "http://example.com/"
   );
-  t.equal(
+  assert.strictEqual(
     instance("/proxy/https://proxy/https://example.com/"),
     "https://example.com/"
   );
-  t.end();
 });

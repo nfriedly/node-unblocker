@@ -1,10 +1,11 @@
 "use strict";
 
-const test = require("tap").test;
-const fs = require("fs");
-const crypto = require("crypto");
-const http = require("http");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const crypto = require("node:crypto");
+const http = require("node:http");
 const concat = require("concat-stream");
+const { test } = require("node:test");
 const getServers = require("./test_utils.js").getServers;
 const Unblocker = require("../lib/unblocker.js");
 
@@ -19,83 +20,87 @@ const expected = fs.readFileSync(
 // first validate that the IDE or whatever didn't change the file encoding
 const SOURCE_HASH = "11f694099b205b26a19648ab22602b39c6deb125";
 const EXPECTED_HASH = "4a04a0aa660da6f0eec9534c0e25212a7045ea7c";
-test("source and expected xhtml-windows-1250.xhtml files should not have changed", function (t) {
-  t.equal(
+
+function getServersAsync(options) {
+  return new Promise((resolve, reject) => {
+    getServers(options, (err, servers) => {
+      if (err) return reject(err);
+      resolve(servers);
+    });
+  });
+}
+
+function readUrl(url) {
+  return new Promise((resolve, reject) => {
+    http
+      .get(url, (res) => {
+        res.pipe(concat(resolve)).on("error", reject);
+      })
+      .on("error", reject);
+  });
+}
+
+function closeServers(servers) {
+  return new Promise((resolve, reject) => {
+    servers.kill((err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+}
+
+test("source and expected xhtml-windows-1250.xhtml files should not have changed", () => {
+  assert.strictEqual(
     crypto.createHash("sha1").update(sourceContent).digest("hex"),
     SOURCE_HASH
   );
-  t.equal(
+  assert.strictEqual(
     crypto.createHash("sha1").update(expected).digest("hex"),
     EXPECTED_HASH
   );
-  t.end();
 });
 
-test("should properly decode and update non-native charsets when charset is in header", function (t) {
-  t.plan(1);
-  getServers(
-    {
-      unblocker: new Unblocker({ clientScripts: false }),
-      sourceContent,
-      charset: "windows-1250",
-    },
-    function (err, servers) {
-      http
-        .get(servers.proxiedUrl, function (res) {
-          res.pipe(
-            concat(function (actual) {
-              servers.kill();
-              t.same(actual, expected);
-            })
-          );
-        })
-        .on("error", function (e) {
-          t.bailout(e);
-        });
-    }
-  );
+test("should properly decode and update non-native charsets when charset is in header", async () => {
+  const servers = await getServersAsync({
+    unblocker: new Unblocker({ clientScripts: false }),
+    sourceContent,
+    charset: "windows-1250",
+  });
+
+  try {
+    const actual = await readUrl(servers.proxiedUrl);
+    assert.deepStrictEqual(actual, expected);
+  } finally {
+    await closeServers(servers);
+  }
 });
 
-test("should properly decode and update charsets when charset is in body", function (t) {
-  t.plan(1);
-  getServers(
-    { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
-    function (err, servers) {
-      http
-        .get(servers.proxiedUrl, function (res) {
-          res.pipe(
-            concat(function (actual) {
-              servers.kill();
-              t.same(actual, expected);
-            })
-          );
-        })
-        .on("error", function (e) {
-          t.bailout(e);
-        });
-    }
-  );
+test("should properly decode and update charsets when charset is in body", async () => {
+  const servers = await getServersAsync({
+    unblocker: new Unblocker({ clientScripts: false }),
+    sourceContent,
+  });
+
+  try {
+    const actual = await readUrl(servers.proxiedUrl);
+    assert.deepStrictEqual(actual, expected);
+  } finally {
+    await closeServers(servers);
+  }
 });
 
-test("should still work when charset can be determined", function (t) {
-  t.plan(1);
-  var sourceContent = "<h1>test</h1>",
-    expected = "<h1>test</h1>";
-  getServers(
-    { unblocker: new Unblocker({ clientScripts: false }), sourceContent },
-    function (err, servers) {
-      http
-        .get(servers.proxiedUrl, function (res) {
-          res.pipe(
-            concat(function (actual) {
-              servers.kill();
-              t.same(actual.toString(), expected);
-            })
-          );
-        })
-        .on("error", function (e) {
-          t.bailout(e);
-        });
-    }
-  );
+test("should still work when charset can be determined", async () => {
+  const sourceContent = "<h1>test</h1>";
+  const expectedValue = "<h1>test</h1>";
+  const servers = await getServersAsync({
+    unblocker: new Unblocker({ clientScripts: false }),
+    sourceContent,
+  });
+
+  try {
+    const actual = await readUrl(servers.proxiedUrl);
+    assert.strictEqual(actual.toString(), expectedValue);
+  } finally {
+    await closeServers(servers);
+  }
 });

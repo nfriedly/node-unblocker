@@ -1,58 +1,56 @@
 "use strict";
 
+const assert = require("node:assert/strict");
+const { test } = require("node:test");
 const redirect = require("../lib/redirects.js");
-const test = require("tap").test;
 
-test("should correctly redirect with http://", function (t) {
-  var expected = "http://foobar.com/proxy/http://example.com/not-a-test/";
-  var data = {
+test("should correctly redirect with http://", () => {
+  const expected = "http://foobar.com/proxy/http://example.com/not-a-test/";
+  const data = {
     url: "http://example.com/test/",
     headers: {
       location: "http://example.com/not-a-test/",
     },
     clientRequest: {
-      thisSite: function () {
+      thisSite() {
         return "http://foobar.com/proxy/";
       },
     },
   };
   redirect()(data);
-  t.equal(data.headers.location, expected);
-  t.end();
+  assert.strictEqual(data.headers.location, expected);
 });
 
-test("should correctly redirect with //", function (t) {
-  var expected = "http://foobar.com/proxy/http://example.com/not-a-test/";
-  var data = {
+test("should correctly redirect with //", () => {
+  const expected = "http://foobar.com/proxy/http://example.com/not-a-test/";
+  const data = {
     url: "http://example.com/test/",
     headers: {
       location: "//example.com/not-a-test/",
     },
     clientRequest: {
-      thisSite: function () {
+      thisSite() {
         return "http://foobar.com/proxy/";
       },
     },
   };
   redirect()(data);
-  t.equal(data.headers.location, expected);
-  t.end();
+  assert.strictEqual(data.headers.location, expected);
 });
 
-test("should correctly redirect with // and https", function (t) {
-  var expected = "http://foobar.com/proxy/https://example.com/not-a-test/";
-  var data = {
+test("should correctly redirect with // and https", () => {
+  const expected = "http://foobar.com/proxy/https://example.com/not-a-test/";
+  const data = {
     url: "https://example.com/test/",
     headers: {
       location: "//example.com/not-a-test/",
     },
     clientRequest: {
-      thisSite: function () {
+      thisSite() {
         return "http://foobar.com/proxy/";
       },
     },
   };
   redirect()(data);
-  t.equal(data.headers.location, expected);
-  t.end();
+  assert.strictEqual(data.headers.location, expected);
 });
