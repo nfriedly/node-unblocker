@@ -4,7 +4,6 @@ const assert = require("node:assert/strict");
 const { PassThrough } = require("node:stream");
 const zlib = require("node:zlib");
 const { test } = require("node:test");
-const concat = require("concat-stream");
 const { streamToString } = require("./test_utils.js");
 const decompress = require("../lib/decompress.js");
 const defaultConfig = require("../lib/unblocker.js").defaultConfig;

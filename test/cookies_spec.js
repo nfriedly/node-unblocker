@@ -2,7 +2,6 @@
 
 const assert = require("node:assert/strict");
 const { PassThrough } = require("node:stream");
-const concat = require("concat-stream");
 const { test } = require("node:test");
 const { getData, pipeToString } = require("./test_utils.js");
 const cookies = require("../lib/cookies.js");

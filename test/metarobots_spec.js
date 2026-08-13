@@ -1,7 +1,6 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const concat = require("concat-stream");
 const { test } = require("node:test");
 const { getData, streamToString } = require("./test_utils.js");
 const defaultConfig = require("../lib/unblocker").defaultConfig;

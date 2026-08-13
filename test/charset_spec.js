@@ -6,11 +6,7 @@ const crypto = require("node:crypto");
 const http = require("node:http");
 const concat = require("concat-stream");
 const { test } = require("node:test");
-const {
-  getServers,
-  getServersAsync,
-  closeServers,
-} = require("./test_utils.js");
+const { getServersAsync, closeServers } = require("./test_utils.js");
 const Unblocker = require("../lib/unblocker.js");
 
 // source is http://qa-dev.w3.org/wmvs/HEAD/dev/tests/xhtml-windows-1250.xhtml which is linked to from http://validator.w3.org/dev/tests/#encoding
@@ -25,7 +21,6 @@ const expected = fs.readFileSync(
 const SOURCE_HASH = "11f694099b205b26a19648ab22602b39c6deb125";
 const EXPECTED_HASH = "4a04a0aa660da6f0eec9534c0e25212a7045ea7c";
 
-
 function readUrl(url) {
   return new Promise((resolve, reject) => {
     http
@@ -35,8 +30,6 @@ function readUrl(url) {
       .on("error", reject);
   });
 }
-
-
 test("source and expected xhtml-windows-1250.xhtml files should not have changed", () => {
   assert.strictEqual(
     crypto.createHash("sha1").update(sourceContent).digest("hex"),
