@@ -4,6 +4,7 @@ const http = require("http");
 const async = require("async");
 const { PassThrough } = require("stream");
 const Unblocker = require("../lib/unblocker.js");
+const concat = require("concat-stream");
 
 function getUnblocker(options) {
   if (options.unblocker) {
@@ -120,4 +121,34 @@ exports.getData = function () {
       statusCode: 200,
     },
   };
+};
+
+exports.streamToString = function (stream) {
+  return new Promise((resolve, reject) => {
+    if (typeof stream.setEncoding === "function") {
+      stream.setEncoding("utf8");
+    }
+    stream.pipe(concat(resolve)).on("error", reject);
+  });
+};
+
+// alias for older tests that used pipeToString
+exports.pipeToString = exports.streamToString;
+
+exports.getServersAsync = function (options) {
+  return new Promise((resolve, reject) => {
+    exports.getServers(options, function (err, servers) {
+      if (err) return reject(err);
+      resolve(servers);
+    });
+  });
+};
+
+exports.closeServers = function (servers) {
+  return new Promise((resolve, reject) => {
+    servers.kill(function (err) {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
 };

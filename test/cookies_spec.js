@@ -4,18 +4,8 @@ const assert = require("node:assert/strict");
 const { PassThrough } = require("node:stream");
 const concat = require("concat-stream");
 const { test } = require("node:test");
-const utils = require("./test_utils.js");
-const { getData } = utils;
+const { getData, pipeToString } = require("./test_utils.js");
 const cookies = require("../lib/cookies.js");
-
-function pipeToString(stream) {
-  return new Promise((resolve, reject) => {
-    if (typeof stream.setEncoding === "function") {
-      stream.setEncoding("utf8");
-    }
-    stream.pipe(concat(resolve)).on("error", reject);
-  });
-}
 
 test("should copy cookies and redirect in response to a __proxy_cookies_to query param", async () => {
   const instance = cookies({

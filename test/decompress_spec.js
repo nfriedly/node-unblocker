@@ -5,17 +5,9 @@ const { PassThrough } = require("node:stream");
 const zlib = require("node:zlib");
 const { test } = require("node:test");
 const concat = require("concat-stream");
+const { streamToString } = require("./test_utils.js");
 const decompress = require("../lib/decompress.js");
 const defaultConfig = require("../lib/unblocker.js").defaultConfig;
-
-function streamToString(stream) {
-  return new Promise((resolve, reject) => {
-    if (typeof stream.setEncoding === "function") {
-      stream.setEncoding("utf8");
-    }
-    stream.pipe(concat(resolve)).on("error", reject);
-  });
-}
 
 test("should decompress data compressed with gzip", async () => {
   const source = zlib.createGzip();

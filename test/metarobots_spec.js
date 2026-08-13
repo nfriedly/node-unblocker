@@ -3,19 +3,13 @@
 const assert = require("node:assert/strict");
 const concat = require("concat-stream");
 const { test } = require("node:test");
-const utils = require("./test_utils.js");
-const { getData } = utils;
+const { getData, streamToString } = require("./test_utils.js");
 const defaultConfig = require("../lib/unblocker").defaultConfig;
 const metaRobots = require("../lib/meta-robots.js");
 
 const head = "<html><head><title>test</title></head>";
 const body = "<body><p>asdf</p></body></html>";
 
-function streamToString(stream) {
-  return new Promise((resolve, reject) => {
-    stream.pipe(concat(resolve)).on("error", reject);
-  });
-}
 
 test("should add a meta tag to the head", async () => {
   const expected = `<html><head><title>test</title><meta name="ROBOTS" content="NOINDEX, NOFOLLOW"/>
