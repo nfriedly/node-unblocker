@@ -3,45 +3,17 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const fs = require("fs");
-const concat = require("concat-stream");
 const hyperquest = require("hyperquest");
-const getServers = require("./test_utils.js").getServers;
+const {
+  getServersAsync,
+  closeServers,
+  requestAndConcat,
+} = require("./test_utils.js");
 const express = require("express");
 const Unblocker = require("../lib/unblocker.js");
 
 const sourceContent = fs.readFileSync(__dirname + "/source/index.html");
 const expected = fs.readFileSync(__dirname + "/expected/index.html");
-
-function getServersAsync(options) {
-  return new Promise((resolve, reject) => {
-    getServers(options, function (err, servers) {
-      if (err) {
-        return reject(err);
-      }
-      resolve(servers);
-    });
-  });
-}
-
-function killServersAsync(servers) {
-  return new Promise((resolve, reject) => {
-    servers.kill(function (err) {
-      return err ? reject(err) : resolve();
-    });
-  });
-}
-
-async function requestAndConcat(url) {
-  return new Promise((resolve, reject) => {
-    hyperquest(url)
-      .pipe(
-        concat(function (data) {
-          resolve(data.toString());
-        })
-      )
-      .on("error", reject);
-  });
-}
 
 test("url_rewriting should support support all kinds of links", async () => {
   const servers = await getServersAsync({
@@ -56,7 +28,7 @@ test("url_rewriting should support support all kinds of links", async () => {
       expected.toString().replace(/<remotePort>/g, servers.remotePort)
     );
   } finally {
-    await killServersAsync(servers);
+    await closeServers(servers);
   }
 });
 
@@ -70,7 +42,7 @@ test("should return control to parent when route doesn't match and no referer is
     const actual = await requestAndConcat(servers.homeUrl);
     assert.strictEqual(actual, "this is the home page");
   } finally {
-    await killServersAsync(servers);
+    await closeServers(servers);
   }
 });
 
@@ -104,7 +76,7 @@ test("should redirect root-relative urls when the correct target can be determin
       ).on("error", reject);
     });
   } finally {
-    await killServersAsync(servers);
+    await closeServers(servers);
   }
 });
 
@@ -138,7 +110,7 @@ test("should redirect root-relative urls when the correct target can be determin
       ).on("error", reject);
     });
   } finally {
-    await killServersAsync(servers);
+    await closeServers(servers);
   }
 });
 
@@ -167,7 +139,7 @@ test("should NOT redirect http urls that have had the slashes merged (http:/ ins
       ).on("error", reject);
     });
   } finally {
-    await killServersAsync(servers);
+    await closeServers(servers);
   }
 });
 
@@ -199,7 +171,7 @@ test("should redirect http urls that have had the have two occurrences of /prefi
       ).on("error", reject);
     });
   } finally {
-    await killServersAsync(servers);
+    await closeServers(servers);
   }
 });
 
@@ -228,7 +200,7 @@ test("should redirect http urls that end in a TLD without a /", async () => {
       ).on("error", reject);
     });
   } finally {
-    await killServersAsync(servers);
+    await closeServers(servers);
   }
 });
 
@@ -261,6 +233,6 @@ test("should redirect http urls that end in a TLD without a / when req.protocol 
       ).on("error", reject);
     });
   } finally {
-    await killServersAsync(servers);
+    await closeServers(servers);
   }
 });

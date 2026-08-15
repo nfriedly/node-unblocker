@@ -152,3 +152,28 @@ exports.closeServers = function (servers) {
     });
   });
 };
+
+exports.requestAndConcat = function (url) {
+  return new Promise((resolve, reject) => {
+    http
+      .get(url, (res) => {
+        res.pipe(
+          concat(function (data) {
+            resolve(data.toString());
+          })
+        );
+      })
+      .on("error", reject);
+  });
+};
+
+// Returns raw Buffer (not string) for binary/charset-sensitive comparisons
+exports.readUrl = function (url) {
+  return new Promise((resolve, reject) => {
+    http
+      .get(url, (res) => {
+        res.pipe(concat(resolve)).on("error", reject);
+      })
+      .on("error", reject);
+  });
+};
