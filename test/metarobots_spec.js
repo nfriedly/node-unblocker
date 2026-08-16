@@ -35,7 +35,7 @@ test("should not modify javascript", async () => {
   data.contentType = "text/javascript";
   const streamStart = data.stream;
   streamStart.setEncoding("utf8");
-  instance(data);
+  instance(data); // this will replace data.stream when modifying the contents
   const streamEnd = data.stream;
 
   const js = `document.write('${head}')`;

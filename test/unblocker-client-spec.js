@@ -55,7 +55,7 @@ const testCases = [
   },
   // todo: port numbers
   // todo: more https tests
-  // todo: websockets(? )
+  // todo: websockets(?)
 ];
 
 testCases.forEach((tc) => {

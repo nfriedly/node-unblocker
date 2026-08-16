@@ -84,7 +84,7 @@ test("should copy any missing cookies to a 3xx redirect", () => {
   data.headers = {
     "set-cookie": "one=1; Path=/; HttpOnly",
   };
-  data.redirectUrl = "https://example.com/";
+  data.redirectUrl = "https://example.com/"; // this is normally set by the redirects middleware before it changes the location header
   instance.handleResponse(data);
   const expected = {
     "set-cookie": [

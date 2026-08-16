@@ -192,7 +192,7 @@ test("should redirect http urls that end in a TLD without a /", async () => {
           assert.strictEqual(res.statusCode, 307, "http status code");
           assert.strictEqual(
             res.headers.location,
-            servers.proxiedUrl,
+            servers.proxiedUrl, // correct URL with the trailing /
             "redirect location"
           );
           resolve();
@@ -217,6 +217,7 @@ test("should redirect http urls that end in a TLD without a / when req.protocol 
   try {
     await new Promise((resolve, reject) => {
       hyperquest(
+        // strip the trailing /
         servers.proxiedUrl.substr(0, servers.proxiedUrl.length - 1),
         function (err, res) {
           if (err) {
