@@ -120,10 +120,9 @@ test("it should forward the path in a websocket requests when the prefix is miss
 
       const wsurl = new URL(servers.homeUrl + "websocket-path");
       wsurl.protocol = "ws:";
-      new WebSocket(wsurl.href, { headers: { referer: servers.proxiedUrl } }).on(
-        "error",
-        reject
-      );
+      new WebSocket(wsurl.href, {
+        headers: { referer: servers.proxiedUrl },
+      }).on("error", reject);
     });
   } finally {
     await closeServers(servers);

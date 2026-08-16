@@ -60,7 +60,10 @@ const testCases = [
 
 testCases.forEach((tc) => {
   test(JSON.stringify(tc), () => {
+    // TODO: replace || with ??
     const actual = fixUrl(tc.url, tc.config || config, tc.location || location);
     assert.strictEqual(actual, tc.expected);
   });
 });
+
+// TODO: something about cookies and subdomains

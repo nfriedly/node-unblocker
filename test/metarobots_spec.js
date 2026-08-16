@@ -9,7 +9,6 @@ const metaRobots = require("../lib/meta-robots.js");
 const head = "<html><head><title>test</title></head>";
 const body = "<body><p>asdf</p></body></html>";
 
-
 test("should add a meta tag to the head", async () => {
   const expected = `<html><head><title>test</title><meta name="ROBOTS" content="NOINDEX, NOFOLLOW"/>
 </head>`;

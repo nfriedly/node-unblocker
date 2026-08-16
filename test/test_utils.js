@@ -47,6 +47,8 @@ function getProxyApp(unblocker) {
  *  - sourceContent can be a buffer or string that is automatically served by the default remoteApp
  * @param next
  */
+// DEPRECATED: callback-based API kept only for test/performance.js (manual benchmark, not in test suite).
+// Use getServersAsync() instead.
 exports.getServers = function (options, next) {
   if (typeof options == "string" || options instanceof Buffer) {
     options = {
