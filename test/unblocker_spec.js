@@ -205,6 +205,7 @@ test("should redirect http urls that end in a TLD without a /", async () => {
 });
 
 test("should redirect http urls that end in a TLD without a / when req.protocol is set", async () => {
+  // express sets req.protocol
   const app = express();
   const unblocker = new Unblocker({});
   app.use(unblocker);
@@ -226,7 +227,7 @@ test("should redirect http urls that end in a TLD without a / when req.protocol 
           assert.strictEqual(res.statusCode, 307, "http status code");
           assert.strictEqual(
             res.headers.location,
-            servers.proxiedUrl,
+            servers.proxiedUrl, // correct URL with the trailing /
             "redirect location"
           );
           resolve();

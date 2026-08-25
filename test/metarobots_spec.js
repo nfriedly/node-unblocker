@@ -38,6 +38,9 @@ test("should not modify javascript", async () => {
   instance(data); // this will replace data.stream when modifying the contents
   const streamEnd = data.stream;
 
+  // commented out so that we can test the results rather than the implimentation details
+  //t.equal(streamStart, streamEnd);
+
   const js = `document.write('${head}')`;
   const expected = js;
 
