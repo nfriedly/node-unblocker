@@ -45,69 +45,66 @@ function getProxyApp(unblocker) {
  *  - options is an object with one or more of {sourceContent,charset,remoteApp,proxyApp},
  *  or
  *  - sourceContent can be a buffer or string that is automatically served by the default remoteApp
- * @param next
  */
-// DEPRECATED: callback-based API kept only for test/performance.js (manual benchmark, not in test suite).
-// Use getServersAsync() instead.
-exports.getServers = function (options, next) {
-  if (typeof options == "string" || options instanceof Buffer) {
-    options = {
-      sourceContent: options,
-    };
-  }
-
-  const remoteApp =
-    options.remoteApp ||
-    function sendContent(req, res) {
-      res.writeHead(200, {
-        "content-type":
-          "text/html" + (options.charset ? "; charset=" + options.charset : ""),
-      });
-      res.end(options.sourceContent);
-    };
-
-  const unblocker = getUnblocker(options);
-
-  const proxyApp = options.proxyApp || getProxyApp(unblocker);
-
-  const proxyServer = http.createServer(proxyApp);
-  const remoteServer = http.createServer(remoteApp);
-
-  proxyServer.setTimeout(5000);
-  remoteServer.setTimeout(5000);
-
-  proxyServer.on("upgrade", unblocker.onUpgrade);
-
-  async.parallel(
-    [
-      proxyServer.listen.bind(proxyServer),
-      remoteServer.listen.bind(remoteServer),
-    ],
-    function (err) {
-      if (err) {
-        return next(err);
-      }
-      const ret = {
-        proxyServer: proxyServer,
-        proxyPort: proxyServer.address().port,
-        remoteServer: remoteServer,
-        remotePort: remoteServer.address().port,
-        kill: function (next) {
-          async.parallel(
-            [
-              remoteServer.close.bind(remoteServer),
-              proxyServer.close.bind(proxyServer),
-            ],
-            next
-          );
-        },
+exports.getServersAsync = function (options) {
+  return new Promise((resolve, reject) => {
+    if (typeof options == "string" || options instanceof Buffer) {
+      options = {
+        sourceContent: options,
       };
-      ret.homeUrl = "http://localhost:" + ret.proxyPort + "/";
-      ret.remoteUrl = "http://localhost:" + ret.remotePort + "/";
-      ret.proxiedUrl = ret.homeUrl + "proxy/" + ret.remoteUrl;
-      next(null, ret);
     }
-  );
+
+    const remoteApp =
+      options.remoteApp ||
+      function sendContent(req, res) {
+        res.writeHead(200, {
+          "content-type":
+            "text/html" +
+            (options.charset ? "; charset=" + options.charset : ""),
+        });
+        res.end(options.sourceContent);
+      };
+
+    const unblocker = getUnblocker(options);
+    const proxyApp = options.proxyApp || getProxyApp(unblocker);
+
+    const proxyServer = http.createServer(proxyApp);
+    const remoteServer = http.createServer(remoteApp);
+
+    proxyServer.setTimeout(5000);
+    remoteServer.setTimeout(5000);
+
+    proxyServer.on("upgrade", unblocker.onUpgrade);
+
+    async.parallel(
+      [
+        proxyServer.listen.bind(proxyServer),
+        remoteServer.listen.bind(remoteServer),
+      ],
+      function (err) {
+        if (err) return reject(err);
+        const ret = {
+          proxyServer,
+          proxyPort: proxyServer.address().port,
+          remoteServer,
+          remotePort: remoteServer.address().port,
+          kill: function (next) {
+            async.parallel(
+              [
+                remoteServer.close.bind(remoteServer),
+                proxyServer.close.bind(proxyServer),
+              ],
+              next
+            );
+          },
+        };
+        ret.homeUrl = "http://localhost:" + ret.proxyPort + "/";
+        ret.remoteUrl = "http://localhost:" + ret.remotePort + "/";
+        ret.proxiedUrl = ret.homeUrl + "proxy/" + ret.remoteUrl;
+        resolve(ret);
+      }
+    );
+  });
 };
 
 exports.getData = function () {
@@ -136,15 +133,6 @@ exports.streamToString = function (stream) {
 
 // alias for older tests that used pipeToString
 exports.pipeToString = exports.streamToString;
-
-exports.getServersAsync = function (options) {
-  return new Promise((resolve, reject) => {
-    exports.getServers(options, function (err, servers) {
-      if (err) return reject(err);
-      resolve(servers);
-    });
-  });
-};
 
 exports.closeServers = function (servers) {
   return new Promise((resolve, reject) => {
