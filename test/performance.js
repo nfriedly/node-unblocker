@@ -6,7 +6,7 @@ const concat = require("concat-stream");
 const hyperquest = require("hyperquest");
 const math = require("math-helpers")();
 const async = require("async");
-const { getServers } = require("./test_utils.js");
+const { getServersAsync, closeServers } = require("./test_utils.js");
 
 const html_path = path.join(__dirname, "source/index.html");
 const js_path = path.join(
@@ -22,14 +22,8 @@ function remoteApp(req, res) {
   }
 }
 
-// fire up the server and actually run the tests
-getServers({ remoteApp }, function (err, servers) {
-  // set up the cleanup work first
-  //process.on('SIGINT', servers.kill);
-  //process.on('SIGTERM', servers.kill);
-  if (err) {
-    throw err;
-  }
+async function main() {
+  const servers = await getServersAsync({ remoteApp });
 
   const iterations_html = 1000;
   const concurrency_html = 30;
@@ -39,87 +33,96 @@ getServers({ remoteApp }, function (err, servers) {
 
   var baseline, proxy;
 
-  new async.series(
-    [
-      function (next) {
-        runTest(
-          "Baseline HTML",
-          servers.remoteUrl,
-          iterations_html,
-          concurrency_html,
-          function (baseFailures, baseSuccesses, time) {
-            baseline = getStats(
+  try {
+    await new Promise((resolve, reject) => {
+      async.series(
+        [
+          function (next) {
+            runTest(
+              "Baseline HTML",
+              servers.remoteUrl,
               iterations_html,
-              baseFailures,
-              baseSuccesses,
-              time
+              concurrency_html,
+              function (baseFailures, baseSuccesses, time) {
+                baseline = getStats(
+                  iterations_html,
+                  baseFailures,
+                  baseSuccesses,
+                  time
+                );
+                printStats(baseline);
+                next();
+              }
             );
-            printStats(baseline);
-            next();
-          }
-        );
-      },
-      function (next) {
-        runTest(
-          "Proxy HTML",
-          servers.proxiedUrl,
-          iterations_html,
-          concurrency_html,
-          function (proxyFailures, proxySuccesses, time) {
-            proxy = getStats(
+          },
+          function (next) {
+            runTest(
+              "Proxy HTML",
+              servers.proxiedUrl,
               iterations_html,
-              proxyFailures,
-              proxySuccesses,
-              time
+              concurrency_html,
+              function (proxyFailures, proxySuccesses, time) {
+                proxy = getStats(
+                  iterations_html,
+                  proxyFailures,
+                  proxySuccesses,
+                  time
+                );
+                printStats(proxy, baseline);
+                next();
+              }
             );
-            printStats(proxy, baseline);
-            next();
-          }
-        );
-      },
-      function (next) {
-        runTest(
-          "Baseline JS",
-          servers.remoteUrl + "js",
-          iterations_js,
-          concurrency_js,
-          function (baseFailures, baseSuccesses, time) {
-            baseline = getStats(
+          },
+          function (next) {
+            runTest(
+              "Baseline JS",
+              servers.remoteUrl + "js",
               iterations_js,
-              baseFailures,
-              baseSuccesses,
-              time
+              concurrency_js,
+              function (baseFailures, baseSuccesses, time) {
+                baseline = getStats(
+                  iterations_js,
+                  baseFailures,
+                  baseSuccesses,
+                  time
+                );
+                printStats(baseline);
+                next();
+              }
             );
-            printStats(baseline);
-            next();
-          }
-        );
-      },
-      function (next) {
-        runTest(
-          "Proxy JS",
-          servers.proxiedUrl + "js",
-          iterations_js,
-          concurrency_js,
-          function (proxyFailures, proxySuccesses, time) {
-            proxy = getStats(
+          },
+          function (next) {
+            runTest(
+              "Proxy JS",
+              servers.proxiedUrl + "js",
               iterations_js,
-              proxyFailures,
-              proxySuccesses,
-              time
+              concurrency_js,
+              function (proxyFailures, proxySuccesses, time) {
+                proxy = getStats(
+                  iterations_js,
+                  proxyFailures,
+                  proxySuccesses,
+                  time
+                );
+                printStats(proxy, baseline);
+                next();
+              }
             );
-            printStats(proxy, baseline);
-            next();
-          }
-        );
-      },
-    ],
-    function (err) {
-      console.log(err || "");
-      servers.kill();
-    }
-  );
-});
+          },
+        ],
+        function (err) {
+          console.log(err || "");
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+  } finally {
+    await closeServers(servers);
+  }
+}
+
+main();
 
 function runTest(name, url, iterations, concurrency, cb) {
   console.log("\n\n=========\n" + name + "\n=========");
