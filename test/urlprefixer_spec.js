@@ -178,11 +178,6 @@ const testLines = {
 const testUri = URL.parse("http://localhost:8081/");
 const testPrefix = "/proxy/";
 
-// this causes the following warning:
-// (node) warning: Recursive process.nextTick detected. This will break in the next version of node. Please use setImmediate for recursive deferral.
-//t.test("Should handle breaks between '" + start.substr(-20) + "' and '" + end.substr(0,20) + "' correctly", function(t) {
-//});
-
 function createStreamPromise(start, end) {
   return new Promise((resolve, reject) => {
     const stream = urlPrefix.createStream(testUri);
